@@ -1,0 +1,38 @@
+
+body {background-color:black;
+overflow: -moz-scrollbars-vertical; 
+overflow-y: scroll;
+}
+
+/*------------START: Define link properties  -------------*/
+
+/* general link properties */
+a     {color: white ;
+       background-color: transparent ;
+       text-decoration:underline ;
+}
+
+
+a:visited{color: white ;
+          background-color: transparent; 
+          text-decoration: underline ;
+}
+
+
+a:hover{color: cyan; 
+/*        border-bottom: 1px dotted #ffdcdc ; NOT FOR NOW */
+        background-color:transparent ; 
+        background:transparent ; 
+        text-decoration: none ;
+}
+
+
+a:active{color: cyan ; 
+         background-color: transparent ; 
+         text-decoration:underline ;
+}
+
+/*------------END: Define link properties  -------------*/
+
+
+

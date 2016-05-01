@@ -1,0 +1,27 @@
+<html>
+
+<head>
+<META HTTP-EQUIV="refresh" CONTENT="120">
+<link rel="icon" type="image/png" href="./ico.png" />
+<title>TissueVision Current</title>
+
+</head>
+
+<body bgcolor="#000000">
+
+
+<div class="example">
+<p align="center" style="color:white;font-family:sans-serif;">
+<!--#include virtual="details.txt"-->
+<br />
+
+<img id="img_02" src="LastCompleteSection_small.jpg" alt="last complete TV section"
+     border="1px"  style="border-color:#333333" width="1440px"/>
+
+</p>
+</div>
+
+<!--#include virtual="../counter.shtml"-->
+
+</body>
+</html>

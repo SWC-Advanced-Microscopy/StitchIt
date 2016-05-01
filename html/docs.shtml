@@ -1,0 +1,148 @@
+<html>
+
+<head>
+
+<link rel="icon" type="image/png" href="./ico.png" />
+<title>TissueVision Documentation</title>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $("button").click(function(){
+
+        var tileAcqTime = 1.43;
+        var totalLayers =  document.getElementById("layers").value *  document.getElementById("sections").value;
+
+        var numTiles = document.getElementById("X").value *  
+                     document.getElementById("Y").value  *
+                     totalLayers;
+
+        var totalCutTime = ((document.getElementById("cutTime").value * document.getElementById("sections").value)/60)/60;
+
+        var tileTimeInSeconds=0.715;
+
+        if (document.getElementById("0.5").checked)
+        {
+             tileTimeInSeconds=1.43;
+        };
+
+        var cutTime = ((numTiles*tileTimeInSeconds)/60)/60 + totalCutTime;
+        cutTime = Math.round(cutTime*10)/10;
+        $('#RESULT').html( "Total Time: " + cutTime + " hours" );
+    }); //Click function
+
+
+});
+
+</script>
+</head>
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<style>
+body{background:#151519;margin:0;padding:0;color:white;font-family:sans-serif;}
+
+
+a:link  {
+                         color: #a5d7d2;
+                         text-decoration: underline;
+}
+a:visited   {
+                         color: #a5d7d2;
+                         text-decoration: underline;
+}
+
+a:hover {
+             color: white; 
+                         text-decoration: underline;
+}
+
+li
+{
+padding-right: .6em;
+margin: 1em 0;
+}
+</style>
+
+
+
+
+<body>
+
+
+<h1><p align="center">Basel TissueCyte Documentation</p></h1>
+<div id="maintext_tv", style="
+         top:0px;
+         position:relative;
+         background-color:black;
+         width:1250px;
+         border:1px gray solid;
+         margin:0px auto;
+         margin-bottom:30px;
+         padding:0.75em;">
+
+
+
+
+<p>
+<h3>Running a sample through the TissueCyte</h3>
+</p>
+
+
+<h3>Acquisition time calculator</h3>
+<a name="acqTime"></a> 
+<div id="calcBox" style="border:1px white dashed; width:400px; padding:20px">
+
+<label for="xTiles">X tiles:
+<input size="10" maxlength="5" name="X" value="11" id="X" type="text"></label> 
+
+
+<label for="yTiles">Y tiles:
+<input size="10" maxlength="5" name="Y" value="17" id="Y" type="text"></label> 
+
+<br>
+<br>
+
+<label for="sections">Sections:
+<input size="10" maxlength="5" name="sections" value="200" id="sections" type="text"></label> 
+
+
+<br>
+<br>
+
+<label for="layers">Layers:
+<input size="10" maxlength="5" name="layers" value="2" id="layers" type="text"></label> 
+
+<br>
+<br>
+
+<form action="">
+<input name="resolution" value="0.5" id="0.5" type="radio"> 0.5 &#956;m/pixel<br>
+<input name="resolution" value="1.0" id="1.0" checked="checked" type="radio">1.0 &#956;m/pixel
+</form>
+
+
+<br>
+<br>
+
+<label for="cuttingTime">Cutting time (s):
+<input size="10" maxlength="5" name="cuttingTime" value="180" id="cutTime" type="text"></label> 
+
+
+<br>
+
+ <button type="button">CALC</button> 
+
+
+<p id="RESULT">Total Time:</p>
+
+
+</div> <!-- main div box -->
+
+</body>
+</html>

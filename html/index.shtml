@@ -1,0 +1,78 @@
+<html>
+
+<head>
+<META HTTP-EQUIV="refresh" CONTENT="180">
+<link rel="icon" type="image/png" href="./ico.png" />
+<title>TissueVision Current</title>
+<script type='text/javascript' src="js/jquery-1.5.2.min.js"></script>
+<script type='text/javascript' src="js/jquery.imageLens.js"></script>
+<script type='text/javascript' src="js/main.js"></script>
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<!-- Turn text and image border red if image not updated for >30 minutes -->
+<script type='text/javascript' >
+$(document).ready(function(){
+
+  //Extract last section time from web page
+  var txt = $("#info").text();
+  var re = /(2\d{3}\/.*:\d{2})/;
+  match=txt.match(re);
+  var lastSectionTimeInMinutes = Date.parse(match[0])/60000;
+
+  //Current time
+  var currentTimeInMinutes = (+new Date)/60000;
+
+  //If over half an hour has elapsed we turn stuff red
+  if ((currentTimeInMinutes-lastSectionTimeInMinutes)>30){
+    $('#info').css("color","red");
+    $('#img_02').css("border-color","orangered");
+  }
+});
+
+</script> 
+
+</head>
+
+
+
+<body>
+
+<div class="example">
+<p id="info" align="center" style="color:white;font-family:sans-serif;">
+<!--#include virtual="details.txt"-->
+<br />
+
+<!-- The Awesome Image of Amazingness -->
+<img id="img_02" src="LastCompleteSection.jpg" alt="last complete TV section"
+      width="1250px" style="position:relative;left:0px; top:0px; border:1px gray solid;"/>
+
+</p>
+
+
+<!-- histogram box
+<div style="position:absolute; bottom:0; left:0px; border-color:#333333;
+        border:1px solid white;
+	    width:325px; height:180px; 
+	    margin:0px; padding:0px;
+        background-image:url(./hist.png); 
+        background-repeat:no-repeat;
+        background-size: 325px 180px;
+        opacity:0.6;">
+</div>
+ -->
+
+</div> <!--tvImage-->
+
+<div style="position:relative; 
+	        width:1250px; 
+	        top:0px;margin: 0 auto;">
+
+
+</div>
+
+
+
+</body>
+</html>

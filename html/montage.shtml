@@ -1,0 +1,32 @@
+<html>
+
+<head>
+<META HTTP-EQUIV="refresh" CONTENT="120">
+<link rel="icon" type="image/png" href="./ico.png" />
+<title>TissueVision Current</title>
+
+<script src="js/jquery-1.5.2.min.js"></script>
+<script src="js/jquery.imageLens.js"></script>
+<script src="js/main.js"></script>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+<div class="example">
+<p align="center" style="color:white;font-family:sans-serif;">
+<!--#include virtual="details_montage.txt"-->
+<br />
+
+<img id="img_02" src="montage.jpg" alt="last complete TV section"
+     border="1px"  style="border-color:#333333" width="1250px"/>
+
+</p>
+</div>
+
+<!--#include virtual="../counter.shtml"-->
+
+</body>
+</html>
