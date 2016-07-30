@@ -158,7 +158,7 @@ end
 
 
 numStitched=0; %The number of images stitched. This is just used for error checking
-for ii=1:size(section,1) 
+for ii=1:size(section,1) %Tile loading is done in parallel. 
 	% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	%Load the data
 

@@ -31,7 +31,7 @@ end
 
 
 
-generateTileIndex(sectionToPlot,[],0)
+generateTileIndex(sectionToPlot,[],0);
 
 %The section index
 tok=regexp(sectionToPlot,'.*-(\d+)','tokens'); 
@@ -181,7 +181,7 @@ lastSection_small='LastCompleteSection_small.jpg';
 imwrite(imresize(im,0.33),[userConfig.subdir.WEBdir,filesep,lastSection_small],'bitdepth',8)
 
 %Send all to then web
-returnVal=system(sprintf('scp -r -q %s%s* %s', userConfig.subdir.WEBdir, filesep, sendTo));
+returnVal=system(sprintf('LD_LIBRARY_PATH= scp -r -q %s%s* %s', userConfig.subdir.WEBdir, filesep, sendTo));
 
 if returnVal==1
 	fprintf('WARNING: image failed to send to %s. Do you have access rights to that server?\n', sendTo);
