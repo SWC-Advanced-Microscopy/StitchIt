@@ -1,20 +1,7 @@
 function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doPhaseCorrection)
 % For user documentation run "help tileLoad" at the command line
 % 
-% the index output is (for now) mostly the same as that produced by the TV version
-% only the channel data are not.
-%
-% TODO: is this sensible?
-
-% index columns:
-%  1. file index
-%  2. z-section index
-%  3. optical section
-%  4. tile row
-%  5. tile column
-%  6. presence of chan 1 [0/1]
-%  7. presence of chan 2 [0/1]
-%  8. presence of chan 3 [0/1]
+% This function works without the need for generateTileIndex
 
 %TODO: abstract the error checking?
 
@@ -70,9 +57,12 @@ if ~exist(sectionDir,'dir')
 		mfilename,sprintf('%s',sectionDir))
 	im=[];
 	positionArray=[];
+	index=[];
 	return
 end
 %/COMMON
+
+
 
 %Load the tile position information
 load(fullfile(sectionDir, 'tilePositions.mat')); %contains variable positionArray
@@ -106,12 +96,13 @@ end
 
 %So now build the expected file name of the TIFF stack
 sectionNum = coords(1);
+planeNum = coords(2);
 channel = coords(5);
 
-sectionTiff = sprintf('section_%04d_ch%02d.tif',sectionNum,channel);
+sectionTiff = sprintf('section_%04d_plane_%02d_ch%02d.tif',sectionNum,planeNum,channel);
 path2stack = fullfile(sectionDir,sectionTiff);
 if ~exist(path2stack,'file')
-	fprintf('Can not find stack %s\n',path2stack);
+	fprintf('%s - Can not find stack %s\n', mfilename, path2stack);
 	im=[];
 	positionArray=[];
 	return
@@ -119,8 +110,9 @@ end
 
 %BT
 %Load the stack
-im=load3Dtiff(path2stack,indsToKeep);
-im=rot90(im); %TODO: Could do this at acquisition time
+im=loadTiffStack(path2stack,'frames',indsToKeep,'outputType','int16');
+im=flipud(im); %TODO: Could do this at acquisition time
+
 
 %---------------
 %Build index output so we are compatible with the TV version (for now)
@@ -131,6 +123,7 @@ index(:,4) = positionArray(indsToKeep,2);
 index(:,5) = positionArray(indsToKeep,1);
 %---------------
 %/BT
+
 
 
 %--------------------------------------------------------------------
@@ -211,9 +204,6 @@ if doIlluminationCorrection
 		
 end
 %/COMMON
-
-
-
 
 %Calculate average filename from tile coordinates. We could simply load the
 %image for one layer and one channel, or we could try odd stuff like averaging

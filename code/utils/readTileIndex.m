@@ -25,7 +25,9 @@ function data=readTileIndex(fname)
 %
 %
 % Rob Campbell - Basel 2014 
-
+%
+%
+% See Also: generateTileIndex
 
 
 fid=fopen(fname,'r');

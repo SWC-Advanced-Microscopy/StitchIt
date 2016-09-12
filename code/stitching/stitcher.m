@@ -76,12 +76,6 @@ allocatedSize=size(stitchedPlane);
 
 %Lay down the tiles
 
-
-%let's see how much photo-bleaching there is
-intOrig=zeros(size(imStack,3));
-intNew=zeros(size(imStack,3));
-
-
 %Get stitching parameters
 userConfig=readStitchItINI;
 

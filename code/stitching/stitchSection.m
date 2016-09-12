@@ -87,6 +87,8 @@ if ~isnumeric(channel)
 end
 
 
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 %Parse optional arguments
 params = inputParser;
 params.CaseSensitive = false;
@@ -98,18 +100,11 @@ params.parse(varargin{:});
 stitchedSize=params.Results.stitchedSize;
 overwrite=params.Results.overwrite;
 doChessBoard=params.Results.chessboard;
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
-%Get overlap or determine number of microns per pixel 
 param=readMetaData2Stitchit(getTiledAcquisitionParamFile); 
 userConfig=readStitchItINI;
-if userConfig.micsPerPixel.usemeasured
-	%If usemeasured is true, we use the measured value of mics per pixel from measuring with a grid.
-	pixRes = [userConfig.micsPerPixel.micsPerPixel, userConfig.micsPerPixel.micsPerPixel];
-else
-	%Otherwise we use these tweaked values. 
-	pixRes = [userConfig.micsPerPixel.micsPerPixelRows, userConfig.micsPerPixel.micsPerPixelCols];
-end
 
 
 %Extract preferences from INI file structure
@@ -205,14 +200,13 @@ for ii=1:size(section,1) %Tile loading is done in parallel.
 		pixelPos = stagePos2PixelPos(mosData,pixRes);
 
 		%Determine the final stitched image size as though we were not using stage coords
-		naivePos=gridPos2Pixels(tileIndex,pixRes)
+		naivePos=gridPos2Pixels(tileIndex,[param.voxelSize.x,param.voxelSize.y])
 		naiveMaxPos=max(naivePos)+tileSize;
 		naiveWidth=naiveMaxPos(1);
 		naiveHeight=naiveMaxPos(2);		
 		warning('on') %Supress annoying temporary variable warnings
 	else %just use the naive positions
-
-		pixelPos=gridPos2Pixels(tileIndex,pixRes); 
+		pixelPos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]); 
 
 	end %if doStageCoords
 

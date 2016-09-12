@@ -113,7 +113,7 @@ end
 expDir = [localDir,filesep,expName,extension]; %we add extension just in case the user put a "." in the file name
 
 %Initial INI file read
-config=readStitchItINI([],0);
+config=readStitchItINI;
 
 
 %Do an initial rsync 

@@ -43,7 +43,6 @@ out.sample.acqStartTime = raw.acqDate; %convert from: '10/9/2015 10:10:49 AM'
 out.sample.objectiveName='';
 out.sample.scanmode='tile';
 out.sample.excitationWavelength = raw.excwavelength; %depends on the user filling this in
-out.modulatorSetPoint=[]; %empty, but could be a vector of, say, Pockels cell values
 
 if raw.channels==3
 	out.sample.activeChannels=1:3;
@@ -71,8 +70,27 @@ out.tile.nColumns=raw.columns;
 
 
 %  Voxel size
-out.voxelsize.x=raw.xres; %x means along the direction of the x stage
-out.voxelsize.y=raw.yres; %y means along the direction of the y stage
+% We don't use the X and Y voxel size values from the Mosaic file. This is partly historical
+% and partly practical. We instead use measured values stored in an INI file. A bit of a hack,
+% but such is the TissueVision. 
+userConfig=readStitchItINI;
+
+micsPerPixScaleFactor = userConfig.micsPerPixel.numPix/out.tile.nRows; 
+userConfig.micsPerPixel.micsPerPixelMeasured = userConfig.micsPerPixel.micsPerPixelMeasured * micsPerPixScaleFactor;
+userConfig.micsPerPixel.micsPerPixelRows = userConfig.micsPerPixel.micsPerPixelRows * micsPerPixScaleFactor;
+userConfig.micsPerPixel.micsPerPixelCols = userConfig.micsPerPixel.micsPerPixelCols * micsPerPixScaleFactor;
+
+%Process the mics per pixel
+if userConfig.micsPerPixel.usemeasured
+	%If usemeasured is true, we use the measured value of mics per pixel from measuring with a grid.
+	pixRes = [userConfig.micsPerPixel.micsPerPixel, userConfig.micsPerPixel.micsPerPixel];
+else
+	%Otherwise we use these tweaked values. 
+	pixRes = [userConfig.micsPerPixel.micsPerPixelRows, userConfig.micsPerPixel.micsPerPixelCols];
+end
+
+out.voxelsize.x=pixRes(1); %x means along the direction of the x stage
+out.voxelsize.y=pixRes(2); %y means along the direction of the y stage
 out.voxelsize.z=raw.zres*2;
 
 

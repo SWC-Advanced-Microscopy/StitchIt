@@ -1,6 +1,9 @@
 function [nCompleted,indexPresent] = generateTileIndex(varargin)
 % Index all raw data tiles in an experiment, link original file names to position in tile array 
 %
+%
+% A tile is defined as a single 2-D image. Each tile is located in a unique position in the
+% 3-D sample. StitchIt uses an index file to associate each tile coordinate with a file. 
 % The index file is called "tileIndex" and is present in each raw data directory. 
 % The file is binary. It's composed of 32 bit unsigned ints. The first int defines the
 % size of one record row. This function doesn't load the TIFFs. It simply indexes 
@@ -42,6 +45,10 @@ function [nCompleted,indexPresent] = generateTileIndex(varargin)
 %
 %
 % Rob Campbell - Basel 2014
+%
+%
+% See also: readTileIndex
+
 
 %NOTE:
 % This function instantiates an object specific to the data acquisition system being used

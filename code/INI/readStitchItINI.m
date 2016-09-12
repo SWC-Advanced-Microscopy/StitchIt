@@ -1,7 +1,7 @@
-function [out,pathToINI]=readStitchItINI(INIfname,processIni)
+function [out,pathToINI]=readStitchItINI(INIfname)
 % Read SitchIt INI file into a structure
 %
-% function [out,pathToINI]=readStitchItINI(INIfname,processIni)
+% function [out,pathToINI]=readStitchItINI(INIfname)
 %
 % Purpose:
 % The INI file called 'stitchitConf.ini' stores the stitching parameters. This
@@ -9,8 +9,7 @@ function [out,pathToINI]=readStitchItINI(INIfname,processIni)
 %
 % Inputs
 % INIfname   - [optional] if empty or missing the string 'stitchitConf.ini' is used. 
-% processIni - [optional] 1 by default. If 0 we don't do extra processing to calculate 
-%              the number of microns per pixel, etc.
+%
 %
 % Outputs
 % out - the contents of the INI file (plus some minor processing) as a structure
@@ -67,35 +66,15 @@ for ii=1:length(fD)
 
 end
 
-
-if ~processIni
-    return
-end
-
 %Pull out the current objective from the structure
 if ~isfield(out, out.experiment.objectiveName)
     error('No objective name field %s found\nPlease check your INI file!', out.experiment.objectiveName')
 end
 thisObjective = out.(out.experiment.objectiveName);
+%Note that for TV data sets, the number of microns per pixel is with respect to the 1664 image size
 out.micsPerPixel.micsPerPixelMeasured=thisObjective.micsPerPixelMeasured;
 out.micsPerPixel.micsPerPixelRows=thisObjective.micsPerPixelRows;
 out.micsPerPixel.micsPerPixelCols=thisObjective.micsPerPixelCols;
-
-
-%Make sure the number of microns per pixel is correct. The values in the INI
-%file are for 1664x1664 images. 
-mosFname = getTiledAcquisitionParamFile(1);
-
-if ~isempty(mosFname)
-    param=readMetaData2Stitchit(mosFname);
-
-    micsPerPixScaleFactor = out.micsPerPixel.numPix/param.tile.nRows; 
-    out.micsPerPixel.micsPerPixelMeasured = out.micsPerPixel.micsPerPixelMeasured * micsPerPixScaleFactor;
-    out.micsPerPixel.micsPerPixelRows = out.micsPerPixel.micsPerPixelRows * micsPerPixScaleFactor;
-    out.micsPerPixel.micsPerPixelCols = out.micsPerPixel.micsPerPixelCols * micsPerPixScaleFactor;
-else
-    fprintf('%s: Not calculating mics per pixel -- no experiment directory found\n\n', mfilename)
-end
 
 
 function out=readThisINI(fname)
