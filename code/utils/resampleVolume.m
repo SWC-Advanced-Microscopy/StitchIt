@@ -12,7 +12,7 @@ function varargout=resampleVolume(channel,targetDims,fileFormat)
 %
 %
 % INPUTS
-% channel - which channel to resize (e.g. stitchedImages_100)
+% channel - which channel to resize (e.g. 1, 2, or 3)
 % targetDims - vector of length 2 defining the pixel resolution in [xy,z] of data in resample
 %              if the user enters a scalar (e.g. 25) then this is expanded to a vector of length 2
 % fileFormat - [optional] by default is 'mhd'. Can also be 'tiff' This determines which
@@ -42,7 +42,10 @@ function varargout=resampleVolume(channel,targetDims,fileFormat)
 % Rob Campbell - Basel 2014
 
 
-
+if ~exist('stitchedImages_100','dir')
+  fprintf('Can not find a stitchedImages_100 directory in the current directory. See the examples in the function help\n')
+  return
+end
 
 origDataDir = sprintf('stitchedImages_100%s%d%s',filesep,channel,filesep);
 files=dir([origDataDir,'sec*.tif']);
@@ -82,11 +85,11 @@ end
 
 %Calculate the original image size
 params=readStitchItINI;
-xy=params.micsPerPixel.micsPerPixelMeasured;
 M=readMetaData2Stitchit;
 z=M.voxelsize.z;
+xy=mean([M.voxelsize.x,M.voxelsize.y]);
 origDims = [xy,z];
-fprintf('original resolution %d um in x/y and %d um in z\n', round(xy), z)
+fprintf('original resolution %0.2f um in x/y and %d um in z\n', xy, z)
 
 
 info=imfinfo([origDataDir,files(1).name]);
@@ -141,6 +144,7 @@ fprintf(fid,'\n---log---\n%s',msg);
 %Rescale in x/y and store resampled volume in RAM
 xyRescaleFactor = origDims(1)/targetDims(1);
 msg=sprintf('Loading and down-sampling x/y by %0.3f\n',1/xyRescaleFactor);
+
 fprintf(msg)
 fprintf(fid,msg);
 

@@ -12,4 +12,4 @@ end
 
 params = yaml.ReadYaml(parameterFile);
 
-baseName = [params.sample.ID,'_'];
+baseName = [params.sample.ID,'-'];

@@ -39,7 +39,7 @@ end
 if verbose
     %Report experiment details to screen
     fprintf(['\nFound experiment with the following parameters:\n',...
-         ' Image size: %d^2\n',...
+         ' Tile size: %d^2\n',...
 	     ' Expected final number of physical sections: %d\n',...
 	     ' Section thickness: %d\n',...
 	     ' Optical sections: %d\n',...
@@ -52,7 +52,8 @@ end
 %Find the raw directories we will descend into. 
 if isempty(sectionDir)
     baseName=directoryBaseName(paramFile);
-    sectionDirectories=dir(fullfile(userConfig.subdir.rawDataDir,[baseName,'*']));
+    directorySearchPath=fullfile(userConfig.subdir.rawDataDir,[baseName,'*']);
+    sectionDirectories=dir(directorySearchPath);
 else
     indexPresent=isIndexFileInDirectory(obj,sectionDir,userConfig);
     if nargout>0
@@ -67,7 +68,7 @@ end
 
 
 if isempty(sectionDirectories)
-	error('Can not find any raw data directories')
+	error('Can not find any raw data directories in %s',directorySearchPath)
 else
     if verbose
     	fprintf('\nFound %d raw data directories\n', length(sectionDirectories))
@@ -81,7 +82,23 @@ indexPresent=ones(1,length(sectionDirectories));
 %Loop through all section directories
 for thisDir = 1:length(sectionDirectories)
     indexPresent(thisDir)=isIndexFileInDirectory(obj,sectionDirectories(thisDir).name,userConfig);
-end
+
+    if indexPresent(thisDir)
+        continue
+    end
+
+    %make the index only if all files are present
+    numExpectedTIFFsPerChannel = data.numTiles.X * data.numTiles.Y;
+    TIFFS = dir(fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name,'*.tif'));
+    if mod(length(TIFFS),numExpectedTIFFsPerChannel)==0
+        fname=fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name,'tileIndex');
+        fid = fopen(fname,'w+');
+        fprintf('Writing empty tileindex to %s\n',fname);
+        fprintf(fid,'tileindex\n');
+        fclose(fid);
+    end
+
+end 
 
 
 %Handle output arguments
@@ -102,9 +119,7 @@ function indexPresent=isIndexFileInDirectory(obj,dirName,userConfig)
 %       present. With TV data, a missing index file indicates that not all data were acquired. 
 %       So we need to decide how to proceed in this regard for other data sets. 
 
-%Skip if the file has already been written
+%Skip if the *tileStats* file has already been written
 tileIndexFname = fullfile(userConfig.subdir.rawDataDir,dirName,'tileIndex');
-if exist(tileIndexFname)
-    indexPresent=1;
-    return
-end
+indexPresent = exist(tileIndexFname,'file');
+

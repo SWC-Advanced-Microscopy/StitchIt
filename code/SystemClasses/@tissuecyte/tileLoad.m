@@ -212,12 +212,12 @@ if doIlluminationCorrection
   		    %Divide by the template. Separate odd and even rows as needed		
   		    oddRows=find(mod(index(:,5),2));
   		    if ~isempty(oddRows)
-  		    	im(:,:,oddRows)=divideByImage(im(:,:,oddRows),aveTemplate(:,:,2)); 
+  		    	im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate(:,:,2)); 
   		    end
 
   		    evenRows=find(~mod(index(:,5),2)); 
   		    if ~isempty(evenRows)
-  		    	im(:,:,evenRows)=divideByImage(im(:,:,evenRows),aveTemplate(:,:,1));
+  		    	im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate(:,:,1));
   		    end
   		case 'pool'
   			aveTemplate = mean(aveTemplate,3);
@@ -225,7 +225,7 @@ if doIlluminationCorrection
   				aveTemplate = repmat(mean(aveTemplate,1), [size(aveTemplate,1),1]);
   			end
   			imagesc(aveTemplate)
-  			im=divideByImage(im,aveTemplate);
+  			im=stitchit.tools.divideByImage(im,aveTemplate);
   		otherwise
   			fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
   		end

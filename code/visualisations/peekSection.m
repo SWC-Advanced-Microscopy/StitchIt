@@ -1,7 +1,7 @@
 function varargout=peekSection(section,channel,resize)
 % Crudely assemble a section from raw tiles and show on screen
 %
-% function [section,imStack,coords] = varargout=peekSection(section,channel,resize)
+% function [section,imStack,coords] = peekSection(section,channel,resize)
 %	
 % Purpose
 % Crudely assemble a section from raw tiles and show on screen. This is a quick and 
@@ -118,18 +118,17 @@ tileIndex=flipud(tileIndex);
 
 %Now we can pre-allocate our image
 
-pixelPositions=ceil(gridPos2Pixels(tileIndex) * resize);
-
+pixelPositions=ceil(gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]) * resize);
 tileSize=size(im,1);
 
 stitchedImage = ones(max(pixelPositions)+tileSize, 'uint16');
-
 allocatedSize=size(stitchedImage);
 
 %Super-simple stitcher
 for ii=1:size(im,3)
     xPos = [pixelPositions(ii,2), pixelPositions(ii,2)+tileSize-1];
     yPos = [pixelPositions(ii,1), pixelPositions(ii,1)+tileSize-1];
+
 	stitchedImage(yPos(1):yPos(2),xPos(1):xPos(2))=im(:,:,ii);
 end
 
@@ -147,10 +146,10 @@ end
 
 %Flip sections if needed. 
 st=userConfig.stitching;
-if isfield(st,'flipud') & st.flipud
+if isfield(st,'flipud') && st.flipud
 	stitchedImage=flipud(stitchedImage);
 end
-if isfield(st,'fliplr') & st.fliplr
+if isfield(st,'fliplr') && st.fliplr
 	stitchedImage=fliplr(stitchedImage);
 end
 
