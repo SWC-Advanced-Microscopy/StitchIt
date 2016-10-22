@@ -27,8 +27,8 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 %
 %
 % INPUTS
-% - sectionsToProcess [optional] - By default we loop through all of the section 
-% directories and analyse the tiles they contain. However:
+% - sectionsToProcess - By default we loop through all of the section 
+% directories and analyse the tiles they contain. However this can be modified:
 % 1) If sectionsToProcess is zero (the default) or empty then conduct default
 %    behavior: process all available directories and channels that don't contain 
 %    processed data (see notes). 
@@ -56,6 +56,23 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 % OUTPUTS
 % analysesPerformed - optionally return a structure of booleans that indicates which 
 %                     analyses were performed at least once. (comb corr, illum corr)
+%
+%
+% Examples
+% One
+% Process sections [1,1] and [90,5] (i.e. physical section 90, optical section 5)
+% If these already exist, they are re-processed. Process only channel 1 illumination correction.
+% preProcessTiles([1,1;90,5],0,1)
+%
+% Two
+% Process all illumination correction data not already done for channel 1.
+% preProcessTiles([],0,1)
+%
+% Three
+% re-precess everything for channel 1 illumination correction.
+% preProcessTiles(-1,0,1)
+%
+%
 %
 % Notes
 % If sectionsToProcess is zero, we skip tile stats creation if the tileStats file is present,
@@ -114,7 +131,7 @@ param=readMetaData2Stitchit(paramFile);
 baseName=directoryBaseName(paramFile);
 
 if ~exist(userConfig.subdir.rawDataDir,'dir')
-	error('Can not find raw data directory: .%s%s',filesep,userConfig.subdir.rawDataDir)
+	error('%s can not find raw data directory: .%s%s',mfilename,filesep,userConfig.subdir.rawDataDir)
 end
 
 
@@ -134,7 +151,7 @@ end
 
 
 if isempty(sectionDirectories) || ~isfield(sectionDirectories,'name')
-	error('Can not find any raw data directories')
+	error('%s can not find any raw data directories belonging to sample %s',mfilename,param.sample.ID)
 end
 
 fprintf('\n')
@@ -158,13 +175,13 @@ for thisDir = 1:length(sectionDirectories)
 
 
 	%Skip if everything has been done and the user asked to loop through all directories.
-	sectionDirName=[userConfig.subdir.rawDataDir,filesep,sectionDirectories(thisDir).name,filesep];
-	statsFile=[sectionDirName,'tileStats'];
-	combFile=[sectionDirName,'phaseStats_01.mat'];
-	aveDir=[sectionDirName,'averages'];
+	sectionDirName=fullfile(userConfig.subdir.rawDataDir,sectionDirectories(thisDir).name);
+	statsFile=fullfile(sectionDirName,'tileStats');
+	combFile=fullfile(sectionDirName,'phaseStats_01.mat');
+	aveDir=fullfile(sectionDirName,'averages');
 
     %We skip if everything exists in the directory or if the non-existing files weren't ask for
-    if exist(statsFile,'file') && ...
+    if ( exist(statsFile,'file') || exist([statsFile,'.mat'],'file') ) && ...
     	(exist(combFile,'file') || (length(combCorChans)==1 && combCorChans==0)) &&...
     	(exist(aveDir,'file')   || (length(illumChans)==1   && illumChans==0))   && ...
     	length(sectionsToProcess)==1 && ...

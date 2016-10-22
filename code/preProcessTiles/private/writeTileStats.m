@@ -1,7 +1,9 @@
 function writeTileStats(imStack,tileIndex,chansToLoad,thisDirName,statsFile)
 
-	%One tileStats file per directory per channel. Rows are: 
-	%file index, layer index, tile mean
+	%Writes a tile stats binaru file in each directory. 
+	% Rows are: 
+	%  file index, layer index, tile mean, tile median
+
 	fprintf('Creating stats file: %s\n',statsFile)				
 	fid = fopen(statsFile,'w+'); %Empty the file
 	fwrite(fid,3,'uint32'); %The number of ints per row
@@ -18,7 +20,7 @@ function writeTileStats(imStack,tileIndex,chansToLoad,thisDirName,statsFile)
 
 			index=tileIndex{thisChan,thisLayer}(:,1);
 			index(:,end+1)=thisLayer;
-			index(:,end+1)=mu;
+
 			index(:,end+1)=mu;
 			index(:,end+1)=med;
 			index=index';

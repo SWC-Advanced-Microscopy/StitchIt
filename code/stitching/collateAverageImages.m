@@ -94,15 +94,14 @@ for c=1:length(channels)
 
  	fprintf('\n')
 
- 	fprintf('Loading data for channel %d',channels(c))
+ 	fprintf('Loading data for channel %d ',channels(c))
  	nImages = zeros(1,param.mosaic.numOpticalPlanes); %to keep track of the number of images
 	for ii=1:length(sectionDirs) 
 
-	     thisAverageDir = [rawDataDir,sectionDirs(ii).name,filesep,'averages',filesep,num2str(channels(c)),filesep];
-
+	     thisAverageDir = fullfile(rawDataDir,sectionDirs(ii).name,'averages',num2str(channels(c)));
 	     if ~isdir(thisAverageDir), continue, end
 
- 		 averageFiles = dir([thisAverageDir,filesep,'*.bin']);
+ 		 averageFiles = dir(fullfile(thisAverageDir,'*.bin'));
 
  		 for avFile = 1:length(averageFiles) 
  		 	%Get the depth associated with this depth
@@ -110,7 +109,7 @@ for c=1:length(channels)
  		 	tok=regexp(fname,'.*(\d+)\.bin','tokens');
  		 	depth=str2num(tok{1}{1});
 
- 		 	[tmp,n]=loadAveBinFile([thisAverageDir,averageFiles(avFile).name]);
+ 		 	[tmp,n]=loadAveBinFile(fullfile(thisAverageDir,averageFiles(avFile).name));
  		 	avData{depth}(:,:,:,ii) = tmp;
  		 	nImages(avFile) = nImages(avFile)+n;
  		 end

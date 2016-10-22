@@ -99,18 +99,27 @@ if strcmp(serverDir(end),filesep)
 	serverDir(end)=[];
 end
 
-if ~isWritable(localDir)
-	fprintf('WARNING: you appear not to have permissions to write to %s\n',localDir)
-end
-if ~isWritable(serverDir)
-	fprintf('WARNING: you appear not to have permissions to write to %s\n',serverDir)
-end
-
-
-
+%If local dir contains the experiment directory at the end,  we should remove this and raise a warning
 [~,expName,extension] = fileparts(serverDir);
 
-expDir = [localDir,filesep,expName,extension]; %we add extension just in case the user put a "." in the file name
+[localDirMinusExtension,localTargetRoot] = fileparts(localDir);
+
+if strcmp(localTargetRoot,expName)
+	fprintf('\nNOTE: Stripping %s from localDir. see help %s for details\n\n',expName,mfilename);
+	localDir = localDirMinusExtension;
+end
+
+if ~isWritable(localDir)
+	fprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch mat fail.\n',localDir)
+end
+if ~isWritable(serverDir)
+	fprintf('WARNING: you appear not to have permissions to write to %s. You may not be able to delete channels during acquisition.\n',serverDir)
+end
+
+
+
+expDir = fullfile(localDir,expName,extension); %we add extension just in case the user put a "." in the file name
+
 
 %Initial INI file read
 config=readStitchItINI;
@@ -223,7 +232,8 @@ while 1
 	params=readMetaData2Stitchit;
 	numSections = params.mosaic.numSections;
 	%Get the number of acquired directories so far
-	numDirsAcquired = length(dir([rawDataDir,filesep,'*-0*']));
+	numDirsAcquired=length(returnDataDirs(rawDataDir));
+
 	fprintf('Getting files for section %d/%d from server\n',numDirsAcquired,numSections)
 	try
 		[returnStatus,msg]=unix(sprintf('rsync %s %s%s*.* %s',config.syncAndCrunch.rsyncFlag, serverDir,filesep,expDir));
@@ -252,7 +262,8 @@ while 1
 
 
 	%Do not proceed until we have at least one finished section
-	dataDirs=dir(fullfile(rawDataDir,'*-0*'));
+	dataDirs=returnDataDirs(rawDataDir);
+
 	if length(dataDirs)<=1
 		fprintf('Waiting. No finished sections.')
 		for ii=1:10
@@ -309,6 +320,7 @@ while 1
 
 	if isempty(analysesPerformed)
 		fprintf('Returning to start of loop: tile analysis failed!\n')
+		pause(15)
 		continue
 	else
 		fprintf('Assigning this as the last finished section\n')
@@ -409,7 +421,7 @@ end
 
 function out = finished
 	%Return true if the finished file is present. false otherwise.
-	config=readStitchItINI([],0);
+	config=readStitchItINI;
 	if exist('FINISHED','file') | ...
 		exist('FINISHED.txt','file') | ...
 		exist(fullfile(config.subdir.rawDataDir,'FINISHED'))  | ...
@@ -419,4 +431,11 @@ function out = finished
 	else
 		out = false;
 	end
+
+
+
+function dataDirs=returnDataDirs(rawDataDir)
+	%return directories that are likely data directories based on the name
+	potentialDirs=dir([rawDataDir,filesep,'*-0*']);
+	dataDirs=potentialDirs([potentialDirs.isdir]==true);
 

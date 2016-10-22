@@ -170,7 +170,7 @@ for ii=1:size(section,1) %Tile loading is done in parallel.
 			if exist(fname, 'file')
 				filesExist(thisR)=1;
 			end
-		end		
+		end
 		if all(filesExist)
 			fprintf('Files exist SKIPPING %03d/%03d -- Section %03d/%02d\n',ii,size(section,1),thisSection)
 			continue
@@ -200,7 +200,7 @@ for ii=1:size(section,1) %Tile loading is done in parallel.
 		pixelPos = stagePos2PixelPos(mosData,pixRes);
 
 		%Determine the final stitched image size as though we were not using stage coords
-		naivePos=gridPos2Pixels(tileIndex,[param.voxelSize.x,param.voxelSize.y])
+		naivePos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y])
 		naiveMaxPos=max(naivePos)+tileSize;
 		naiveWidth=naiveMaxPos(1);
 		naiveHeight=naiveMaxPos(2);		

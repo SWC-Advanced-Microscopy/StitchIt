@@ -1,5 +1,5 @@
 function varargout=buildSectionPreview(sectionToPlot,channel)
-% runs every waitTime minutes and searches the current directory for new data
+% Builds a preview image of the last completed section and send to WWW
 %
 % function lastDir=buildSectionPreview(sectionToPlot,channel)
 %
@@ -17,7 +17,7 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % syncAndCrunch
 
 if nargin<1 || isempty(sectionToPlot)
-	[~,sectionToPlot] = lastCompletedSection; 
+	sectionToPlot = lastCompletedSection; 
 else
 	userConfig = readStitchItINI;
 	rawDataDir = userConfig.subdir.rawDataDir;
@@ -30,8 +30,10 @@ if nargin<2
 end
 
 
+verbose=1; %Used to diagnose a MATLAB segfault that occurs at some point during image production
 
-generateTileIndex(sectionToPlot,[],0);
+[~,thisSectionDir]=fileparts(sectionToPlot);
+generateTileIndex(thisSectionDir,[],0);
 
 %The section index
 tok=regexp(sectionToPlot,'.*-(\d+)','tokens'); 
@@ -48,12 +50,16 @@ elseif rescaleThresh<1
 end
 
 
+%Decide how much to resize based on tile size
+params=readMetaData2Stitchit;
+rSize=320/params.tile.nRows; 
+if rSize>1
+	rSize=1;
+end
 
-
-rSize=0.4; %how much we will resize
 opticalSection=1;
 fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
-im=peekSection([ind,opticalSection],channel,rSize); %TODO: send all opticalSections and make buttons to switch between them
+im=peekSection([ind,opticalSection],channel,rSize);
 if isempty(im)
 	fprintf('%s: Failed to load data. Quitting\n ',mfilename);
 	return
@@ -65,10 +71,12 @@ end
 F=figure('visible','off');
 
 
-
-
 if ~exist(userConfig.subdir.WEBdir,'dir')
 	mkdir(userConfig.subdir.WEBdir)
+end
+
+if verbose
+	fprintf('Creating main image\n')
 end
 
 [im,threshLevel]=rescaleImage(im,rescaleThresh);
@@ -78,8 +86,19 @@ imwrite(im,[userConfig.subdir.WEBdir,filesep,lastSection],'bitdepth',8)
 close(F);
 
 %Write histogram to disk
+if verbose
+	fprintf('Setting up non-visible histogram figure\n')
+end
 F=figure('visible','off');
+
+if verbose
+	fprintf('Running sectionHist\n')
+end
 sectionHist(im,threshLevel)
+
+if verbose
+	fprintf('Set paper size, invert hard copy, save\n')
+end
 set(F,'paperposition',[0,0,6,3],'InvertHardCopy','off')
 print('-dpng','-r100',[userConfig.subdir.WEBdir,filesep,'hist.png']);
 close(F);
@@ -90,12 +109,20 @@ close(F);
 F=figure('visible','off');
 fprintf('Building montage images')
 out=readMetaData2Stitchit;
+
+%Decide how much to resize montage based on tile size
+params=readMetaData2Stitchit;
+rSize=120/params.tile.nRows; 
+if rSize>1
+	rSize=1;
+end
+
 if out.mosaic.numOpticalPlanes>1
-	mos=rescaleImage(peekSection([ind,1],channel,0.1),rescaleThresh);
+	mos=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh);
 	mos=repmat(mos,[1,1,out.mosaic.numOpticalPlanes]);
 	for ii=1:out.mosaic.numOpticalPlanes
 		fprintf('.')
-		mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,0.1),rescaleThresh);
+		mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),rescaleThresh);
 	end
 	monFname=[userConfig.subdir.WEBdir,filesep,'montage.jpg'];
 	mos=permute(mos,[1,2,4,3]);
@@ -167,8 +194,6 @@ fclose(fidP);
 
 
 
-
-
 if ~userConfig.syncAndCrunch.sendToWeb
 	fprintf('Not sending to web\n')
 	return
@@ -204,9 +229,9 @@ function [im,thresh]=rescaleImage(im,thresh)
 
 	im = single(im);
 	if ~isempty(thresh)
-		im(im>thresh)=thresh;
+		im = im ./ thresh;
+		im(im>1)=1;
 	end
 
-	im = im ./(max(im(:)));
-	im = im * 2^8;
+	im = im * (2^8-1);
 	im = uint8(im);

@@ -14,11 +14,11 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
 		if thisChan==0, continue, end %Necessary?
 
-		aveFname = sprintf('.%s%s%saverages%s%d%s%02d.bin', ...
-			filesep,thisDirName,filesep,filesep,thisChan,filesep,thisLayer);
+		aveFname = fullfile(thisDirName,'averages',sprintf('%d%s%02d.bin',thisChan,filesep,thisLayer));
 
 		%Create new directories as needed
-		aveDirName = sprintf('.%s%s%saverages%s%d', filesep,thisDirName,filesep,filesep,thisChan);
+		aveDirName = fullfile(thisDirName,'averages',sprintf('%d', thisChan));
+
 		if ~exist(aveDirName,'dir')
 			mkdir(aveDirName)
 		end

@@ -117,7 +117,9 @@ if ~forceOverwrite & exist(tileIndexFname)
 end
 
 %Read section param file if it's there. Otherwise bail out. 
-paramFname=sprintf('%s%s%s/Mosaic_%s.txt',userConfig.subdir.rawDataDir,filesep,dirName,dirName);
+[~,sectionDir]=fileparts(dirName); 
+config=readStitchItINI;
+paramFname=fullfile(config.subdir.rawDataDir,dirName,['Mosaic_',sectionDir,'.txt']);
 
 if ~exist(paramFname,'file') 
     fprintf('No mosaic file %s found\n',paramFname)

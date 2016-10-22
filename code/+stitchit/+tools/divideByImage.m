@@ -9,7 +9,7 @@ function im = divideByImage(im, template)
 
 
 %Issue error if images are not the same
-if size(im,1)~=size(template,1) | size(im,2)~=size(template,2)
+if size(im,1)~=size(template,1) || size(im,2)~=size(template,2)
 	error('Image sizes not identical')
 end
 
@@ -24,4 +24,5 @@ reciprocalOfIntensity = ones(size(template),'single') ./ template * median(templ
 
 
 im = bsxfun(@times, im, reciprocalOfIntensity);
-im = cast(im,imClass); %return to original class
+
+im = cast(im,imClass); %return to original class (This operation is SLOW)
