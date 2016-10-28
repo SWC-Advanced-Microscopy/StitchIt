@@ -15,11 +15,19 @@ function varargout=estimateEndTime
 %First calculate the number of hours the whole thing will take
 param=readMetaData2Stitchit;
 
+if strcmp(param.System.type,'bakingtray')
+	out=estimateEndTimeBT;
+	if nargout>0
+		varargout{1}=out;
+	end
+	return
+end
+
 timeFor832Tile = 0.715; %Time in seconds for an 832*832 image
 tileTime = timeFor832Tile * param.tile.nRows/832;
 
 %number of hours per phyical section (i.e. per section directory)
-cuttingTime = (35/param.Slicer.cuttingSpeed) + param.Slicer.postCuttingWaitTime + 2; %approximate number of seconds per cut
+cuttingTime = (35/param.Slicer.cuttingSpeed) + param.Slicer.postCutDelay + 2; %approximate number of seconds per cut
 hoursPerDirectory = (param.mosaic.numOpticalPlanes * param.numTiles.X * param.numTiles.Y * tileTime + cuttingTime)  /60^2;
 
 

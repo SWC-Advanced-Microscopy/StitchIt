@@ -115,7 +115,7 @@ out.System.excitationLaserName='';
 % SLICER
 out.Slicer.frequency=raw.VibratomeFrequency;
 out.Slicer.bladeApproachSPeed=raw.VibratomeStageSpeed;
-out.Slicer.postCuttingWaitTime=raw.VibratomeDelay;
+out.Slicer.postCutDelay=raw.VibratomeDelay;
 out.Slicer.cuttingSpeed=raw.SliceTranslationSpeed;
 
 

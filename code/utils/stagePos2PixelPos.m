@@ -23,9 +23,10 @@ pixResRow=micsPerPixel(1);
 pixResCol=micsPerPixel(2);
 
 
-%Microns from Mosaic file
-Y=param.XPos(:,2);
-X=param.YPos(:,2);
+% Microns from Mosaic file (note, it seems to be correct that we swap X and Y) 
+% TODO: a bit of consistency might be nice. Should look into why
+Y=param.stageLocations.reported.X;
+X=param.stageLocations.reported.Y;
 
 
 %Convert Y to match with the transposed tiles

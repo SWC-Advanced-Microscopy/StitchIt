@@ -87,6 +87,11 @@ for thisDir = 1:length(sectionDirectories)
         continue
     end
 
+    %if there is no completed file then we don't build the index
+    if ~exist(fullfile(userConfig.subdir.rawDataDir,sectionDirectories(thisDir).name,'COMPLETED'),'file')
+        continue
+    end
+    
     %make the index only if all files are present
     numExpectedTIFFsPerChannel = data.numTiles.X * data.numTiles.Y;
     TIFFS = dir(fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name,'*.tif'));
@@ -99,7 +104,6 @@ for thisDir = 1:length(sectionDirectories)
     end
 
 end 
-
 
 %Handle output arguments
 if nargout>0
@@ -121,5 +125,9 @@ function indexPresent=isIndexFileInDirectory(obj,dirName,userConfig)
 
 %Skip if the *tileStats* file has already been written
 tileIndexFname = fullfile(userConfig.subdir.rawDataDir,dirName,'tileIndex');
-indexPresent = exist(tileIndexFname,'file');
+if exist(tileIndexFname,'file');
+    indexPresent = 1;
+else
+    indexPresent = 0;
+end
 

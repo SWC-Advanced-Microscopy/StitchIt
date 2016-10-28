@@ -108,7 +108,6 @@ close(F);
 %Now loop through all depths and make a montage
 F=figure('visible','off');
 fprintf('Building montage images')
-out=readMetaData2Stitchit;
 
 %Decide how much to resize montage based on tile size
 params=readMetaData2Stitchit;
@@ -117,10 +116,10 @@ if rSize>1
 	rSize=1;
 end
 
-if out.mosaic.numOpticalPlanes>1
+if params.mosaic.numOpticalPlanes>1
 	mos=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh);
-	mos=repmat(mos,[1,1,out.mosaic.numOpticalPlanes]);
-	for ii=1:out.mosaic.numOpticalPlanes
+	mos=repmat(mos,[1,1,params.mosaic.numOpticalPlanes]);
+	for ii=1:params.mosaic.numOpticalPlanes
 		fprintf('.')
 		mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),rescaleThresh);
 	end
@@ -159,12 +158,20 @@ end
 
 %The following string will be displayed on the website above the section 
 currentTime=datestr(now,'YYYY/mm/dd HH:MM:SS');
+
+if params.mosaic.sliceThickness>1 
+	sliceThicknessInMicrons =  params.mosaic.sliceThickness;
+else %A bit of hack to convert slice thickess in mm to microns. 
+	%TODO: if baking tray moves to microns for the cut thickness, then we can get rid of this
+	sliceThicknessInMicrons =  params.mosaic.sliceThickness*1E3;
+end
+
 details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
-	sample, currentSecNum, out.mosaic.numSections, out.mosaic.sliceThickness, currentTime);
+	sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 
 endTime=estimateEndTime;
 
-if out.mosaic.numOpticalPlanes>1
+if params.mosaic.numOpticalPlanes>1
 	indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];
 	montageDetails = [details,' - <a href="./index.shtml">BACK</a>'];
 	montageDetailsFile='details_montage.txt';

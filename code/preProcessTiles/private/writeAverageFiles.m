@@ -1,5 +1,11 @@
 function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
+	% function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
+	%
+	% Low value is an array the same size as imStack. 
+	% In both cases, rows are channels and columns are optical sections
+	%
+	%
 	fprintf('Building and saving average images in %s\n',thisDirName)
 
 	%We calculate all the possible combinations of channels and layers. 
@@ -28,10 +34,10 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
 		thisStack = imStack{thisChan,thisLayer};
 
-		%We will get rid of *really* dim tiles by removing tiles with a mean lower then lowValue
+		% We will get rid of *really* dim tiles by removing tiles with a mean lower then lowValue
+		% The following ensures that we choose reasonable numbers based on the amp offsets
 		mu = squeeze(mean(mean(thisStack)));
-		lowValue=5;
-		lowVals = find(mu<lowValue);
+		lowVals = find(mu<lowValue(thisChan,thisLayer));
 
 		%Fail gracefully if tile index is not complete
 		if isempty(tileIndex{thisChan,thisLayer})
@@ -43,7 +49,7 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 		row=tileIndex{thisChan,thisLayer}(:,5);
 
 		propRemoved=(length(lowVals)/length(row));
-		if propRemoved > 0.85;
+		if propRemoved > 0.85
 			fprintf('%s: removed %d%% of tiles from illumination correction. SKIPPING.\n',...
 				mfilename, round(propRemoved*100))
 			continue

@@ -7,9 +7,14 @@ function postAcq
 % Rob Campbell - Basel 2015
 
 
+M=readMetaData2Stitchit;
 
-%check for and fix missing tiles
-missingTiles=identifyMissingTilesInDir('rawData',0);
+%check for and fix missing tiles if this was a TissueCyte acquisition
+if strcmp(M.System.type,'TissueCyte')
+	missingTiles=identifyMissingTilesInDir('rawData',0);
+else
+	missingTiles=[];
+end
 
 if ~isempty(missingTiles)
 	fname='missingTiles.mat';

@@ -47,12 +47,17 @@ if nargin<3
 	fullWidth = param.numTiles.X * param.tile.nRows;
 	screenSize=get(0,'screenSize');
 	resize=(screenSize(3)/fullWidth)*1.25;
+	if resize>1
+		resize=1;
+	end
 else
 	if resize>1
 		fprintf('Resize must be between 0 and 1\n')
 		return
 	end
 end
+
+
 
 
 %Load data if needed 

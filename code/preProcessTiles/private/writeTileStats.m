@@ -1,30 +1,56 @@
-function writeTileStats(imStack,tileIndex,chansToLoad,thisDirName,statsFile)
+function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
+	% Writes a tile stats MAT file to each directory
+	%
+	% function writeTileStats(imStack,tileIndex,thisDirName,statsFile)
+	%
+    % Purpose
+	% The tile stats file contains a bunch of useful statistics that other 
+	% functions can later use to work out things like the intensity of the
+	% background tiles, etc. 
+    %
+    % Input
+    % imStack - A cell array of image stacks. The rows are channels and the
+    %           columns are optical sections.
+    % tileIndex - A cell array of tileIndex matrices.
+    % thisDirName - a string defining the directory that contain these data
+    % statsFile - string defining where to save the data. 
 
-	%Writes a tile stats binaru file in each directory. 
-	% Rows are: 
-	%  file index, layer index, tile mean, tile median
 
 	fprintf('Creating stats file: %s\n',statsFile)				
-	fid = fopen(statsFile,'w+'); %Empty the file
-	fwrite(fid,3,'uint32'); %The number of ints per row
 
-	for thisChan = 1:size(imStack,1) %imStack is a cell array
-		for thisLayer = 1:size(imStack,2)
+	tileStats.dirName=thisDirName;
+
+	for thisChan = 1:size(imStack,1) % Channels
+		for thisLayer = 1:size(imStack,2) % Optical sections
+            
 			if isempty(imStack{thisChan,thisLayer}), continue, end
+            
+            tileStats.tileIndex{thisChan,thisLayer}=tileIndex{thisChan,thisLayer}(:,1);
 
-			mu=squeeze(mean(mean(imStack{thisChan,thisLayer})));
-			mu=uint32(round(mu)); 
+            thisStack = imStack{thisChan,thisLayer};
+			mu = squeeze(mean(mean(thisStack)));
+			tileStats.mu{thisChan,thisLayer} = mu;
 
-			med=squeeze(median(median(imStack{thisChan,thisLayer})));
-			med=uint32(round(med)); 
+			% Create a threshold that should capture most of the empty tiles.
+			% This will allow us to exclude most of them without having to resort
+			% to fixed thresholds
+			mu = sort(mu);
+			bottomFivePercent = mu(1:round(length(mu)*0.05));
+			if std(bottomFivePercent)>0.5
+				fprintf('%s - Empty tile threshold not trustworthy, setting it to the mean of dimmest tile\n',mfilename)
+				emptyTileThresh=mu(1);
+			else
+				STDvals=zeros(size(mu));
+				for ii=1:length(mu)
+					STDvals(ii)=std(mu(1:ii));
+				end
+				f=find(STDvals<0.075); %A threshold that we'll consider to represent the empty tiles
 
-			index=tileIndex{thisChan,thisLayer}(:,1);
-			index(:,end+1)=thisLayer;
+				emptyTileThresh=mu(f(end)); %choose the last value
+			end
 
-			index(:,end+1)=mu;
-			index(:,end+1)=med;
-			index=index';
-			fwrite(fid,index(:),'uint32');
+			tileStats.emptyTileThresh(thisChan,thisLayer)=emptyTileThresh;
+
 		end
 	end
-	fclose(fid);
+    save(statsFile,'tileStats')

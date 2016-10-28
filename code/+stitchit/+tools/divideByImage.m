@@ -22,7 +22,6 @@ template=single(template);
 
 reciprocalOfIntensity = ones(size(template),'single') ./ template * median(template(:));
 
-
 im = bsxfun(@times, im, reciprocalOfIntensity);
 
-im = cast(im,imClass); %return to original class (This operation is SLOW)
+im = cast(im,imClass); %return to original class

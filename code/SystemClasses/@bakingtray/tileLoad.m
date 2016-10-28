@@ -65,7 +65,7 @@ end
 
 
 %Load tile index file or bail out gracefully if it doesn't exist. 
-tileIndexFile=sprintf('%s%stileIndex',sectionDir,filesep);
+tileIndexFile=fullfile(sectionDir,'tileIndex');
 if ~exist(tileIndexFile,'file')
     fprintf('%s: No tile index file: %s\n',mfilename,tileIndexFile)
     im=[];
@@ -75,8 +75,9 @@ end
 
 
 
-%Load the tile position information
+%Load the tile position array
 load(fullfile(sectionDir, 'tilePositions.mat')); %contains variable positionArray
+
 
 
 %Find the index of the optical section and tile(s)
@@ -153,13 +154,26 @@ if size(im,3) ~= expectedNumberOfTiles
     return
 end
 
-%The TIFFs we pull out of ScanImage will likely have negative numbers in as we're trying to maximise the dynamic range.
-%So we do this (HACK) for now:
-% TODO: GET THIS WORKING
-im = im+2^11-1; %We should pull the DAQ range from the card and store it
-%im = im-min(im(:));
-%im=rot90(im); %TODO: Could do this at acquisition time
-im=flipud(im); %TODO: Could do this at acquisition time
+
+%Load the tile stats data and pull out the empty tile threshold for this sample
+tileStatsName = fullfile(sectionDir, 'tileStats.mat');
+if exist(tileStatsName)
+    load(tileStatsName); %contains variable tileStats
+    emptyTileThresh = tileStats.emptyTileThresh(channel,planeNum);
+    %so the empty tiles are:
+    emptyTileIndexes = find(tileStats.mu{channel,planeNum}<emptyTileThresh);
+else
+    emptyTileIndexes=[];
+end
+
+% The TIFFs we pull out of ScanImage will likely have negative numbers 
+% in as we're trying to maximise the dynamic range. This will get 
+% the numbers going from 0 to 2^12-1, but we maybe need a way determining
+% for sure if this is needed. TODO: put into INI file?
+% TODO: We should pull the DAQ range from the card and store it or the following may fail
+im = im + 2^11-1; 
+im = rot90(im,-1); 
+
 
 %---------------
 %Build index output so we are compatible with the TV version (for now)
@@ -170,10 +184,10 @@ index(:,2) = sectionNum;
 %We flip the indexes around, because this is the order that the stitcher will expect
 %and it uses these values to stitch
 rowInd = positionArray(indsToKeep,2);
-index(:,4) = abs(rowInd-max(rowInd))+1;
+index(:,5) = abs(rowInd-max(rowInd))+1;
 
 colInd = positionArray(indsToKeep,1);
-index(:,5) = abs(colInd - max(colInd))+1;
+index(:,4) = abs(colInd - max(colInd))+1;
 %---------------
 %/BT
 
@@ -228,7 +242,15 @@ if doIlluminationCorrection
         fprintf('Doing %s illumination correction\n',userConfig.tile.illumCorType)
     end
 
+
+    if ~isempty(emptyTileIndexes) %zero very low values
+        emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
+        offsetValue=mean(emptyTiles(:));
+        im(im<offsetValue)=0;
+    end
+
     switch userConfig.tile.illumCorType %loaded from INI file
+
         case 'split'
             if averageSlowRows
                 aveTemplate(:,:,1) = repmat(mean(aveTemplate(:,:,1),1), [size(aveTemplate,1),1]);
@@ -254,8 +276,18 @@ if doIlluminationCorrection
             im=stitchit.tools.divideByImage(im,aveTemplate);
         otherwise
             fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
-        end
-        
+    end
+
+
+    %Again, remove the very low values after subtraction
+    if ~isempty(emptyTileIndexes)
+        emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
+        offsetValue=mean(emptyTiles(:));
+        im(im<offsetValue)=0;
+    end
+
+
+
 end
 %/COMMON
 

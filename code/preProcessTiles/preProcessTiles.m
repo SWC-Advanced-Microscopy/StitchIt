@@ -121,7 +121,7 @@ end
 userConfig=readStitchItINI;
 
 %tiles with averages smaller than lowValueThreshold will not contribute to the average image
-lowValueThreshold = userConfig.analyse.lowValueThreshold; 
+lowValueThreshold = userConfig.analyse.lowValueThreshold; %TODO: we are no longer using this!
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -235,12 +235,12 @@ for thisDir = 1:length(sectionDirectories)
 
 	%-----------------------------------------------------------------
 	%Write tile statistics to a file. 
-	%NOTE: These data may not be needed, but it's so quick and easy to save them that it's worth it just in case
 	if exist(statsFile,'file') & length(sectionsToProcess)==1 & sectionsToProcess==0 %Skip if sectionsToProcess is zero and file exists
 		fprintf('%s stats file already exists\n',sectionDirectories(thisDir).name)
 	else
-		%Write mean data to disk (tileStats_#chan file)
-		writeTileStats(imStack, tileIndex, chansToLoad, sectionDirName, statsFile);
+		% Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
+		% the backround tiles. 
+		tileStats=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
 	end
 
 	%TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present
@@ -264,7 +264,7 @@ for thisDir = 1:length(sectionDirectories)
 		if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
 			fprintf('Skipping illumination corrrection\n')
 		else
-			writeAverageFiles(imStack, tileIndex, sectionDirName, illumChans,lowValueThreshold)
+			writeAverageFiles(imStack, tileIndex, sectionDirName, illumChans,tileStats.emptyTileThresh)
 			analysesPerformed.illumCor=1;
 		end
 	end

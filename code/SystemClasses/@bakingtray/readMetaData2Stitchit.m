@@ -55,7 +55,7 @@ out.TileStepSize.X = 1E3 * out.TileStepSize.X; %TODO: we need a decision on this
 out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; %TODO: we need a decision on this
 out.System = raw.SYSTEM;
 out.Slicer = raw.SLICER;
-out.Slicer.postCuttingWaitTime  = out.Slicer.postCutDelay; %TODO FIX THIS INCONSISTENCY
+
 return
 %TODO: we need the stage locations
 if ~isempty(raw.XPos)

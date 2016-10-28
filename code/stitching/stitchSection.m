@@ -194,23 +194,24 @@ for ii=1:size(section,1) %Tile loading is done in parallel.
 	if doStageCoords
 		warning('off') %Supress annoying temporary variable warnings
 		sectionName = sprintf('%s%04d',baseName,thisSection(1));
-		mosaicFileName = sprintf('%s%sMosaic_%s.txt',sectionName,filesep,sectionName); %TODO: this will not work
+
+		mosaicFileName = fullfile(userConfig.subdir.rawDataDir,...
+							sectionName,...
+							sprintf('Mosaic_%s.txt',sectionName)); 
+
 
 		mosData = readMetaData2Stitchit(mosaicFileName);
-		pixelPos = stagePos2PixelPos(mosData,pixRes);
+		pixelPos = stagePos2PixelPos(mosData,[param.voxelsize.x,param.voxelsize.y]);
 
 		%Determine the final stitched image size as though we were not using stage coords
-		naivePos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y])
+		naivePos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]);
 		naiveMaxPos=max(naivePos)+tileSize;
 		naiveWidth=naiveMaxPos(1);
 		naiveHeight=naiveMaxPos(2);		
 		warning('on') %Supress annoying temporary variable warnings
 	else %just use the naive positions
 		pixelPos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]); 
-
 	end %if doStageCoords
-
-
 
 	[stitched,tilePosInPixels]=stitcher(imStack,pixelPos,fusionWeight);
 
