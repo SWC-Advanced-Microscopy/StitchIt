@@ -43,5 +43,4 @@ Please use the project's [issue tracker](https://github.com/BaselLaserMouse/Stit
 
 
 ## Licensing 
-This software is distributed under the GPL v3 licence. This repository may be freely forked and shared if it is PUBLIC. 
-If it is PRIVATE, please ask the author before sharing. 
+This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
