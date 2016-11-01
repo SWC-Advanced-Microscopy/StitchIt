@@ -1,3 +1,5 @@
+<img src="https://github.com/BaselLaserMouse/StitchIt/blob/gh-pages/images/rgb_brain_example.jpg" />
+
 # StitchIt
 
 StitchIt is a MATLAB package for assembling tiled image data. StitchIt was originally built for handling data from the TissueVision 1000 (from the TissueCyte company), but the design of StitchIt is partly modular so it is possible to adapt the software to work with other tiled data sets (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments).
