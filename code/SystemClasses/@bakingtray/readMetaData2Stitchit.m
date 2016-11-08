@@ -6,6 +6,7 @@ function [out,sucessfulRead,rawOut]=readMetaData2Stitchit(obj,fname,verbose)
 if nargin<2
 	fname=obj.getTiledAcquisitionParamFile;
 end
+
 if ~exist(fname,'file')
 	error('Can not find parameter file: %s',fname)
 end

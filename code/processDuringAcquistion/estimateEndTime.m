@@ -15,20 +15,24 @@ function varargout=estimateEndTime
 %First calculate the number of hours the whole thing will take
 param=readMetaData2Stitchit;
 
+
+
 if strcmp(param.System.type,'bakingtray')
-	out=estimateEndTimeBT;
+	out=estimateEndTimeBT; %TODO: have BT calculate this so StitchIt does nothing at all
 	if nargout>0
 		varargout{1}=out;
 	end
 	return
 end
 
+%TODO: the following is a poor way of proceeding
+%could calculate the tile time from the line period and number of lines plus the move time
 timeFor832Tile = 0.715; %Time in seconds for an 832*832 image
 tileTime = timeFor832Tile * param.tile.nRows/832;
 
 %number of hours per phyical section (i.e. per section directory)
 cuttingTime = (35/param.Slicer.cuttingSpeed) + param.Slicer.postCutDelay + 2; %approximate number of seconds per cut
-hoursPerDirectory = (param.mosaic.numOpticalPlanes * param.numTiles.X * param.numTiles.Y * tileTime + cuttingTime)  /60^2;
+hoursPerDirectory = (param.mosaic.numOpticalPlanes * param.numTiles.X * param.numTiles.Y * tileTime + cuttingTime) / 60^2;
 
 
 %Total time is, therefore:
@@ -42,13 +46,13 @@ totalTime = hoursPerDirectory*param.mosaic.numSections;
 %start time of the acquisition
 userConfig=readStitchItINI;
 
-d=dir([userConfig.subdir.rawDataDir,filesep,directoryBaseName,'*']);
+d=dir( fullfile(userConfig.subdir.rawDataDir,[directoryBaseName,'*']) );
 
 if length(d)>5
 	nDir = length(d);
-	elapsedDays=now-datenum(param.sample.acqStartTime);
+	elapsedDays = now-datenum(param.sample.acqStartTime);
         hoursPerDirectory = (elapsedDays*24)/nDir;
-   	totalTime=hoursPerDirectory * param.mosaic.numSections;
+   	totalTime = hoursPerDirectory * param.mosaic.numSections;
 end
 
 

@@ -64,7 +64,7 @@ YML.VoxelSize.z = p.voxelsize.z;
 YML.stackName = p.sample.ID;
 YML.imageBaseDirectory = '../';
 
-writeSimpleYAML(YML,fullfile(MaSIV_DIR,MaSIV_YML))
+stitchit.tools.writeSimpleYAML(YML,fullfile(MaSIV_DIR,MaSIV_YML))
 
 
 

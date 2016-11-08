@@ -95,12 +95,17 @@ for thisDir = 1:length(sectionDirectories)
     %make the index only if all files are present
     numExpectedTIFFsPerChannel = data.numTiles.X * data.numTiles.Y;
     TIFFS = dir(fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name,'*.tif'));
+
+
     if mod(length(TIFFS),numExpectedTIFFsPerChannel)==0
         fname=fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name,'tileIndex');
         fid = fopen(fname,'w+');
         fprintf('Writing empty tileindex to %s\n',fname);
         fprintf(fid,'tileindex\n');
         fclose(fid);
+    else
+        fprintf('Raw data directory %s claims it is completed but the number of TIFFs is not what was expected. SKIPPING.\n ',...
+         sectionDirectories(thisDir).name)
     end
 
 end 

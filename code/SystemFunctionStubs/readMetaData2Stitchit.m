@@ -19,6 +19,12 @@ function [out,sucessfulRead,mosOut]=readMetaData2Stitchit(varargin)
 % rawOut - the output of raw read (TODO: should get rid of this)
 %
 %
+% Note:
+% This function should avoid calling readStitchItINI in order to avoid
+% recursion situations. 
+% 
+%
+%
 % Rob Campbell - Basel 2016
 
 %NOTE:

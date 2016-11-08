@@ -4,11 +4,23 @@ function [out,pathToINI]=readStitchItINI(INIfname)
 % function [out,pathToINI]=readStitchItINI(INIfname)
 %
 % Purpose:
-% The INI file called 'stitchitConf.ini' stores the stitching parameters. This
-% function reads this file and returns it as a structure. 
+% Parameters for StitchIt are stored in an INI file called 'stitchitConf.ini'
+% This contains things like the number of microns per pixel (if the imaging system does not
+% return this) and the stitching parameters your system needs (e.g. whether to crop the tiles). 
+%
+% readStitchItINI searches for the INI file in the following way:
+% 1) If it is called from an experiment directory, it identifies the system ID using
+%    readMetaData2Stitchit and attempts to load the system-specifc INI file if this is
+%    in the path. e.g. if M.System.ID is 'Noodle' then readStitchitINI looks for an 
+%    INI file called stitchitConf_noodle.ini anywhere in the MATLAB path. Normal path rules 
+%    Note we use lower case version in file name!
+%    apply: a file in the current directory takes precedence over one elsewhere.
+% 2) If a system-specific INI file is not found, readStitchitINI looks for a file called
+%    stitchitConf.INI in the same way as it looked for the system-specifc file
+%
 %
 % Inputs
-% INIfname   - [optional] if empty or missing the string 'stitchitConf.ini' is used. 
+% INIfname   - [optional] if empty or missing the above rules apply.
 %
 %
 % Outputs
@@ -20,7 +32,33 @@ function [out,pathToINI]=readStitchItINI(INIfname)
 
 
 if nargin<1 | isempty(INIfname)
-    INIfname='stitchitConf.ini';
+    systemType = determineStitchItSystemType;
+    if isnumeric(systemType) &&  systemType == -1
+        INIfname='stitchitConf.ini';
+    else
+        % This is really crap, but I need to read TissueCyte stuff in separately 
+        % because we will get a recursive function call otherwise. TODO: fix this shit
+        switch determineStitchItSystemType
+            case 'TissueCyte' 
+                T=tissuecyte;   
+                M=T.readMosaicMetaData(T.getTiledAcquisitionParamFile);
+                M.System.ID = M.ScannerID; %TODO: shit, that's horrible
+            otherwise %sanity prevails 
+                M=readMetaData2Stitchit;
+        end
+                
+        sysINIfname=sprintf('stitchitConf_%s.ini', lower(M.System.ID));
+        defaultINIfname='stitchitConf.ini';
+        if exist(sysINIfname,'file')        
+           INIfname = sysINIfname;
+        elseif exist(defaultINIfname,'file')        
+           INIfname = defaultINIfname;                 
+        else
+           error(['Can not find any valid stitchit INI files. Not even a default one called %s.\n',...
+            'Likely you have not set things up properly.'],defaultINIfname)
+        end
+
+    end
 end
 
 if nargin<2
@@ -46,6 +84,7 @@ fO=fields(out);
 fD=fields(default);
 
 for ii=1:length(fD)
+    %Reads TV objectives in by force TODO: fix this
     if isempty(strmatch(fD{ii},fO,'exact'))
         fprintf('Missing section %s in INI file %s. Using default values\n', fD{ii}, which(INIfname))
         out.(fD{ii}) = default.(fD{ii}) ;
@@ -67,6 +106,8 @@ for ii=1:length(fD)
 end
 
 %Pull out the current objective from the structure
+% TODO: the following is system specific and very much tied to the TV.
+% Need to get rid of it -- too complicated
 if ~isfield(out, out.experiment.objectiveName)
     error('No objective name field %s found\nPlease check your INI file!', out.experiment.objectiveName')
 end
