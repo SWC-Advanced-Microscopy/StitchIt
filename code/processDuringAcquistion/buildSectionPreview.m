@@ -157,7 +157,7 @@ end
 
 
 %The following string will be displayed on the website above the section 
-currentTime=datestr(now,'YYYY/mm/dd HH:MM:SS');
+currentTime = datestr(now,'YYYY/mm/dd HH:MM:SS');
 
 if params.mosaic.sliceThickness>1 
 	sliceThicknessInMicrons =  params.mosaic.sliceThickness;

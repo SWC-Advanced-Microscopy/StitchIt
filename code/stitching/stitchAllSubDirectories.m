@@ -25,34 +25,42 @@ function tifs=stitchAllSubDirectories(chansToStitch,stitchedSize,combChans,illum
 
 config=readStitchItINI;
 if ~exist(config.subdir.rawDataDir,'dir')
-	fprintf('%s can not find directory %s. Quitting\n', mfilename, config.subdir.rawDataDir)
-	return
+    fprintf('%s can not find directory %s. Quitting\n', mfilename, config.subdir.rawDataDir)
+    return
 end
 
 % Find mosaic files (TODO: we we need the search command in the fist place?)
 if ~isunix
-	fprintf('\n\t*** %s is attempting to call a unix-specific command.\n\t*** You either need to switch to Mac/Linux or modify %s for your platform.\n\n',mfilename,mfilename)
-	error('Can not proceed: you are not on Max or Linux and no Windows-specific code has been written for this action')
-	%TODO: ==> here add Windows-specific code <==
-	% See: 	http://www.mathworks.com/matlabcentral/fileexchange/1492-subdir--new-
-	% 		http://ch.mathworks.com/matlabcentral/newsreader/view_thread/303929
+    fprintf('\n\t*** %s is attempting to call a unix-specific command.\n\t*** You either need to switch to Mac/Linux or modify %s for your platform.\n\n',mfilename,mfilename)
+    error('Can not proceed: you are not on Max or Linux and no Windows-specific code has been written for this action')
+    %TODO: ==> here add Windows-specific code <==
+    % See:  http://www.mathworks.com/matlabcentral/fileexchange/1492-subdir--new-
+    %       http://ch.mathworks.com/matlabcentral/newsreader/view_thread/303929
 else
-	[status,results]=unix('find . -name ''Mosaic_*.txt'' '); % TODO: TissueVision-specific stuff that needs to vanish
+    switch determineStitchItSystemType %TODO - might be nice to do this better
+    case 'TissueCyte'
+        %Recursive search for mosaic files. 
+        [status,results]=unix('find . -name ''Mosaic_*.txt'' '); 
+    case 'BakingTray'
+        [status,results]=unix('find . -name ''recipe_*.yml'' '); 
+    end
 end
+
+
 
 if status~=0 || isempty(results)
-	error('Unable to find Mosaic files')  % TODO: TissueVision-specific stuff that needs to vanish
+    error('Unable to find acquisition software parameter files (e.g. Mosaic or recipe files)')
 end
 
 
-files=regexp(results,'\n','split');
-config=readStitchItINI;
+files=regexp(results,'\n','split')
+
 
 %Remove lines that are likely to be sub-mosaic files (this inside section directories)
 for ii=length(files):-1:1
-	if ~isempty(regexp(files{ii},[config.subdir.rawDataDir,'.*'])) | isempty(files{ii})
-		files(ii)=[];
-	end
+    if ~isempty(regexp(files{ii},[config.subdir.rawDataDir,'.*'])) | isempty(files{ii})
+        files(ii)=[];
+    end
 end
 
 
@@ -60,70 +68,82 @@ rootDirectory = pwd; %So we can return to it later
 
 
 if nargin<1
-	chansToStitch=[];
+    chansToStitch=[];
 end
 
 if nargin<2 || isempty(stitchedSize)
-	stitchedSize=100;
+    stitchedSize=100;
 end
 
 if nargin<3 || isempty(combChans)
-	combChans=chansToStitch;
+    combChans=chansToStitch;
 end
 
 if nargin<4 || isempty(illumChans)
-	illumChans=chansToStitch;
+    illumChans=chansToStitch;
 end
 
 
 
 for ii=1:length(files)
-	cd(rootDirectory)
+    cd(rootDirectory)
 
-	[~,e]=regexp(files{ii},'.*/');
-	thisDir = files{ii}(1:e);
-	fprintf('Stitching %s\n',thisDir)
+    [~,e]=regexp(files{ii},'.*/');
+    thisDir = files{ii}(1:e);
+    fprintf('Stitching files in directory %s\n',thisDir)
 
-	cd(thisDir)
+    cd(thisDir)
 
-	baseName=directoryBaseName;
-
-
-	%find the channels we have available
-	sectionDirs = dir([config.subdir.rawDataDir,filesep,baseName,'*']);
-	if isempty(sectionDirs)
-		fprintf('No data directories found in %s. Skipping.\n',thisDir)
-		continue
-	end
-
-	%see which channels we have
-	tifs=dir([config.subdir.rawDataDir,filesep,sectionDirs(1).name,filesep,'*.tif']);
-	if isempty(tifs)
-		fprintf('No tifs in the first data directory at %s. Skipping all data in directory.\n',thisDir)
-		continue
-	end
-
-	availableChans=[];
-	for ii=1:length(tifs)
-		tok=regexp(tifs(ii).name,'.*_(\d{2})\.tif','tokens');
-		if isempty(tok)
-			continue
-		end
-		availableChans=[availableChans,str2num(tok{1}{1})];
-	end
-	if isempty(availableChans)
-		fprintf('Could not find any channels in %s. Skipping\n',thisDir)
-		continue
-	end
-
-	availableChans=unique(availableChans);
+    baseName=directoryBaseName;
 
 
-	%Now loop through and stitch all requested channels
-	if isempty(chansToStitch)
-		doStitch(combChans,availableChans,availableChans,stitchedSize)
+    %find the channels we have available
+    sectionDirs = dir([config.subdir.rawDataDir,filesep,baseName,'*']);
+    if isempty(sectionDirs)
+        fprintf('No data directories found in %s. Skipping.\n',thisDir)
+        continue
+    end
+
+    %see which channels we have
+    tifs=dir(fullfile(config.subdir.rawDataDir,sectionDirs(1).name,'*.tif'));
+    if isempty(tifs)
+        fprintf('No tifs in the first data directory at %s. Skipping all data in directory.\n',thisDir)
+        continue
+    end
+
+    availableChans=[];
+
+    switch determineStitchItSystemType %TODO - might be nice to do this better
+        case 'TissueCyte'
+            for ii=1:length(tifs)
+                tok=regexp(tifs(ii).name,'.*_(\d{2})\.tif','tokens');
+                if isempty(tok)
+                    continue
+                end
+                availableChans=[availableChans,str2num(tok{1}{1})];
+            end
+        case 'BakingTray'
+            for ii=1:length(tifs)
+                tok=regexp(tifs(ii).name,'.*_chn(\d{1})\.tif','tokens');
+                if isempty(tok)
+                    continue
+                end
+                availableChans=[availableChans,str2num(tok{1}{1})];
+            end
+        end
+    if isempty(availableChans)
+        fprintf('Could not find any channels in %s. Skipping\n',thisDir)
+        continue
+    end
+
+    availableChans=unique(availableChans);
+
+
+    %Now loop through and stitch all requested channels
+    if isempty(chansToStitch)
+        doStitch(combChans,availableChans,availableChans,stitchedSize)
     else
-		doStitch(combChans,illumChans,chansToStitch,stitchedSize)
+        doStitch(combChans,illumChans,chansToStitch,stitchedSize)
     end
 
 
@@ -136,13 +156,13 @@ cd(rootDirectory)
 
 %------------------------------------------------------------------------------------------
 function doStitch(combChans,illumChans,chansToStitch,stitchedSize)
- 	% doStitch - perform the stitching
-	generateTileIndex; %Ensure the tile index is present
-	analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
-	if analysesPerformed.illumCor
-		collateAverageImages
-	end
+    % doStitch - perform the stitching
+    generateTileIndex; %Ensure the tile index is present
+    analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
+    if analysesPerformed.illumCor
+        collateAverageImages
+    end
 
-	for thisChan=chansToStitch 
-		stitchSection([],thisChan,'stitchedSize',stitchedSize) %Stitch all required channels
-	end
+    for thisChan=chansToStitch 
+        stitchSection([],thisChan,'stitchedSize',stitchedSize) %Stitch all required channels
+    end

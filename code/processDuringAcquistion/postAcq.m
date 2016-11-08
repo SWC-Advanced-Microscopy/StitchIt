@@ -13,16 +13,18 @@ M=readMetaData2Stitchit;
 if strcmp(M.System.type,'TissueCyte')
 	missingTiles=identifyMissingTilesInDir('rawData',0);
 else
-	missingTiles=[];
+	missingTiles = -1;
 end
 
-if ~isempty(missingTiles)
+if ~isempty(missingTiles) && missingTiles ~= -1
 	fname='missingTiles.mat';
 	fprintf('Found and fixed %d missing tiles. Saving missing tile list to %s\n', ...
 		length(missingTiles), fname);
 	save(fname,'missingTiles')
-else
+elseif isempty(missingTiles)
 	fprintf('Searched for missing tiles but did not find any\n')
+elseif missingTiles == -1
+	%nothing happens. No TissueCyte.
 end
 
 

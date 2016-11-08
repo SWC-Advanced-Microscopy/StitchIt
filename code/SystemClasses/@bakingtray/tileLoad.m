@@ -154,7 +154,6 @@ if size(im,3) ~= expectedNumberOfTiles
     return
 end
 
-
 %Load the tile stats data and pull out the empty tile threshold for this sample
 tileStatsName = fullfile(sectionDir, 'tileStats.mat');
 if exist(tileStatsName)
@@ -173,6 +172,7 @@ end
 % TODO: We should pull the DAQ range from the card and store it or the following may fail
 im = im + 2^11-1; 
 im = rot90(im,-1); 
+
 
 
 %---------------
