@@ -87,9 +87,15 @@ end
 params=readStitchItINI;
 M=readMetaData2Stitchit;
 z=M.voxelsize.z;
+
+if z==0
+  fprintf('** Z voxel size reported as zero. This is not right. Correct meta-data file and re-run %s **\n', mfilename)
+  return
+end
+
 xy=mean([M.voxelsize.x,M.voxelsize.y]);
 origDims = [xy,z];
-fprintf('original resolution %0.2f um in x/y and %d um in z\n', xy, z)
+fprintf('original resolution %0.2f um in x/y and %0.1f um in z\n', xy, z)
 
 
 info=imfinfo([origDataDir,files(1).name]);
@@ -139,7 +145,7 @@ zRescaleFactor = targetDims(2)/origDims(2);
 msg = sprintf('Begining to downsample:\nx/y: %0.3f\nz: %0.3f\n',1/xyRescaleFactor,zRescaleFactor);
 fprintf(msg);
 fprintf(fid,'\n---log---\n%s',msg);
-
+ 
 
 %Rescale in x/y and store resampled volume in RAM
 xyRescaleFactor = origDims(1)/targetDims(1);

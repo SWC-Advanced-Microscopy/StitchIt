@@ -91,7 +91,11 @@ end
 
 out.voxelsize.x=pixRes(1); %x means along the direction of the x stage
 out.voxelsize.y=pixRes(2); %y means along the direction of the y stage
-out.voxelsize.z=raw.zres*2;
+if raw.layers>1 %if we do optical sections, the separation is stored as a resolution
+	out.voxelsize.z=raw.zres*2;
+else %if we didn't do optical sections, it is the separation between layers which is stored
+	out.voxelsize.z=raw.zres;
+end
 
 
 % NUMTILES 
