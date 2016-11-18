@@ -160,7 +160,11 @@ if exist(tileStatsName)
     load(tileStatsName); %contains variable tileStats
     emptyTileThresh = tileStats.emptyTileThresh(channel,planeNum);
     %so the empty tiles are:
-    emptyTileIndexes = find(tileStats.mu{channel,planeNum}<emptyTileThresh);
+    emptyTileIndexes = find(tileStats.mu{channel,planeNum}<=emptyTileThresh);
+    if isempty(emptyTileIndexes)
+        fprintf('%s failed to find empty tiles for %s channel %d plane %d. All have means of over %0.4f\n',...
+            mfilename, sectionDir, channel, planeNum, emptyTileThresh)
+    end
 else
     emptyTileIndexes=[];
 end
@@ -220,6 +224,19 @@ if doCrop
 end
 
 
+
+%Remove the background (mean of the empty tiles)
+if ~isempty(emptyTileIndexes) %zero very low values
+    emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
+    offsetValue=mean(emptyTiles(:));
+    im = im-offsetValue;
+    im(im<0)=0;
+else
+    offsetValue=0;
+    fprintf('%s found no empty tiles\n',mfilename)
+end
+
+
 %Do illumination correction if requested to do so %TODO: *REALLY* need this stuff abstracted elsewhere
 if doIlluminationCorrection
     avDir = fullfile(userConfig.subdir.rawDataDir,userConfig.subdir.averageDir);
@@ -232,6 +249,8 @@ if doIlluminationCorrection
     if doCrop
          aveTemplate = aveTemplate(cropBy+1:end-cropBy, cropBy+1:end-cropBy, :);
     end
+    aveTemplate = aveTemplate-offsetValue;
+    aveTemplate(aveTemplate<1)=1;
 
     if isempty(aveTemplate)
         fprintf('Illumination correction requested but not performed\n')
@@ -242,12 +261,6 @@ if doIlluminationCorrection
         fprintf('Doing %s illumination correction\n',userConfig.tile.illumCorType)
     end
 
-
-    if ~isempty(emptyTileIndexes) %zero very low values
-        emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
-        offsetValue=mean(emptyTiles(:));
-        im(im<offsetValue)=0;
-    end
 
     switch userConfig.tile.illumCorType %loaded from INI file
 
@@ -279,14 +292,13 @@ if doIlluminationCorrection
     end
 
 
-    %Again, remove the very low values after subtraction
+    % Again, remove the very low values after subtraction
+    % TODO: this won't do anything if the offset value is very far from zero
     if ~isempty(emptyTileIndexes)
         emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
         offsetValue=mean(emptyTiles(:));
         im(im<offsetValue)=0;
     end
-
-
 
 end
 %/COMMON
@@ -296,15 +308,55 @@ end
 %layers or channels. This may make things worse or it may make things better. 
 function aveTemplate = coords2ave(coords,userConfig)
 
-    layer=coords(2); %optical section
+    section=coords(1); % The physical section
+    layer=coords(2); % Optical section
     chan=coords(5);
-
-    fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer);
-    if exist(fname,'file')
-        %The OS caches, so for repeated image loads this is negligible. 
-        aveTemplate = loadAveBinFile(fname); 
+    if userConfig.tile.restrictAverageToRange<=0 %use the grand average
+        fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer)
+        if exist(fname,'file')
+            %The OS caches, so for repeated image loads this is negligible. 
+            aveTemplate = loadAveBinFile(fname); 
+        else
+            aveTemplate=[];
+            fprintf('%s Can not find average template file %s\n',mfilename,fname)
+        end
     else
-        aveTemplate=[];
-        fprintf('%s Can not find average template file %s\n',mfilename,fname)
+        baseName=directoryBaseName;
+        directorySearchPath=fullfile(userConfig.subdir.rawDataDir,[baseName,'*']);
+        sectionDirectories=dir(directorySearchPath);
+        [~,dirsToKeep]=generateTileIndex([],[],false);
+        sectionDirectories=sectionDirectories(find(dirsToKeep));
+
+        dirsToAverage = stitchit.tools.indexWithBuffer(1:length(sectionDirectories),section,userConfig.tile.restrictAverageToRange);
+
+        averages={};
+        for ii=1:length(dirsToAverage)
+            ind=dirsToAverage(ii);
+            thisDir = sprintf('%s%04d',baseName,ind);
+            aveName = sprintf('%02d.bin',layer);
+            fullPathToAveFile = fullfile(userConfig.subdir.rawDataDir,thisDir,'averages',num2str(chan),aveName);
+            if ~exist(fullPathToAveFile,'file')
+                fprintf('Skipping non-existent average file: %s\n',fullPathToAveFile);
+                continue
+            end
+            averages{end+1}=loadAveBinFile(fullPathToAveFile);
+        end
+        if isempty(averages)
+            fprintf('Found no average images')
+            aveTemplate=[];
+            return
+        end
+        if length(averages)==1
+            aveTemplate=averages{1};
+            return
+        end
+
+        %Calculate the average
+        aveTemplate=averages{1};
+        for ii=2:length(averages)
+            aveTemplate = aveTemplate+averages{ii};
+        end
+        aveTemplate=aveTemplate/length(averages);
+
     end
 

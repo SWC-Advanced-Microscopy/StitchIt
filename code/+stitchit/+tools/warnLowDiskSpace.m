@@ -70,7 +70,7 @@ mountPoint = tok{1}{1};
 if percentFull>percent
 	[~,hostname]=unix('hostname');
     msg=sprintf('Warning free space on %s %s is at %d%%\n',hostname(1:end-1),mountPoint,percentFull)
-	notify(msg)
+	stitchit.tools.notify(msg)
 end
 
 

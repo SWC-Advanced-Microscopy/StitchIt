@@ -196,7 +196,7 @@ while 1
   catch
     if ~sentConfigWarning
       L=lasterror;
-      notify(sprintf('%s Failed to read INI file with error %s', generateMessage('negative'), L.message))
+      stitchit.tools.notify(sprintf('%s Failed to read INI file with error %s', generateMessage('negative'), L.message))
       sentConfigWarning=1;
     else
       L=lasterror;
@@ -210,7 +210,7 @@ while 1
   if ~exist(serverDir,'dir')
     msg=sprintf('Server directory %s missing. Quitting.', serverDir);
     fprintf([msg,'\n'])
-    notify([generateMessage('negative'), ' ', msg]);
+    stitchit.tools.notify([generateMessage('negative'), ' ', msg]);
     return
   end
 
@@ -226,7 +226,7 @@ while 1
       if length(msg)>200
         msg(201:end)=[];
       end
-      notify([generateMessage('negative'),' chan 3 removal on server failed with error: ',msg])
+      stitchit.tools.notify([generateMessage('negative'),' chan 3 removal on server failed with error: ',msg])
       sentWarning=1;
     end
   end 
@@ -244,7 +244,7 @@ while 1
     [returnStatus,msg]=unix(sprintf('rsync %s %s%s %s', config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir));
   catch
     if returnStatus~=0 && ~sentWarning
-      notify([generateMessage('negative'),' rsync failed in ',localDir,' Attempting to continue'])
+      stitchit.tools.notify([generateMessage('negative'),' rsync failed in ',localDir,' Attempting to continue'])
       sentWarning=1;
     end
   end 
@@ -258,7 +258,7 @@ while 1
       [returnStatus,msg]=unix(cmd);
     catch
       if returnStatus~=0 && ~sentWarning
-        notify([generateMessage('negative'),' chan 3 removal failed with error: ',msg,' Attempting to continue.'])
+        stitchit.tools.notify([generateMessage('negative'),' chan 3 removal failed with error: ',msg,' Attempting to continue.'])
         sentWarning=1;
       end
     end
@@ -313,7 +313,7 @@ while 1
     end
   catch
     L=lasterror;
-    notify(sprintf('%s Failed to generateTileIndex with:\n%s\n',...
+    stitchit.tools.notify(sprintf('%s Failed to generateTileIndex with:\n%s\n',...
       generateMessage('negative'), L.message))
   end
 
@@ -340,7 +340,7 @@ while 1
     catch
       L=lasterror;
       if ~sentCollateWarning %So we don't send a flood of messages
-        notify([generateMessage('negative'),' Failed to collate average images. ',L.message])
+        stitchit.tools.notify([generateMessage('negative'),' Failed to collate average images. ',L.message])
         sentCollateWarning=1;
       else
         fprintf(['Failed to collate. ',L.message]) 
@@ -358,7 +358,7 @@ while 1
       catch
         L=lasterror;
           if ~sentPlotwarning %So we don't send a flood of messages
-            notify([generateMessage('negative'),' Failed to plot image. ',L.message])
+            stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',L.message])
             sentPlotwarning=1;
           else
             fprintf(['Failed to plot image. ',L.message])
@@ -406,7 +406,7 @@ end
 
 % To avoid sending slack messages if the user has begun the analysis on data that already have a "finished" file
 if ~expAlreadyFinished 
-  notify(sprintf('%s Acquisition finished. Beginning stitching of %s.',generateMessage('positive'),expName))
+  stitchit.tools.notify(sprintf('%s Acquisition finished. Beginning stitching of %s.',generateMessage('positive'),expName))
 end
 
 try
@@ -415,11 +415,11 @@ try
 catch
   if ~expAlreadyFinished
     L=lasterror;
-    notify([generateMessage('negative'),'Stitching failed. ',L.message])
+    stitchit.tools.notify([generateMessage('negative'),'Stitching failed. ',L.message])
   end
 end
 if ~expAlreadyFinished
-  notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
+  stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
 end
 
 
