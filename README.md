@@ -44,3 +44,6 @@ Please use the project's [issue tracker](https://github.com/BaselLaserMouse/Stit
 
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
+
+## Also see
+- [TissueVisionMods](https://github.com/BaselLaserMouse/TissueVisionMods) for protocols and tweaks associated with the TissueVision microscopy system. 
