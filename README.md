@@ -2,20 +2,43 @@
 
 # StitchIt
 
-StitchIt is a MATLAB package for assembling tiled image data. StitchIt was originally built for handling data from the TissueVision 1000 (from the TissueCyte company), but the design of StitchIt is partly modular so it is possible to adapt the software to work with other tiled data sets (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments).
+StitchIt is a MATLAB package for assembling tiled image data. StitchIt was originally built for handling data from the TissueVision 2-photon tomography system, but the design of StitchIt is partly modular so it is possible to adapt the software to work with other tiled data sets (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments).
 
-To get started, please read the [PDF user manual](https://bitbucket.org/tvbz/tvmat/downloads/user_manual.pdf).
-Please note that StitchIt is under heavy modification and the user manual will not be completely up to date.
+To get started, please read the [PDF user manual](http://mouse.vision/st_manual_161122.pdf).
+StitchIt is under heavy modification and the user manual will not be completely up to date.
+The plan is to move much of the information to the project's Wiki page and convert the PDF into a "whitepaper" for developers.
 
 
 ## Current state of the project
-This software is used routinely in-house for assembling image stacks from our TissueVision microscope. 
-It currently lacks the following features:
+StitchIt is used routinely in-house for assembling image stacks from our TissueVision microscope. 
 
-1. By default, tile placement does not use tile coordinates since the coordinates returned by our TissueVision are not reliable. i.e. stitching accuracy is no better (may be worse) if we use actual tile coordinates. Systems other than the TissueVision may be different and YMMV. 
-2. The bidirectional artifact correction function (e.g. see [calcPhaseDelayShifts](https://github.com/BaselLaserMouse/StitchIt/blob/master/code/artifactCorrection/calcPhaseDelayShifts.m)) does not work well for TissueVision data, which has an unconventional way of building the images.
-3. More work is needed to adapt this code base to acquisition systems other than the TissueVision. 
+**With a single command the user can**:
 
+- Pre-process image tiles as they are being acquired.
+- Display the last completed section on the web.
+- Automatically stitch data when acquisition completes. 
+- Automatically conduct arbitrary analyses after acquisition completes.
+
+**StitchIt has commands for basic tasks such as**:
+
+- Stitching a data set.
+- Calculating the average tile for illumination correction.
+- Calculating coefficients for correcting for scanning artifacts (experimental).
+- Techniques for exploring stitching accuracy. 
+
+
+**Post-stitching functionality**:
+
+- Correction of intensity differences across different optical sections.
+- Removal of tile seams in stitched images.
+- Down-sampling the dataset to a single multi-page TIFF stack or MHD file. 
+
+
+**StitchIt currently lacks the following features**:
+
+- By default, tile placement does not use tile coordinates since the coordinates returned by our TissueVision are not reliable. i.e. stitching accuracy is no better (may be worse) if we use actual tile coordinates. Systems other than the TissueVision may be different and YMMV. 
+- The bidirectional artifact correction function (e.g. see [calcPhaseDelayShifts](https://github.com/BaselLaserMouse/StitchIt/blob/master/code/artifactCorrection/calcPhaseDelayShifts.m)) does not work well right now but can be fixed.
+- More work is needed to adapt this code base to acquisition systems other than the TissueVision. 
 
 
 ## Installation
