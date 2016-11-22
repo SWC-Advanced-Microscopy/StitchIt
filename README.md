@@ -6,7 +6,7 @@ StitchIt is a MATLAB package for assembling tiled image data. StitchIt was origi
 
 To get started, please read the [PDF user manual](http://mouse.vision/st_manual_161122.pdf).
 StitchIt is under heavy modification and the user manual will not be completely up to date.
-The plan is to move much of the information to the project's Wiki page and convert the PDF into a "whitepaper" for developers.
+Much of the content in the manual will soon be updated and put on the project's Wiki page.
 
 
 ## Current state of the project
