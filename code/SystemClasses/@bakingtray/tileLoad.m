@@ -312,7 +312,7 @@ function aveTemplate = coords2ave(coords,userConfig)
     layer=coords(2); % Optical section
     chan=coords(5);
     if userConfig.tile.restrictAverageToRange<=0 %use the grand average
-        fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer)
+        fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer);
         if exist(fname,'file')
             %The OS caches, so for repeated image loads this is negligible. 
             aveTemplate = loadAveBinFile(fname); 
