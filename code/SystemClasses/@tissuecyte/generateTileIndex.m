@@ -167,6 +167,14 @@ tok=regexp(dirName,'.*-(\d{4})','tokens');
 sectionNumber=str2num(tok{1}{1});
 
 
+
+if ~isfield(param,'stageLocations')
+    fprintf('\n *** %s should contain a stage location field but it does not.\n *** Something is wrong with the data in directory %s. SKIPPING\n\n',...
+        paramFname,dirName)
+    indexPresent=0;
+    return
+end
+
 %Attempt to catch this error, but still not sure where it comes from (TODO)
 if nImages>length(param.stageLocations.requestedStep.X)
     fprintf('%s: length "stageLocations.requestedStep.X" is smaller than the number of images. SKIPPING\n',dirName)

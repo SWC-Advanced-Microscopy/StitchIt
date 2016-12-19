@@ -53,7 +53,7 @@ if status~=0 || isempty(results)
 end
 
 
-files=regexp(results,'\n','split')
+files=regexp(results,'\n','split');
 
 
 %Remove lines that are likely to be sub-mosaic files (this inside section directories)

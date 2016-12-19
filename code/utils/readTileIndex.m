@@ -38,6 +38,14 @@ intsInRow=data(1);
 
 data(1)=[];
 
-data=reshape(data,intsInRow,length(data)/intsInRow)';
+nRows=length(data)/intsInRow;
+if mod(nRows,1) ~= 0
+    fprintf(['\n *** There seems to be an error with tile index file %s. It seems to be incomplete.\n',...
+        ' *** Try deleting it and regenerating it using generateTileIndex.\n',...
+        ' *** You may then need to run preProcessTiles on the directory\n\n'],fname);
+end
+
+
+data=reshape(data,intsInRow,nRows)';
 
 fclose(fid);
