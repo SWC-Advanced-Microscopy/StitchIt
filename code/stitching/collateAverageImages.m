@@ -106,10 +106,11 @@ for c=1:length(channels)
          for avFile = 1:length(averageFiles) 
             %Get the depth associated with this depth
             fname=averageFiles(avFile).name;
-            tok=regexp(fname,'.*(\d+)\.bin','tokens');
+            tok=regexp(fname,'.*?(\d+)\.bin','tokens');
             depth=str2num(tok{1}{1});
 
-            [tmp,n]=loadAveBinFile(fullfile(thisAverageDir,averageFiles(avFile).name));
+            fname=fullfile(thisAverageDir,averageFiles(avFile).name);
+            [tmp,n]=loadAveBinFile(fname);
             avData{depth}(:,:,:,ii) = tmp;
             nImages(avFile) = nImages(avFile)+n;
          end

@@ -67,7 +67,7 @@ if isempty(section)
 		sectionNumber=1:param.mosaic.numSections;
 		fprintf('No section dirs: guessing there are %d sections based on Mosaic file\n',param.mosaic.numSections)
 	end
-	section=setprod(sectionNumber,1:param.mosaic.numOpticalPlanes);
+	section=stitchit.tools.setprod(sectionNumber,1:param.mosaic.numOpticalPlanes);
 elseif isscalar(section)
 	section=zPlane2section(section);
 elseif ~isvector(section)
