@@ -48,7 +48,7 @@ StitchIt is used routinely in-house for assembling image stacks from our TissueV
 Clone the repository. Add the ``code`` directory and its sub-directories to your MATLAB path. In addition, you will need
 to acquire the following and add to your MATLAB path:
 
-- [Slack MATLAB](http://www.mathworks.com/matlabcentral/fileexchange/48508-slackmatlab)
+- [Slack MATLAB](https://github.com/DylanMuir/SlackMatlab)
 - [YAML MATLAB](https://github.com/raacampbell/yamlmatlab)
 - Suggested function to get you started: ``help stitchSection``
 
