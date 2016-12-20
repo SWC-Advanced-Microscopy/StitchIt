@@ -47,7 +47,6 @@ Pull the repository. Add the ``code`` directory and its sub-directories to your 
 to acquire the following and add to your MATLAB path:
 
 - [Slack MATLAB](http://www.mathworks.com/matlabcentral/fileexchange/48508-slackmatlab)
-- [MATLAB Misc](https://bitbucket.org/raacampbell/misc-matlab)
 - [YAML MATLAB](https://github.com/raacampbell/yamlmatlab)
 - StitchIt is written for Linux (although most things will work on Windows too)
 - Suggested function to get you started: ``help stitchSection``
