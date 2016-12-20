@@ -7,6 +7,8 @@ StitchIt is a MATLAB package for assembling tiled image data. StitchIt was origi
 To get started, please read the [PDF user manual](http://mouse.vision/st_manual_161122.pdf).
 StitchIt is under heavy modification and the user manual will not be completely up to date.
 Much of the content in the manual will soon be updated and put on the project's Wiki page.
+StitchIt is written for Linux. 
+Most things should work on Windows too, but this hasn't been tested and we can't provide support for it.
 
 
 ## Current state of the project
@@ -43,13 +45,14 @@ StitchIt is used routinely in-house for assembling image stacks from our TissueV
 
 ## Installation
 
-Pull the repository. Add the ``code`` directory and its sub-directories to your MATLAB path. In addition, you will need
+Clone the repository. Add the ``code`` directory and its sub-directories to your MATLAB path. In addition, you will need
 to acquire the following and add to your MATLAB path:
 
 - [Slack MATLAB](http://www.mathworks.com/matlabcentral/fileexchange/48508-slackmatlab)
 - [YAML MATLAB](https://github.com/raacampbell/yamlmatlab)
-- StitchIt is written for Linux (although most things will work on Windows too)
 - Suggested function to get you started: ``help stitchSection``
+
+If you need more information on the instalation procedure, please see the [Installation](https://github.com/BaselLaserMouse/StitchIt/wiki/Installation) page on the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
 
 ## Previewing images during acquisition
 
