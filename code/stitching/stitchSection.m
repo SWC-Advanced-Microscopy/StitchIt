@@ -248,7 +248,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
     %also save the tile positions
     tilePosFname = sprintf('%sdetails%stilePos_%03d_%02d.csv',sectionDir,filesep,thisSection);
-    saveMatrixAsCSV(tilePosInPixels,tilePosFname,'x,xwidth,y,ywidth'); %todo: save as binary instead for speed?
+    stitchit.tools.saveMatrixAsCSV(tilePosInPixels,tilePosFname,'x,xwidth,y,ywidth'); %todo: save as binary instead for speed?
   end
 
   numStitched=numStitched+1;
