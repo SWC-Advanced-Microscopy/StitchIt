@@ -51,7 +51,7 @@ to acquire the following and add to your MATLAB path:
 - [Slack MATLAB](https://github.com/DylanMuir/SlackMatlab)
 - [YAML MATLAB](https://github.com/raacampbell/yamlmatlab)
 - [rsync](http://www.howtogeek.com/135533/how-to-use-rsync-to-backup-your-data-on-linux/) installed if you want to use the `syncAndCrunch` tool to process data during acquisition. 
-- Suggested function to get you started: ``help stitchSection``
+- Additionally, you will need the following toolboxes: statistics, parallel computing, image processing. 
 
 If you need more information on the instalation procedure, please see the [Installation](https://github.com/BaselLaserMouse/StitchIt/wiki/Installation) page on the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
 
