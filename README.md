@@ -2,20 +2,20 @@
 
 # StitchIt
 
-StitchIt is a MATLAB package for assembling tiled image data. StitchIt was originally built for handling data from the TissueVision 2-photon tomography system, but the design of StitchIt is partly modular so it is possible to adapt the software to work with other tiled data sets (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments).
-
+*StitchIt* is a MATLAB package that was originally built for stitching data from the TissueVision 2-photon tomography system.
+However, *StitchIt* is now sufficiently modular that it can handle other tiled data sets too (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments using [ScanImage](http://scanimage.vidriotechnologies.com/)).
 To get started, please read the [PDF user manual](http://mouse.vision/st_manual_161122.pdf) and see the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
 StitchIt is under heavy modification and the user manual will not be completely up to date.
 
 
-## Current state of the project
-StitchIt is used routinely in-house for assembling image stacks from our TissueVision microscope. 
+## Features
 
-**With a single command the user can**:
+**With a single command (`syncAndCrunch`) the user can**:
 
 - Pre-process image tiles as they are being acquired.
-- Display the last completed section on the web.
-- Automatically stitch data when acquisition completes. 
+- Display the last acquired section on the web.
+- Automatically stitch data when acquisition completes.
+- Send Slack notifications when acquisition completes or pre-processing fails. 
 - Automatically conduct arbitrary analyses after acquisition completes.
 
 **StitchIt has commands for basic tasks such as**:
