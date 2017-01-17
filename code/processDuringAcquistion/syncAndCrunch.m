@@ -93,6 +93,8 @@ if ~isnumeric(chanToPlot) | ~isscalar(chanToPlot)
 end
 
 
+logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
+
 
 
 
@@ -194,7 +196,7 @@ while 1
   try
     config=readStitchItINI;
   catch
-    if ~sentConfigWarning
+    if ~sentConfigWarning %Do not re-send using notify
       L=lasterror;
       stitchit.tools.notify(sprintf('%s Failed to read INI file with error %s', generateMessage('negative'), L.message))
       sentConfigWarning=1;
@@ -202,7 +204,8 @@ while 1
       L=lasterror;
       fprintf('Failed to read INI file with error %s\n', L.message)
     end
-  end
+    stitchit.tools.logger(L,logFileName)
+  end %try/catch
 
 
 
@@ -315,7 +318,8 @@ while 1
     L=lasterror;
     stitchit.tools.notify(sprintf('%s Failed to generateTileIndex with:\n%s\n',...
       generateMessage('negative'), L.message))
-  end
+    stitchit.tools.logger(L,logFileName)
+  end %try/catch
 
   fprintf('\nCRUNCHING newly found completed data directories\n')
 
@@ -345,7 +349,8 @@ while 1
       else
         fprintf(['Failed to collate. ',L.message]) 
       end
-    end
+      stitchit.tools.logger(L,logFileName)
+    end %try/catch
   end
 
 
@@ -353,7 +358,7 @@ while 1
     fprintf('Not sending preview images to web\n')
   else
     fprintf('Building images and sending to web\n') 
-       try 
+      try 
           buildSectionPreview([],chanToPlot); %plot last completed section as per the trigger file
       catch
         L=lasterror;
@@ -363,7 +368,8 @@ while 1
           else
             fprintf(['Failed to plot image. ',L.message])
           end 
-      end
+          stitchit.tools.logger(L,logFileName)
+      end %try/catch
   end
 
 
@@ -415,7 +421,8 @@ try
 catch
   if ~expAlreadyFinished
     L=lasterror;
-    stitchit.tools.notify([generateMessage('negative'),'Stitching failed. ',L.message])
+    stitchit.tools.notify([generateMessage('negative'),' Stitching failed. ',L.message])
+    stitchit.tools.logger(L,logFileName)
   end
 end
 if ~expAlreadyFinished
@@ -423,6 +430,8 @@ if ~expAlreadyFinished
 end
 
 
+
+%-------------------------------------------------------------------------------------
 function out = finished
   %Return true if the finished file is present. false otherwise.
   config=readStitchItINI;

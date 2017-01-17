@@ -57,8 +57,8 @@ DIRS=dir(fullfile(directoryName,[param.sample.ID,'-*']));
 TIFF=dir(fullfile(directoryName,'*.tif'));
 
 %The we will go through all section directories
-if isempty(TIFF) & ~isempty(DIRS)
-
+if isempty(TIFF) && ~isempty(DIRS)
+    fprintf('Searching all section directories\n')
 	fnames = {};
 	maxMissingThreshold=[];
 	for ii=1:length(DIRS)
@@ -68,7 +68,10 @@ if isempty(TIFF) & ~isempty(DIRS)
 		end
 		if ii==length(DIRS)
 			maxMissingThreshold=40;
-		end
+        end
+        if verbose
+            fprintf('Searching %s\n',DIRS(ii).name);
+        end
 		thisDir=fullfile(directoryName,DIRS(ii).name);
 		theseFnames = identifyMissingTilesInDir(thisDir,reportOnly,0,maxMissingThreshold);
 		fnames = [fnames; theseFnames(:)];
@@ -154,7 +157,7 @@ for c=1:length(chans)
 	for fInd=1:length(fileIndex)
 
 		fname = sprintf('%s%d_%02d.tif', tiffPrefix, fileIndex(fInd), c);
-		if ~exist(fullfile(directoryName,fname))
+		if ~exist(fullfile(directoryName,fname),'file')
 			missingFiles = [missingFiles; fullfile(directoryName,fname)];
 		end
 		if isempty(maxMissingThreshold)

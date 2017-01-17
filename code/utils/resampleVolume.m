@@ -212,10 +212,10 @@ try
   end
 
 catch
-  msg=sprintf('failed to save\n');
+  msg=sprintf('resampleVolume failed to save: ensure you have mhd_write or save3Dtiff in your path\n');
   fprintf(msg)
   fprintf(fid,msg);
-
+  disp(lasterror)
 end
 
 if nargout>0

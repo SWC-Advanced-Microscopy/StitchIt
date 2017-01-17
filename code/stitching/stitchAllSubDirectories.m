@@ -32,17 +32,17 @@ end
 % Find mosaic files (TODO: we we need the search command in the fist place?)
 if ~isunix
     fprintf('\n\t*** %s is attempting to call a unix-specific command.\n\t*** You either need to switch to Mac/Linux or modify %s for your platform.\n\n',mfilename,mfilename)
-    error('Can not proceed: you are not on Max or Linux and no Windows-specific code has been written for this action')
+    error('Can not proceed: you are not on Mac or Linux and no Windows-specific code has been written for this action')
     %TODO: ==> here add Windows-specific code <==
     % See:  http://www.mathworks.com/matlabcentral/fileexchange/1492-subdir--new-
     %       http://ch.mathworks.com/matlabcentral/newsreader/view_thread/303929
 else
-    switch determineStitchItSystemType %TODO - might be nice to do this better
-    case 'TissueCyte'
-        %Recursive search for mosaic files. 
-        [status,results]=unix('find . -name ''Mosaic_*.txt'' '); 
-    case 'BakingTray'
-        [status,results]=unix('find . -name ''recipe_*.yml'' '); 
+    switch determineStitchItSystemType
+        case 'TissueCyte'
+            %Recursive search for mosaic files. 
+            [status,results]=unix('find . -name ''Mosaic_*.txt'' '); 
+        case 'BakingTray'
+            [status,results]=unix('find . -name ''recipe_*.yml'' '); 
     end
 end
 
@@ -86,6 +86,7 @@ end
 
 
 for ii=1:length(files)
+
     cd(rootDirectory)
 
     [~,e]=regexp(files{ii},'.*/');
@@ -113,7 +114,7 @@ for ii=1:length(files)
 
     availableChans=[];
 
-    switch determineStitchItSystemType %TODO - might be nice to do this better
+    switch determineStitchItSystemType %Determining the number of available channels this way is a bit shit
         case 'TissueCyte'
             for ii=1:length(tifs)
                 tok=regexp(tifs(ii).name,'.*_(\d{2})\.tif','tokens');
@@ -145,7 +146,6 @@ for ii=1:length(files)
     else
         doStitch(combChans,illumChans,chansToStitch,stitchedSize)
     end
-
 
 end
 
