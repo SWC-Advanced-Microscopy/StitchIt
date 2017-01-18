@@ -93,6 +93,11 @@ if ~isnumeric(chanToPlot) | ~isscalar(chanToPlot)
 end
 
 
+if removeChan3
+  fprintf('Will be removing channel 3\n')
+end
+
+
 logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
 
 
