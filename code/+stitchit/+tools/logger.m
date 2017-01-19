@@ -3,9 +3,19 @@ function logger(err,logFileName)
     %
     % function stitchit.tools.logger(err,logFileName)
     %
+    %
     % Purpose
     % The logger function writes full error traces to disk during syncAndCrunch.
     % These full traces aren't sent to Slack or e-mail to avoid bloat. 
+    %
+    %
+    % Inputs
+    % err - the output of lasterror
+    % logFileName - optional relative or absolute path to a file that will log the error messages. 
+    %               If this is missing, we simply display the messages to screen. 
+    %
+    %
+    % Rob Campbell - Basel 2016
 
 
     %Write error information to "logFileName"
@@ -18,6 +28,7 @@ function logger(err,logFileName)
     end
 
 
+
     %Do not proceed if an error structure was not supplied
     if ~isstruct(err) || ~isfield(err,'identifier') || ~isfield(err,'message') || ~isfield(err,'stack')
         fprintf(fid,'\n%s -- ERROR: %s.m -- %s\n', datestr(now,'yy-mm-dd HH:MM:SS'), mfilename, 'can not log. First input not an error structure.');
@@ -26,6 +37,7 @@ function logger(err,logFileName)
         end
         return
     end
+
 
 
     %Report error to disk or screen
@@ -37,6 +49,8 @@ function logger(err,logFileName)
     end
 
 
+
     if nargin>1 && fid>1
         fclose(fid);
     end
+    
