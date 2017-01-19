@@ -423,17 +423,21 @@ end
 try
   stitchit.tools.warnLowDiskSpace(localDir,90)
   eval(postAcqfFun) %Run the post-acquisition function
+  success=true;
 catch
   if ~expAlreadyFinished
     L=lasterror;
     stitchit.tools.notify([generateMessage('negative'),' Stitching failed. ',L.message])
     stitchit.tools.logger(L,logFileName)
   end
+  success=false;
 end
-if ~expAlreadyFinished
+
+if ~expAlreadyFinished && success
   stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
 end
 
+stitchit.tools.notify('syncAndCrunch finished\n')
 
 
 %-------------------------------------------------------------------------------------
