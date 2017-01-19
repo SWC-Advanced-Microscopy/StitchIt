@@ -16,14 +16,14 @@ else
 	missingTiles = -1;
 end
 
-if ~isempty(missingTiles) && missingTiles ~= -1
+if iscell(missingTiles) && ~isempty(missingTiles)
 	fname='missingTiles.mat';
 	fprintf('Found and fixed %d missing tiles. Saving missing tile list to %s\n', ...
 		length(missingTiles), fname);
 	save(fname,'missingTiles')
-elseif isempty(missingTiles)
+elseif iscell(missingTiles) && isempty(missingTiles)
 	fprintf('Searched for missing tiles but did not find any\n')
-elseif missingTiles == -1
+elseif ~iscell(missingTiles) && missingTiles == -1
 	%nothing happens. No TissueCyte.
 end
 
