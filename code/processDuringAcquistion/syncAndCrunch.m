@@ -93,13 +93,20 @@ if ~isnumeric(chanToPlot) | ~isscalar(chanToPlot)
 end
 
 
-if removeChan3
-  fprintf('Will be removing channel 3\n')
+%Report if StitchIt is not up to date
+logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
+try 
+  stitchit.updateChecker.checkIfUpToDate;
+catch
+  stitchit.tools.logger(lasterror,logFileName)
+  fprintf('Failed to check if StitchIt is up to date. Error written in %s\n',logFileName)
 end
 
 
-logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
 
+if removeChan3
+  fprintf('Will be removing channel 3\n')
+end
 
 
 
