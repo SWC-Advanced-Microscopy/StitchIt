@@ -30,7 +30,7 @@ if ~stitchit.updateChecker.gitAvailable
 end
 
 %Check if Git has the -C option
-[~,stdout] = system('git -C ');
+[success,stdout] = system(['git -C ',pwd]);
 if findstr(stdout,'Unknown option')
 	isUpToDate = -1;
 	status = 'Git client has no -C option';
@@ -38,26 +38,37 @@ if findstr(stdout,'Unknown option')
 end
 
 
-status=0;
-isUpToDate=1;
+
+%First we do a fetch. This doesn't stop the user then doing a pull
 dirToRepo=fileparts(which('stitcher'));
-[status,stdout] = system(sprintf('git -C %s pull',dirToRepo))
+[success,status] = system(sprintf('git -C %s fetch',dirToRepo));
+if success ~=0
+	%Will return false for stuff like permissions errors
+	isUpToDate=-1;
+	return
+end
 
 
-%$ git fetch
-%error: cannot open .git/FETCH_HEAD: Permission denied
+%Now check if we're up to date
+[success,status] = system(sprintf('git -C %s status -uno',dirToRepo));
+if success ~=0
+	isUpToDate=-1;
+	return
+end
 
+if ~isempty(findstr(status,'Your branch is ahead')) || ~isempty(findstr(status,'Changes not staged'))
+	isUpToDate = true;
+	fprintf('\n\n\t *** StitchIt is up to date, but has local changes not present on the remote *** \n\n')
 
-%On branch master
-%Your branch is ahead of 'origin/master' by 1 commit.
-%  (use "git push" to publish your local commits)
+elseif ~isempty(findstr(status,'Your branch is up-to-date'))
+	isUpToDate = true;
 
+elseif ~isempty(findstr(stdout,'Your branch is behind'))
+	isUpToDate=false;
 
+else
+	isUpToDate=-1;
+	status = sprintf('UNABLE TO DETERMINE STATE OF REPOSITORY:\n %s', status);
 
- % git fetch
-
-%  On branch master
-%Your branch is behind 'origin/master' by 1 commit, and can be fast-forwarded.
-
-
+end
 
