@@ -35,13 +35,7 @@ if ~stitchit.updateChecker.gitAvailable
     return
 end
 
-%Check if Git has the -C option
-[success,stdout] = system(['git -C ',pwd]);
-if findstr(stdout,'Unknown option')
-    isUpToDate = -1;
-    status = 'Git client has no -C option';
-    return
-end
+
 
 
 %First we do a fetch. This doesn't stop the user then doing a pull
@@ -62,23 +56,59 @@ if success ~=0
 end
 
 
-if ~isempty(findstr(status,'Your branch is ahead')) || ~isempty(findstr(status,'Changes not staged'))
+if ~isempty(findstr(status,'Your branch is ahead')) ... 
+    || ~isempty(findstr(status,'Changes not staged')) 
     isUpToDate = true;
+
     if ~suppressMessages
-        fprintf('\n\n\t%s\n',repmat('*',80,1))
-        fprintf('\t***%s***\n',repmat(' ',74,1))
-        fprintf('\t*** StitchIt is up to date, but has local changes not present on the remote  *** \n')
-        fprintf('\t***%s***\n',repmat(' ',74,1))
-        fprintf('\t%s\n\n\n',repmat('*',80,1))
+        fprintf('\n\n\t *** StitchIt is up to date, but has local changes not present on the remote *** \n')
     end
+end
+
+
+if ~isempty(findstr(status,' have diverged'))    
+    if ~suppressMessages
+        fprintf('\n\n\t *** THE CODE IN YOUR StitchIt INSTALL HAS DIVERGED FROM THE REMOTE *** \n')
+    end
+    isUpToDate=-1;
 
 elseif ~isempty(findstr(status,'Your branch is up-to-date'))
     isUpToDate = true;
 
-elseif ~isempty(findstr(stdout,'Your branch is behind'))
+elseif ~isempty(findstr(status,'Your branch is behind'))
     if ~suppressMessages
-        fprintf('\n\n\t%s\n',repmat('*',70))
-        fprintf('\n\n\t *** StitchIt is up to date, but has local changes not present on the remote *** \n\n')
+        clc
+        n=84; %message character width
+
+        gitURL=stitchit.updateChecker.getGitHubPageURL(dirToRepo);
+        if ~isempty(gitURL);
+            urlMessage=sprintf('\t*** Details at: %s',gitURL);
+        else
+            urlMessage='';            
+        end
+
+        lastUpdate = stitchit.updateChecker.getLastCommitTimeOfCurrentBranchOnRemote(dirToRepo);
+        if ~isempty(lastUpdate)
+            lastUpdate = sprintf('\t*** Latest update at: %s',lastUpdate);
+        else
+            lastUpdate='';
+        end
+            
+
+        fprintf('\n\n\n\n\n\t%s\n',repmat('*',n,1))
+        fprintf('\t***%s***\n',repmat(' ',n-6,1))
+
+        fprintf('\t***%s - # WARNING # -%s*** \n',repmat(' ',(n/2)-11,1),repmat(' ',(n/2)-11,1)) 
+        fprintf('\t*** Your StitchIt install IS NOT UP TO DATE. Please pull the latest version.%s*** \n',repmat(' ',n-79,1))
+        if length(urlMessage)>0
+            fprintf('%s%s***\n',urlMessage,repmat(' ',n-length(urlMessage)-2,1))
+        end
+        if length(lastUpdate)>0
+            fprintf('%s%s***\n',lastUpdate,repmat(' ',n-length(lastUpdate)-2,1))
+        end
+        fprintf('\t***%s***\n',repmat(' ',n-6,1))
+        fprintf('\t***%s***\n',repmat(' ',n-6,1))
+        fprintf('\t%s\n\n\n',repmat('*',n,1))
     end
 
     isUpToDate=false;
@@ -89,27 +119,6 @@ else
 
 end
 
-
-clc
-        n=84; %message character width
-
-        gitURL=stitchit.updateChecker.getGitHubPageURL(dirToRepo);
-        if ~isempty(gitURL);
-            urlMessage=sprintf('\t*** Details at: %s',gitURL);
-        else
-            urlMessage='';            
-        end
-
-        fprintf('\n\n\n\n\n\t%s\n',repmat('*',n,1))
-        fprintf('\t***%s***\n',repmat(' ',n-6,1))
-
-        fprintf('\t***%s - # WARNING # -%s*** \n',repmat(' ',(n/2)-11,1),repmat(' ',(n/2)-11,1)) 
-        fprintf('\t*** Your StitchIt install IS NOT UP TO DATE. Please pull the latest version.%s*** \n',repmat(' ',n-79,1))
-        if length(urlMessage)>0
-            fprintf('%s%s***\n',urlMessage,repmat(' ',n-length(urlMessage)-2,1))
-        end
-        fprintf('\t***%s***\n',repmat(' ',74,1))
-        fprintf('\t%s\n\n\n',repmat('*',80,1))
 
 
 
