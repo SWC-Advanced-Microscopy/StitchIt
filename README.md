@@ -45,7 +45,7 @@ to acquire the following and add to your MATLAB path:
 - Additionally, you will need the following toolboxes: statistics, parallel computing, image processing. 
 
 If you need more information on the instalation procedure, please see the [Installation](https://github.com/BaselLaserMouse/StitchIt/wiki/Installation) page on the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
-
+Stitchit will automatically check if it's up to date whenever the user runs `syncAndCrunch`.
 
 
 ## Questions and bug reports
