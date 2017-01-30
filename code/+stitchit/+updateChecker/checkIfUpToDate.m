@@ -61,7 +61,7 @@ if ~isempty(findstr(status,'Your branch is ahead')) ...
     isUpToDate = true;
 
     if ~suppressMessages
-        fprintf('\n\n\t *** StitchIt is up to date, but has local changes not present on the remote *** \n')
+        fprintf('\n\n\t *** Note: your StitchIt install is up to date, but has local changes not present on the remote *** \n')
     end
 end
 
