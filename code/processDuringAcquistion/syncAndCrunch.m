@@ -444,7 +444,7 @@ if ~expAlreadyFinished && success
   stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
 end
 
-stitchit.tools.notify('syncAndCrunch finished\n')
+stitchit.tools.notify('syncAndCrunch finished')
 
 
 %-------------------------------------------------------------------------------------
