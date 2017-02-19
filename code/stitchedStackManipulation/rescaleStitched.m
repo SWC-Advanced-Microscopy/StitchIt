@@ -23,8 +23,11 @@ function rescaleStitched(stitchedDir,targetResize)
 % Notes
 % Deletes existing directory name if it will clash with the one to be produced.
 %
+%
 % Rob Campbell - Basel 2014
-
+%
+%
+% Also see: resampleVolume
 
 if strcmp(stitchedDir(end),filesep)
 	stitchedDir(end)=[];

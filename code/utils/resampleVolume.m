@@ -40,7 +40,8 @@ function varargout=resampleVolume(channel,targetDims,fileFormat)
 %
 %
 % Rob Campbell - Basel 2014
-
+%
+% Also see: rescaleStitched
 
 if ~exist('stitchedImages_100','dir')
   fprintf('Can not find a stitchedImages_100 directory in the current directory. See the examples in the function help\n')
@@ -115,21 +116,32 @@ downSampleRatio = targetVol/origVol;
 finalDataSizeInMB = (imSizeInMegs*length(files))/downSampleRatio;
 
 
-%If the target data size is very, very, large, then we issue an error. 
-%If it's just big we issue a warning and proceed anyway
-errorSize=2^13;
-warningSize=2^10;
-if finalDataSizeInMB>errorSize
-  error('Target data size is over % MBd\n',errorSize)
-elseif finalDataSizeInMB>warningSize
-  fprintf('WARNING: Target data size is over %d MB\n',warningSize)
+%If the target data size is very (>8 GB) large, then we issue a warning
+warningSize=2^13;
+if finalDataSizeInMB>warningSize
+  fprintf('WARNING: Target data will be %0.1f GB\n', finalDataSizeInMB/1024)
 end
 
 
 %Create file name
 paramFile=getTiledAcquisitionParamFile;
 %TODO: the following will fail with BakingTray Data
-downsampledFname=sprintf([regexprep(paramFile(1:end-4),'Mosaic_','ds'),'_%d_%d_%02d'],targetDims,channel);
+downsampledFname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')]
+if mod(targetDims(1),1)==0
+    downsampledFname=[downsampledFname, sprintf('_%d',targetDims(1))];
+  else
+    downsampledFname=[downsampledFname, sprintf('_%0.1f',targetDims(1))];
+end
+
+if mod(targetDims(2),1)==0
+    downsampledFname=[downsampledFname, sprintf('_%d',targetDims(2))];
+  else
+    downsampledFname=[downsampledFname, sprintf('_%0.1f',targetDims(2))];    
+end
+
+downsampledFname=[downsampledFname, sprintf('_%02d',channel)]
+
+
 fid = fopen([downsampledFname,'.txt'],'w');
 
 metaData = readMetaData2Stitchit(paramFile);
