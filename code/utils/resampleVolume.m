@@ -126,7 +126,7 @@ end
 %Create file name
 paramFile=getTiledAcquisitionParamFile;
 %TODO: the following will fail with BakingTray Data
-downsampledFname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')]
+downsampledFname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')];
 if mod(targetDims(1),1)==0
     downsampledFname=[downsampledFname, sprintf('_%d',targetDims(1))];
   else
@@ -139,7 +139,7 @@ if mod(targetDims(2),1)==0
     downsampledFname=[downsampledFname, sprintf('_%0.1f',targetDims(2))];    
 end
 
-downsampledFname=[downsampledFname, sprintf('_%02d',channel)]
+downsampledFname=[downsampledFname, sprintf('_%02d',channel)];
 
 
 fid = fopen([downsampledFname,'.txt'],'w');
