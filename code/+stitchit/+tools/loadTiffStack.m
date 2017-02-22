@@ -14,7 +14,7 @@ function [imageStack,imageInfo]=loadTiffStack(FileName,varargin)
 % FileName - a string specifying the full path to the tif you wish
 %   to import.  
 %
-% INPUTs (optional)
+% INPUTS (optional)
 % 'frames' - By default the function loads all frames. If
 %   frames is present in loads only the frames defined by this
 %   vector. e.g. if frames is 1:10 then the first ten frames are loaded only. 
@@ -68,7 +68,7 @@ warning on
 %sometimes it seems to be a row vector);
 numFrames=length(imageInfo);
 
-if nargin<2 %Load all frames
+if isempty(frames) %Load all frames
     imSize=[imageInfo(1).Height,imageInfo(1).Width,numFrames];
     imageStack=zeros(imSize,outputType);
 
