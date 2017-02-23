@@ -60,9 +60,8 @@ end
 
 
 
-warning off
+
 imageInfo=imfinfo(FileName);
-warning on 
 
 %Number of columns in structure is equal to the number of frames (but
 %sometimes it seems to be a row vector);
