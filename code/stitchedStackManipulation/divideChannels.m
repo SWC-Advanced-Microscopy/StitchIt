@@ -1,4 +1,4 @@
-function divideChannels(stitchedDir,channels,offset,sectionRange,overwrite,destDir)
+function divideChannels(stitchedDir,channels,sectionRange,overwrite,destDir)
 % Combine two channels to create a new one. Cheap and easy way to isolate fluorophore signals.
 %
 % function divideChannels(stitchedDir,channels, offset,sectionRange,overwrite,destDir)
@@ -11,7 +11,6 @@ function divideChannels(stitchedDir,channels,offset,sectionRange,overwrite,destD
 % INPUTS 
 % stitchedDir - string, path of data folder
 % channels  - vector of length 2 of channel index values to process
-% offset    - [scalar, 800 by default] adds offset to the final channel.
 % sectionRange  - the range of sections to be processed, optional, by defalt empty:
 %             1) a vector of length two [physical section, optical section]. Stitches one plane only
 %             2) matrix defining the first and last planes to stitch: [physSec1,optSec1; physSecN,optSecN]. 
@@ -26,14 +25,14 @@ function divideChannels(stitchedDir,channels,offset,sectionRange,overwrite,destD
 % make a new channel called '7' under the default stitched directory
 %       ch7 = ChA - ChB * slope;
 %           slope is the slope of linear regression of each optical section:
-%            ChA= ChB * slope + intersect
+%            ChA= ChB * slope 
 %
-% divideChannels('stitchedImages_100',[2,1],200);
-%     ch7 = ch2 -ch1*slope + 200;
+% divideChannels('stitchedImages_100',[2,1]);
+%     ch7 = ch2 -ch1*slope 
 %
 %
 % Two - 
-% divideChannels('stitchedImages_100',[1,2],[],[140,1;142,2],'./TEST')
+% divideChannels('stitchedImages_100',[1,2],[140,1;142,2],'./TEST')
 
 %
 % Yunyun Han - Basel, 2016-01-31
@@ -56,19 +55,15 @@ if length(channels)~=2
     return
 end
 
-if nargin<3 || isempty(offset)
-   offset=800; 
-end
-
-if nargin<4
+if nargin<3
     sectionRange=[];
 end
 
-if nargin<5 || isempty(overwrite)
+if nargin<4 || isempty(overwrite)
     overwrite=0;
 end
 
-if nargin<6 || isempty(stitchedDir)
+if nargin<5 || isempty(stitchedDir)
     destDir=stitchedDir;
 end
 
@@ -156,18 +151,10 @@ parfor ii=1:length(name)
 
         imA = double(imA);
         imB = double(imB);
-        % %average
-        % ft = fittype( 'poly1' );
-        % [x,y] = prepareCurveData( imB, imA );
-        % [fitresult] = fit( x, y, ft );
-        %     
-        % mu=uint16(imA-imB*fitresult.p1);
-        % A=reshape(imA,1,[]);
-        % B=reshape(imB,1,[]);
-           
+
         fitresult=polyfit(imB,imA,1);
-        mu=uint16(imA-imB*fitresult(1));
-       
+        mu=uint16(imA-imB*fitresult(1)); %Save the residuals. The first coefficient in "fitresult" is the slope, not the intercept 
+
         % write the result image
         imwrite(mu, fullfile(targetDir,name{ii}), 'Compression', 'None');
         fprintf('%s processed\n', name{ii})
@@ -178,6 +165,6 @@ end
 %Make a file that says what the average was
 fid = fopen(fullfile(targetDir,'divide_Channels_Info.txt'),'w');
 fprintf(fid,'Made by %s on %s\n', mfilename,  datestr(now,'yyyy-mm-dd'))
-fprintf(fid,'Ch07 = Ch%02d - Ch%02d * slope + %d) /n Ch%02d= Ch%02d * slope + intersect', ...
-    channels(1),channels(2),offset, channels(1),channels(2));
+fprintf(fid,'Ch07 = Ch%02d - Ch%02d * slope) /n Ch%02d= Ch%02d * slope ', ...
+    channels(1),channels(2), channels(1),channels(2));
 fclose(fid);
