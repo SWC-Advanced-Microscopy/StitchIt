@@ -149,10 +149,10 @@ parfor (ii=1:nPhys,nWorkers)
 
 
 	%Load all optical sections for this physical section
-	thisSection=openTiff([sectionDirectory,sections(thisSectionId(1,1)).name]);
+	thisSection=stitchit.tools.openTiff([sectionDirectory,sections(thisSectionId(1,1)).name]);
 	thisSection=repmat(thisSection,[1,1,size(thisSectionId,1)]);
 	for jj=2:size(thisSectionId,1)
-		thisSection(:,:,jj)=openTiff([sectionDirectory,sections(thisSectionId(jj,1)).name]);
+		thisSection(:,:,jj)=stitchit.tools.openTiff([sectionDirectory,sections(thisSectionId(jj,1)).name]);
 	end
 	if verbose
 		fprintf('\n')

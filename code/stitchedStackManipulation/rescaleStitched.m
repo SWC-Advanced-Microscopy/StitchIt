@@ -98,7 +98,7 @@ for ii=1:length(chans)
 	targetDir = [newDirectoryName,filesep,chans{ii},filesep];
 
 	parfor jj=1:length(tifs)
-	    im=openTiff([sourceDir,tifs(jj).name]);
+	    im=stitchit.tools.openTiff([sourceDir,tifs(jj).name]);
 	    imwrite(imresize(im,rescaleValue,'bicubic'), [targetDir,tifs(jj).name],'compression','none')
     end
 

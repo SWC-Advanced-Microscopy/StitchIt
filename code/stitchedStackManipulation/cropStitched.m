@@ -26,7 +26,7 @@ function cropStitched(stitchedDir,targetDir,rect)
 %
 % Notes
 % Deletes existing directory name if it will clash with the one to be produced.
-% Requires Alex Brown's, openTiff, which is part of goggleViewer
+% Requires Alex Brown's, stitchit.tools.openTiff, which is part of goggleViewer
 %
 %
 % Rob Campbell
@@ -65,7 +65,7 @@ end
 parfor ii=1:length(tifs)
 	sourceIm = [stitchedDir,filesep,tifs(ii).name];
 	fprintf('cropping %s\n', sourceIm)
-	im=openTiff(sourceIm, [rect(2),rect(1),rect(3:4)]);
+	im=stitchit.tools.openTiff(sourceIm, [rect(2),rect(1),rect(3:4)]);
     imwrite(im,[targetDir,filesep,tifs(ii).name],'Compression','none')
 end
 

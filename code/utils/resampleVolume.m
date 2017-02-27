@@ -166,14 +166,14 @@ msg=sprintf('Loading and down-sampling x/y by %0.3f\n',1/xyRescaleFactor);
 fprintf(msg)
 fprintf(fid,msg);
 
-vol=openTiff([origDataDir,filesep,files(1).name]);
+vol=stitchit.tools.openTiff([origDataDir,filesep,files(1).name]);
 vol=imresize(vol,xyRescaleFactor);
 vol(:,:,2:end)=nan;
 vol=repmat(vol,[1,1,length(files)]);
 
 parfor ii=1:length(files)
   fprintf('Resampling %03d\n', ii)
-  im=openTiff([origDataDir,files(ii).name]);
+  im=stitchit.tools.openTiff([origDataDir,files(ii).name]);
   vol(:,:,ii)=imresize(im,xyRescaleFactor);
 end
 

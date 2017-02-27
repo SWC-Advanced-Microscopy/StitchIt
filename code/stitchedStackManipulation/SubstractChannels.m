@@ -97,8 +97,8 @@ parfor ii=1:length(name)
         disp([ targetDir filesep name{ii} ' exists, SKIPPING'] )
     else
 	%load tifA(ii)
-    imA=openTiff([stitchedDirA filesep name{ii}]);
-    imB=openTiff([stitchedDirB filesep name{ii}]);
+    imA=stitchit.tools.openTiff([stitchedDirA filesep name{ii}]);
+    imB=stitchit.tools.openTiff([stitchedDirB filesep name{ii}]);
 
     %average
     mu = imA;

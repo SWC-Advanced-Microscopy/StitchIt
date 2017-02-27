@@ -100,9 +100,9 @@ parfor ii=1:length(name)
     else
 	%load tifA(ii)
 	try
-    	imA=openTiff([stitchedDirA filesep name{ii}]);
-    	imB=openTiff([stitchedDirB filesep name{ii}]);
-    	imC=openTiff([stitchedDirC filesep name{ii}]);
+    	imA=stitchit.tools.openTiff([stitchedDirA filesep name{ii}]);
+    	imB=stitchit.tools.openTiff([stitchedDirB filesep name{ii}]);
+    	imC=stitchit.tools.openTiff([stitchedDirC filesep name{ii}]);
     catch
 		error('problems to read %s ',name{ii})
 	end

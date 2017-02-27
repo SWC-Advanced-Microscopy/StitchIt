@@ -80,7 +80,7 @@ for ii=0:numBatches-1
 
 	fprintf('.')
 	parfor jj=1:length(ind)
-	    im=openTiff([stitchedDir,filesep,tifs(ind(jj)).name]);
+	    im=stitchit.tools.openTiff([stitchedDir,filesep,tifs(ind(jj)).name]);
 	    if ~all(size(im)==tmpSize)
 	    	error('Images appear to be of different sizes. Did you re-size a subset of them?')
 	    end
