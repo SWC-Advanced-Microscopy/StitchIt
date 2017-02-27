@@ -41,8 +41,8 @@ to acquire the following and add to your MATLAB path:
 
 - [Slack MATLAB](https://github.com/DylanMuir/SlackMatlab)
 - [YAML MATLAB](https://github.com/raacampbell/yamlmatlab)
-- [rsync](http://www.howtogeek.com/135533/how-to-use-rsync-to-backup-your-data-on-linux/) installed if you want to use the `syncAndCrunch` tool to process data during acquisition. 
-- Additionally, you will need the following toolboxes: statistics, parallel computing, image processing. 
+- [rsync](http://www.howtogeek.com/135533/how-to-use-rsync-to-backup-your-data-on-linux/) is needed if you want to use the `syncAndCrunch` tool to process data during acquisition. 
+- Additionally, you will need the following MATLAB toolboxes: [statistics](https://www.mathworks.com/products/statistics.html), [parallel computing](https://www.mathworks.com/products/parallel-computing.html), and [image processing](https://www.mathworks.com/products/parallel-computing.html). 
 
 If you need more information on the instalation procedure, please see the [Installation](https://github.com/BaselLaserMouse/StitchIt/wiki/Installation) page on the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
 Stitchit will automatically check if it's up to date whenever the user runs `syncAndCrunch`.
