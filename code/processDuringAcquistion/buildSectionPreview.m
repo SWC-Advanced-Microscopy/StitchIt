@@ -17,16 +17,16 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % syncAndCrunch
 
 if nargin<1 || isempty(sectionToPlot)
-	sectionToPlot = lastCompletedSection; 
+    sectionToPlot = lastCompletedSection; 
 else
-	userConfig = readStitchItINI;
-	rawDataDir = userConfig.subdir.rawDataDir;
-	baseName = sprintf('%s%s%s', rawDataDir, filesep, directoryBaseName);
-	sectionToPlot = sprintf('%s%04d',baseName,sectionToPlot);
+    userConfig = readStitchItINI;
+    rawDataDir = userConfig.subdir.rawDataDir;
+    baseName = sprintf('%s%s%s', rawDataDir, filesep, directoryBaseName);
+    sectionToPlot = sprintf('%s%04d',baseName,sectionToPlot);
 end
 
 if nargin<2
-	channel=2;
+    channel=2;
 end
 
 
@@ -54,15 +54,15 @@ end
 params=readMetaData2Stitchit;
 rSize=320/params.tile.nRows; 
 if rSize>1
-	rSize=1;
+    rSize=1;
 end
 
 opticalSection=1;
 fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
 im=peekSection([ind,opticalSection],channel,rSize);
 if isempty(im)
-	fprintf('%s: Failed to load data. Quitting\n ',mfilename);
-	return
+    fprintf('%s: Failed to load data. Quitting\n ',mfilename);
+    return
 end
 
 
@@ -72,11 +72,11 @@ F=figure('visible','off');
 
 
 if ~exist(userConfig.subdir.WEBdir,'dir')
-	mkdir(userConfig.subdir.WEBdir)
+    mkdir(userConfig.subdir.WEBdir)
 end
 
 if verbose
-	fprintf('Creating main image\n')
+    fprintf('Creating main image\n')
 end
 
 [im,threshLevel]=rescaleImage(im,rescaleThresh);
@@ -87,17 +87,17 @@ close(F);
 
 %Write histogram to disk
 if verbose
-	fprintf('Setting up non-visible histogram figure\n')
+    fprintf('Setting up non-visible histogram figure\n')
 end
 F=figure('visible','off');
 
 if verbose
-	fprintf('Running sectionHist\n')
+    fprintf('Running sectionHist\n')
 end
 sectionHist(im,threshLevel)
 
 if verbose
-	fprintf('Set paper size, invert hard copy, save\n')
+    fprintf('Set paper size, invert hard copy, save\n')
 end
 set(F,'paperposition',[0,0,6,3],'InvertHardCopy','off')
 print('-dpng','-r100',[userConfig.subdir.WEBdir,filesep,'hist.png']);
@@ -113,21 +113,21 @@ fprintf('Building montage images')
 params=readMetaData2Stitchit;
 rSize=120/params.tile.nRows; 
 if rSize>1
-	rSize=1;
+    rSize=1;
 end
 
 if params.mosaic.numOpticalPlanes>1
-	mos=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh);
-	mos=repmat(mos,[1,1,params.mosaic.numOpticalPlanes]);
-	for ii=1:params.mosaic.numOpticalPlanes
-		fprintf('.')
-		mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),rescaleThresh);
-	end
-	monFname=[userConfig.subdir.WEBdir,filesep,'montage.jpg'];
-	mos=permute(mos,[1,2,4,3]);
-	H=montage_noimshow(mos);
-	mos=get(H,'CData');
-	imwrite(mos,monFname,'bitdepth',8)
+    mos=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh);
+    mos=repmat(mos,[1,1,params.mosaic.numOpticalPlanes]);
+    for ii=1:params.mosaic.numOpticalPlanes
+        fprintf('.')
+        mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),rescaleThresh);
+    end
+    monFname=[userConfig.subdir.WEBdir,filesep,'montage.jpg'];
+    mos=permute(mos,[1,2,4,3]);
+    H=montage_noimshow(mos);
+    mos=get(H,'CData');
+    imwrite(mos,monFname,'bitdepth',8)
 end
 fprintf('\n')
 close(F);
@@ -160,28 +160,28 @@ end
 currentTime = datestr(now,'YYYY/mm/dd HH:MM:SS');
 
 if params.mosaic.sliceThickness>1 
-	sliceThicknessInMicrons =  params.mosaic.sliceThickness;
+    sliceThicknessInMicrons =  params.mosaic.sliceThickness;
 else %A bit of hack to convert slice thickess in mm to microns. 
-	%TODO: if baking tray moves to microns for the cut thickness, then we can get rid of this
-	sliceThicknessInMicrons =  params.mosaic.sliceThickness*1E3;
+    %TODO: if baking tray moves to microns for the cut thickness, then we can get rid of this
+    sliceThicknessInMicrons =  params.mosaic.sliceThickness*1E3;
 end
 
 details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
-	sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
+    sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 
 endTime=estimateEndTime;
 
 if params.mosaic.numOpticalPlanes>1
-	indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];
-	montageDetails = [details,' - <a href="./index.shtml">BACK</a>'];
-	montageDetailsFile='details_montage.txt';
-	system(sprintf('echo ''%s'' > %s',montageDetails,[userConfig.subdir.WEBdir,filesep,montageDetailsFile]));
+    indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];
+    montageDetails = [details,' - <a href="./index.shtml">BACK</a>'];
+    montageDetailsFile='details_montage.txt';
+    system(sprintf('echo ''%s'' > %s',montageDetails,[userConfig.subdir.WEBdir,filesep,montageDetailsFile]));
 
 else
-	indexDetails = details;
+    indexDetails = details;
 end
 indexDetails = sprintf('%s\n<br />\nChannel: %d ; %s\n\n',...
-	indexDetails, channel,endTime.finishingString);
+    indexDetails, channel,endTime.finishingString);
 
 detailsFile='details.txt';
 system(sprintf('echo ''%s'' > %s',indexDetails,[userConfig.subdir.WEBdir,filesep,detailsFile]));
@@ -196,14 +196,14 @@ fclose(fidM);
 progressFname = 'progress.ini';
 fidP=fopen([userConfig.subdir.WEBdir,filesep,progressFname], 'w');
 fprintf(fidP,'%scurrentSection:%d\nexpectedEndTime:%s\nlastWebUpdate:%s\nwebImThres:%d\n',...
-	contents,currentSecNum,endTime.finishingString,currentTime,rescaleThresh);
+    contents,currentSecNum,endTime.finishingString,currentTime,rescaleThresh);
 fclose(fidP);
 
 
 
 if ~userConfig.syncAndCrunch.sendToWeb
-	fprintf('Not sending to web\n')
-	return
+    fprintf('Not sending to web\n')
+    return
 end
 
 %and a smaller version for mobile
@@ -216,29 +216,29 @@ imwrite(imresize(im,0.33),[userConfig.subdir.WEBdir,filesep,lastSection_small],'
 returnVal=system(sprintf('LD_LIBRARY_PATH= scp -r -q %s%s* %s', userConfig.subdir.WEBdir, filesep, sendTo));
 
 if returnVal==1
-	fprintf('WARNING: image failed to send to %s. Do you have access rights to that server?\n', sendTo);
+    fprintf('WARNING: image failed to send to %s. Do you have access rights to that server?\n', sendTo);
 end
 
 
 
 function [im,thresh]=rescaleImage(im,thresh)
-	if nargin<2
-		thresh=1;
-	end
+    if nargin<2
+        thresh=1;
+    end
 
-	if thresh<1 
-		thresh=thresh*2^16;
-	elseif thresh==1
-		thresh=max(im(:));
-	else
-		%thresh is a pixel intensity value
-	end
+    if thresh<1 
+        thresh=thresh*2^16;
+    elseif thresh==1
+        thresh=max(im(:));
+    else
+        %thresh is a pixel intensity value
+    end
 
-	im = single(im);
-	if ~isempty(thresh)
-		im = im ./ thresh;
-		im(im>1)=1;
-	end
+    im = single(im);
+    if ~isempty(thresh)
+        im = im ./ thresh;
+        im(im>1)=1;
+    end
 
-	im = im * (2^8-1);
-	im = uint8(im);
+    im = im * (2^8-1);
+    im = uint8(im);

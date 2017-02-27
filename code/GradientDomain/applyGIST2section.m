@@ -1,5 +1,5 @@
 function varargout=applyGIST2section(section,chan,saveFname,ind,runInBackGround)
-% Conduct GIST seamless stitching (seam removal) on a single sitched section
+% Conduct GIST "seamless stitching" (seam removal) on a single sitched section
 %
 % function [im,mask]=applyGIST2section(section,chan,saveFname,ind,runInBackGround)
 %
@@ -7,7 +7,7 @@ function varargout=applyGIST2section(section,chan,saveFname,ind,runInBackGround)
 % Remove seams from an already stitched image using a gradient-domain seam
 % removal algorithm. For more information on this approach see the StitchIt
 % manual. This function is a wrapper for the code described here:
-% http://www.cs.jhu.edu/~misha/Code/DMG For this MATLAB function to
+% https://github.com/mkazhdan/DMG For this MATLAB function to
 % run you must download (and compile if necessary) the binaries from the
 % the GIST project web page. These need to be added to your system path.
 % You then call this function from the experiment root directory.
@@ -41,8 +41,8 @@ function varargout=applyGIST2section(section,chan,saveFname,ind,runInBackGround)
 % mask - the mask for the correction
 % tempFileNames - cell array of temp files that were used
 %
-% Note: you must have the full (100% images to work with).
-%       The function currently doesn't support the reduced resolution stacks.
+% Note: you must have the full sized (100% images to work with) because 
+%       the function currently doesn't support the reduced resolution stacks.
 %
 % Rob Campbell - Basel 2015
 %
@@ -147,7 +147,6 @@ iWeight=0.0001 / (resize/100); %the size of the filter depends on how much we ha
 serverCommand = sprintf('Server --count 1 --port 1234%d --quality 0 --gray --iWeight %f & ',ind,iWeight);
 
 
-%TODO: try running in core. The problem is not large
 clientCommand=sprintf('Client --pixels %s --labels %s --lowPixels %s --address 127.0.1.1 --port 1234%d --threads %d --hdr --inCore --temp %s --out %s',...
 	localSection,maskFname,localSection,ind,nThreads,tempDir,saveFname);
 
@@ -158,9 +157,11 @@ end
 
 %Run the analysis
 fprintf('\nRunning: %s\n',serverCommand)
-unix(serverCommand); 
+unix(['LD_LIBRARY_PATH= ', serverCommand]); %defining LD_LIBRARY_PATH as blank is needed to avoid the MATLAB version of GLIBC being used
+
+
 fprintf('\nRunning: %s\n',clientCommand)
-unix(clientCommand);
+unix(['LD_LIBRARY_PATH= ',clientCommand]); %defining LD_LIBRARY_PATH as blank is needed to avoid the MATLAB version of GLIBC being used
 
 
 %Tidy up

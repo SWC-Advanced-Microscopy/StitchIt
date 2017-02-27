@@ -34,7 +34,7 @@ end
 
 
 
-tmp=openTiff([stitchedDir,filesep,tifs(1).name]);
+tmp=stitchit.tools.openTiff([stitchedDir,filesep,tifs(1).name]);
 
 M1=max(tmp,[],1);
 mu1=mean(tmp,1);
@@ -48,7 +48,7 @@ med1=repmat(med1,[length(tifs)],1);
 
 parfor ii=2:length(tifs)
 
-    IM=openTiff([stitchedDir,filesep,tifs(ii).name]);
+    IM=stitchit.tools.openTiff([stitchedDir,filesep,tifs(ii).name]);
 
 	M1(ii,:)=max(IM,[],1);
 	mu1(ii,:)=mean(IM,1);

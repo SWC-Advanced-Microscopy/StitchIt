@@ -131,7 +131,7 @@ parfor ii=1:length(fileIndex)
 
     raw_name = sprintf('%s%d_%02d.tif',tifPrefix,fileIndex(ii),coords(5)); %just the tiff file name
     thisFname = fullfile(sectionDir,raw_name); %with the directory
-	tmp=openTiff(thisFname);
+	tmp=stitchit.tools.openTiff(thisFname);
 	if isempty(tmp)
     	im(:,:,ii) = 0;
     else

@@ -87,7 +87,6 @@ if ~isnumeric(channel)
 end
 
 
-
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 %Parse optional arguments
 params = inputParser;
@@ -141,7 +140,7 @@ for ii=1:length(stitchedSize)
     mkdir(reducedSizeDir{ii})
   end
     thisChan=sprintf('%s%s%d',reducedSizeDir{ii},filesep,channel);
-    
+
     %The details directory stores tile position files
     if ~exist([thisChan,filesep,'details'],'dir')
     mkdir([thisChan,filesep,'details']) 
@@ -155,7 +154,11 @@ end
 numStitched=0; %The number of images stitched. This is just used for error checking
 parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
   % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  %Load the data
+
+  %Explicitly clear these variables so as not get annoying warnings
+  naiveWidth=[];
+  naiveHeight=[];
+  trimPixels=[];
 
   %The physical section and optical section
   thisSection=section(ii,:);
@@ -192,7 +195,6 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
   %Either stitch based on naive tile positions or stage coordinates. 
   if doStageCoords
-    warning('off') %Supress annoying temporary variable warnings
     sectionName = sprintf('%s%04d',baseName,thisSection(1));
 
     mosaicFileName = fullfile(userConfig.subdir.rawDataDir,...
@@ -208,7 +210,6 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     naiveMaxPos=max(naivePos)+tileSize;
     naiveWidth=naiveMaxPos(1);
     naiveHeight=naiveMaxPos(2);   
-    warning('on') %Supress annoying temporary variable warnings
   else %just use the naive positions
     pixelPos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]); 
   end %if doStageCoords
@@ -218,7 +219,6 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
   %If the user has asked for stage positions then we need trim back the image in order to avoid different
   %sections being different sizes
   if doStageCoords
-    warning('off') %Supress annoying temporary variable warnings
     if tileSize<1E3
       trimPixels = 5;
     elseif tileSize>1E3 & tileSize<2E3
@@ -234,7 +234,6 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
     f=find( tilePosInPixels(:,3)==max(tilePosInPixels(:,3)) );
     tilePosInPixels(f,4) = tilePosInPixels(f,4)-trimPixels;
-    warning('on') %Supress annoying temporary variable warnings
   end
 
     

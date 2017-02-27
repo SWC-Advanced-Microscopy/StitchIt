@@ -1,5 +1,8 @@
-function AddSubstractChannels(stitchedDir,channels, offset,range,overwrite,destDir)
-% AddSubstractChannels(stitchedDir,channels, offset,range,overwrite,destDir)
+function SubstractChannels(stitchedDir,channels,offset,range,overwrite,destDir)
+% Subtract one channel from another
+%
+% SubstractChannels(stitchedDir,channels, offset,range,overwrite,destDir)
+%
 % INPUTS 
 % stitchedDir - string, path of data folder
 % channels	- [channel A, channel B, channel C];
@@ -9,13 +12,13 @@ function AddSubstractChannels(stitchedDir,channels, offset,range,overwrite,destD
 %			- 2) matrix defining the first and last planes to stitch: [physSec1,optSec1; physSecN,optSecN]. 
 %			- 3) if empty, attempt to stitch from all available data directories. default. 
 % overwrite	- 1, overwrite; 0, not. Optional, default 0.
-% destDir	- string, path of target folder, optional, by defaul destDir = stitchedDir
+% destDir	- string, path of target folder, optional, by defaul destDir = stitchedDir	
 %
-% make a new channel called '6' under the stitchedDir
-%       ch6 = chA + ChB - ChC + offset;
+% make a new channel called '5' under the stitchedDir
+%       ch5 = chA - ChB + offset;
 %
-% eg. SubstractChannels('stitchedImages_100',[2,3,1],200);
-%     ch6 = ch2+ch3-ch1+200;
+% eg. SubstractChannels('stitchedImages_100',[2,1],200);
+%     ch5 = ch2-ch1+200;
 %
 % Yunyun 2016-01-31, Basel
 
@@ -37,7 +40,7 @@ end
 
 stitchedDirA=[stitchedDir filesep num2str(channels(1))];
 stitchedDirB=[stitchedDir filesep num2str(channels(2))];
-stitchedDirC=[stitchedDir filesep num2str(channels(3))];
+
 
 if ~isequal(exist(stitchedDirA),7)
     error('Channel A folder no found')
@@ -47,18 +50,12 @@ if ~isequal(exist(stitchedDirB),7)
     error('Channel B folder no found')
 end
 
-if ~isequal(exist(stitchedDirC),7)
-    error('Channel C folder no found')
-end
-
-
 
 %list the tiffs in the two channel 
 tifsA = dir([stitchedDirA,filesep,'*.tif']);
 tifsB = dir([stitchedDirB,filesep,'*.tif']);
-tifsC = dir([stitchedDirC,filesep,'*.tif']);
 
-%Check if empty
+
 if isempty(tifsA) | isempty(tifsB)  | isempty(tifsB)
 	error('No tiffs found in %s',stitchedDir); %update error
 
@@ -66,15 +63,16 @@ end
 
 if isempty(range)
 	%check that the are same length
-	if length(tifsA)==length(tifsB) & length(tifsA)==length(tifsC)
+	if length(tifsA)==length(tifsB)
 	    fprintf('Found %d images\n',length(tifsA))
 	else
-    	error('file number is not equal in channel A, B, C')
+    	error('file number is not equal in channel A, B')
 	end
 
 	for i=1:length(tifsA)
 	   name{i}= tifsA(i).name;
 	end
+
 else
 	if size(range,1)<=2 
 		section=handleSectionArg(range);
@@ -84,42 +82,41 @@ else
 
 	for i=1:size(section,1)
 		name{i}=sprintf('section_%03d_%02d.tif',section(i,1),section(i,2));
+
 	end
 
 end
 
 
+
 %make a target directory to keep them in
-targetDir=[destDir filesep '6'];
+targetDir=[destDir filesep '5'];
 mkdir(targetDir)
 
 parfor ii=1:length(name)
-
-    if exist(fullfile(targetDir,name{ii}), 'file') ==2 & overwrite ==0
+    
+    if exist(fullfile(targetDir,name{ii}), 'file')==2 & overwrite ==0 
         disp([ targetDir filesep name{ii} ' exists, SKIPPING'] )
     else
 	%load tifA(ii)
-	try
-    	imA=openTiff([stitchedDirA filesep name{ii}]);
-    	imB=openTiff([stitchedDirB filesep name{ii}]);
-    	imC=openTiff([stitchedDirC filesep name{ii}]);
-    catch
-		error('problems to read %s ',name{ii})
-	end
-    %add
-    mu = imA;
-    mu = imA+imB-imC + offset;
+    imA=stitchit.tools.openTiff([stitchedDirA filesep name{ii}]);
+    imB=stitchit.tools.openTiff([stitchedDirB filesep name{ii}]);
 
-    % write the added image
+    %average
+    mu = imA;
+    mu = imA-imB + offset;
+
+    % write the average image
     imwrite(mu,[targetDir,filesep,name{ii}],'Compression','none');
     	disp([name{ii} ' processed'])
     end
 end
 
 %Make a file that says what the average was
+fid = fopen([targetDir,filesep,'Info.txt'],'w');
 try
 fid = fopen([targetDir,filesep,'Info.txt'],'w');
-fprintf(fid,'Ch6 = (Ch%d + Ch%d - Ch%d) + %d',channels(1),channels(2),channels(3),offset);
+fprintf(fid,'Ch05 = Ch%02d - Ch%02d + %d',channels(1),channels(2),offset);
 catch
 end
 fclose(fid);
