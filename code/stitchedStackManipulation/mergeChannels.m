@@ -18,7 +18,7 @@ function mergeChannels(channels, operation, varargin)
 %           'add' - adds two or more channels plus an offset OUT = Ch1 + Ch2 + ChN + offset;
 %           'sub' - subtract two or more channels plus an offset OUT = Ch1 - Ch2 - ChN + offset;
 %           'div' - fits chan(2) as a function of chan(1) and returns the residuals
-%
+%           'ave' - averages n channels and adds an optional offset
 %
 % INPUTS (optional)
 % stitchedDir - [string, "stitchedImages_100" by default]. This is the relative path to the stitched data.
@@ -108,7 +108,7 @@ if ~exist(stitchedDir,'dir')
     return
 end
 
-validOperations={'add','sub','div'};
+validOperations={'add','sub','div','ave'};
 operation = lower(operation);
 if isempty(strmatch(operation,validOperations))
     fprintf('operation %s is not a valid operation. Valid operations are:\n',operation)
@@ -118,7 +118,7 @@ if isempty(strmatch(operation,validOperations))
 end
 
 
-%Generate image file names
+%The division handles just two images
 if size(sectionRange,1)<=2 
     section=handleSectionArg(sectionRange);
 else
@@ -126,6 +126,8 @@ else
     return
 end
 
+
+%Generate image file names
 for ii=1:size(section,1)
     sectionNames{ii}=sprintf('section_%03d_%02d.tif',section(ii,1),section(ii,2));
 end
@@ -251,6 +253,12 @@ parfor ii=1:length(imName)
             for kk=1:length(theseImages)
                 mu = mu - theseImages{kk};
             end
+        case 'ave'
+            mu = zeros(size(theseImages{1}), class(theseImages{1}));
+            for kk=1:length(theseImages)
+                mu = mu + theseImages{kk};
+            end
+            mu = (mu/length(theseImages)) + ones(size(mu), class(theseImages{1})) * offset; 
         case 'div'
             imA = single(theseImages{1});
             imB = single(theseImages{2});
