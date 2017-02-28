@@ -149,8 +149,8 @@ parfor ii=1:length(name)
         imA = stitchit.tools.openTiff(fullfile(stitchedDirA,name{ii}));
         imB = stitchit.tools.openTiff(fullfile(stitchedDirB,name{ii}));
 
-        imA = double(imA);
-        imB = double(imB);
+        imA = single(imA);
+        imB = single(imB);
 
         fitresult=polyfit(imB,imA,1);
         mu=uint16(imA-imB*fitresult(1)); %Save the residuals. The first coefficient in "fitresult" is the slope, not the intercept 
