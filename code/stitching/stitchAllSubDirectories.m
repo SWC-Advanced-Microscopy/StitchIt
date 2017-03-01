@@ -1,11 +1,14 @@
 function tifs=stitchAllSubDirectories(chansToStitch,stitchedSize,combChans,illumChans)
-% Find all sub-directories within the current directory containing a mosiac file and stitch all data
+% Find all sub-directories within the current directory containing a mosaic file and stitch all data
 %
 % function tifs=stitchAllSubDirectories(chansToStitch,stitchedSize,combChans,illumChans)
 %
+%
 % Purpose
-% Stitches all data in a directory tree. Before stitching, function performs analysis and
-% builds new illumination images if needed. 
+% Stitches all data in a sample directory. Before stitching, the function performs all required
+% pre-processing and builds new illumination images if needed. This is a convenience function. 
+% To stitch particular channels or sections see the stitchSection function. 
+%
 %
 % Inputs
 % chansToStitch - which channels to stitch. By default it's all available channels. 
@@ -19,15 +22,23 @@ function tifs=stitchAllSubDirectories(chansToStitch,stitchedSize,combChans,illum
 %
 %
 % Rob Campbell - Basel 2014
-
+%
+% Also see: generateTileIndex, preProcessTiles, collateAverageImages, stitchSection
 
 
 
 config=readStitchItINI;
+
+%Bail out if there is no raw data directory in the current directory
+%TODO: we go on to do a recursive search for mosaic files, which suggests
+% this function can be used to stitch multiple samples. It's never used 
+% this way. Check if it would do this if the rawData search isn't present. 
+% if so, the unix find commands likely aren't needed. 
 if ~exist(config.subdir.rawDataDir,'dir')
     fprintf('%s can not find directory %s. Quitting\n', mfilename, config.subdir.rawDataDir)
     return
 end
+
 
 % Find mosaic files (TODO: we we need the search command in the fist place?)
 if ~isunix
@@ -53,7 +64,7 @@ if status~=0 || isempty(results)
 end
 
 
-files=regexp(results,'\n','split');
+files=regexp(results,'\n','split'); %TODO: what are "files"?
 
 
 %Remove lines that are likely to be sub-mosaic files (this inside section directories)
@@ -64,7 +75,7 @@ for ii=length(files):-1:1
 end
 
 
-rootDirectory = pwd; %So we can return to it later
+startDirectory = pwd; %So we can return to it later
 
 
 if nargin<1
@@ -85,9 +96,9 @@ end
 
 
 
-for ii=1:length(files)
+for ii=1:length(files) %TODO: what are we looping over?
 
-    cd(rootDirectory)
+    cd(startDirectory)
 
     [~,e]=regexp(files{ii},'.*/');
     thisDir = files{ii}(1:e);
@@ -105,16 +116,19 @@ for ii=1:length(files)
         continue
     end
 
-    %see which channels we have
+    %TODO: what does this do?
     tifs=dir(fullfile(config.subdir.rawDataDir,sectionDirs(1).name,'*.tif'));
     if isempty(tifs)
         fprintf('No tifs in the first data directory at %s. Skipping all data in directory.\n',thisDir)
         continue
     end
 
+
+
+    %See which channels we have to stitch
     availableChans=[];
 
-    switch determineStitchItSystemType %Determining the number of available channels this way is a bit shit
+    switch determineStitchItSystemType %TODO: Determining the number of available channels this way is a bit shit
         case 'TissueCyte'
             for ii=1:length(tifs)
                 tok=regexp(tifs(ii).name,'.*_(\d{2})\.tif','tokens');
@@ -150,13 +164,14 @@ for ii=1:length(files)
 end
 
 
-cd(rootDirectory)
+cd(startDirectory)
 
 
 
 %------------------------------------------------------------------------------------------
 function doStitch(combChans,illumChans,chansToStitch,stitchedSize)
-    % doStitch - perform the stitching
+    % doStitch - perform the stitching 
+
     generateTileIndex; %Ensure the tile index is present
     analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
     if analysesPerformed.illumCor
