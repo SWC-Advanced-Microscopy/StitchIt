@@ -44,13 +44,15 @@ to acquire the following and add to your MATLAB path:
 - [rsync](http://www.howtogeek.com/135533/how-to-use-rsync-to-backup-your-data-on-linux/) is needed if you want to use the `syncAndCrunch` tool to process data during acquisition. 
 - Additionally, you will need the following MATLAB toolboxes: [statistics](https://www.mathworks.com/products/statistics.html), [parallel computing](https://www.mathworks.com/products/parallel-computing.html), and [image processing](https://www.mathworks.com/products/parallel-computing.html). 
 
-If you need more information on the instalation procedure, please see the [Installation](https://github.com/BaselLaserMouse/StitchIt/wiki/Installation) page on the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
+If you need more information on the installation procedure, please see the [Installation](https://github.com/BaselLaserMouse/StitchIt/wiki/Installation) page on the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
 Stitchit will automatically check if it's up to date whenever the user runs `syncAndCrunch`.
 
 
 ## Questions and bug reports
 Please use the project's [issue tracker](https://github.com/BaselLaserMouse/StitchIt/issues) for questions, bug reports, feature requests, etc.
 
+## Contributing
+See the [contribution instructions](https://github.com/BaselLaserMouse/StitchIt/wiki/Contributing-code-to-StitchIt) on the wiki. 
 
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
