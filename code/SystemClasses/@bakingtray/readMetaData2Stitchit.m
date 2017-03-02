@@ -45,10 +45,11 @@ out.paramFileName=fname; %The name of the Mosaic file
 
 %  Sample
 out.sample = raw.sample;
+out.sample.acqStartTime= raw.Acquisition.acqStartTime;
 out.sample.activeChannels = cell2mat(raw.ScannerSettings.activeChannels);
 out.mosaic = raw.mosaic;
 out.tile =raw.Tile;
-out.voxelsize=raw.VoxelSize;
+out.voxelSize=raw.VoxelSize;
 out.numTiles = raw.NumTiles;  
 out.TileStepSize = raw.TileStepSize;
 out.TileStepSize.X = 1E3 * out.TileStepSize.X; %TODO: we need a decision on this

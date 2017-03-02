@@ -85,12 +85,12 @@ else
 	pixRes = [userConfig.micsPerPixel.micsPerPixelRows, userConfig.micsPerPixel.micsPerPixelCols];
 end
 
-out.voxelsize.x=pixRes(1); %x means along the direction of the x stage
-out.voxelsize.y=pixRes(2); %y means along the direction of the y stage
+out.voxelSize.X=pixRes(1); %x means along the direction of the x stage
+out.voxelSize.Y=pixRes(2); %y means along the direction of the y stage
 if raw.layers>1 %if we do optical sections, the separation is stored as a resolution
-	out.voxelsize.z=raw.zres*2;
+	out.voxelSize.Z=raw.zres*2;
 else %if we didn't do optical sections, it is the separation between layers which is stored
-	out.voxelsize.z=raw.zres;
+	out.voxelSize.Z=raw.zres;
 end
 
 

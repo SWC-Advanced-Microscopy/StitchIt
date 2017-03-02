@@ -123,7 +123,7 @@ tileIndex=flipud(tileIndex);
 
 %Now we can pre-allocate our image
 
-pixelPositions=ceil(gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]) * resize);
+pixelPositions=ceil(gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]) * resize);
 tileSize=size(im,1);
 
 stitchedImage = ones(max(pixelPositions)+tileSize, 'uint16');
