@@ -51,10 +51,6 @@ elseif raw.channels==1
 end
 
 
-%Scene
-out.scene=[];
-
-
 %Mosaic
 out.mosaic.sectionStartNum=raw.startnum; %The index of the first section
 out.mosaic.numSections=raw.sections; %How many physical sections did the user ask for?
