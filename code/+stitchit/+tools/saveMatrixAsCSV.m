@@ -23,7 +23,7 @@ if nargin==0
 end
 
 if nargin>2
-	if length(split(colNames,',')) ~= size(data,2)
+	if length(strsplit(colNames,',')) ~= size(data,2)
 		error('Your specified column names do not match the number of columns in "data"')
 	end
 	fid=fopen(fname,'w');
