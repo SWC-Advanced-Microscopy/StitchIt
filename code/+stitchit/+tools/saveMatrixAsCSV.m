@@ -23,7 +23,14 @@ tmp=sprintf('%s.%d.tmp',fname,r);
 
 save(tmp,'data', '-ASCII', '-TABS')
 
-unix(sprintf('sed ''s/\t /,/g'' %s > %s.csv',tmp,tmp));
+if isunix
+	unix(sprintf('sed ''s/\t /,/g'' %s > %s.csv',tmp,tmp));
+else
+	error('You are attempting to run %s to write %s. However this function uses sed and won''t run on Windows\n',...
+		mfilename,fname)
+end
+
+
 
 
 if nargin>2
