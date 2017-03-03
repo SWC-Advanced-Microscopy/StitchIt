@@ -46,7 +46,7 @@ out.paramFileName=fname; %The name of the Mosaic file
 %  Sample
 out.sample = raw.sample;
 out.sample.acqStartTime= raw.Acquisition.acqStartTime;
-out.sample.activeChannels = cell2mat(raw.ScannerSettings.activeChannels);
+out.sample.activeChannels = raw.ScannerSettings.activeChannels;
 out.mosaic = raw.mosaic;
 out.tile =raw.Tile;
 out.voxelSize=raw.VoxelSize;
