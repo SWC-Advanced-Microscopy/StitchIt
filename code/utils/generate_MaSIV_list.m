@@ -60,7 +60,7 @@ end
 %Write the YML file
 YML.VoxelSize.x = 1; %p.voxelsize.x; %TODO: change this when MaSIV is fixed
 YML.VoxelSize.y = 1; %p.voxelsize.y;
-YML.VoxelSize.z = p.voxelsize.z;
+YML.VoxelSize.z = p.voxelSize.Z;
 YML.stackName = p.sample.ID;
 YML.imageBaseDirectory = '../';
 
