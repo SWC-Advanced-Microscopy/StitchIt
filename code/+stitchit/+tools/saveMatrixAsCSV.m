@@ -1,11 +1,19 @@
 function saveMatrixAsCSV(data, fname, colNames)
+% Saves matrix "data" as a CSV file with optional column headings
+%
 %  function saveMatrixAsCSV(data, fname, colNames)
 %
-% Save matrix 'data' as a csv file with columns labeled from colNames which
-% is a csv string.
+% Purpose
+% Uses dlmwrite to write matrix, data, to disk as file "fname". 
+% If a third argument is provided, then this is written to the 
+% top of the file as a header (column names). 
 %
-% This function saves as tab sep to a temporary file and converts to csv
-% with sed. 
+% Inputs
+% data - matrix to write to disk
+% fname - path to write matrix to
+% colName - names of the columns (optional) is a csv string.
+% 
+%
 %
 % Rob Campbell, March 2006
 
@@ -14,24 +22,14 @@ if nargin==0
     return
 end
 
-    
-data=double(data); 
-
-
-r=round(rand*1E5);
-tmp=sprintf('%s.%d.tmp',fname,r);
-
-save(tmp,'data', '-ASCII', '-TABS')
-
-unix(sprintf('sed ''s/\t /,/g'' %s > %s.csv',tmp,tmp));
-
-
 if nargin>2
-    unix(['echo "', colNames, '" > ', fname]);
-    unix(sprintf('cat %s.csv >> %s', tmp,fname));
-elseif nargin==2
-    unix(sprintf('cat %s.csv > %s', tmp,fname));
+	if length(strsplit(colNames,',')) ~= size(data,2)
+		error('Your specified column names do not match the number of columns in "data"')
+	end
+	fid=fopen(fname,'w');
+	fprintf(fid, [colNames,'\n']);
+	fclose(fid);
 end
 
+dlmwrite(fname, data, 'delimiter', ',', 'precision', 6, '-append');
 
-delete([tmp,'*'])

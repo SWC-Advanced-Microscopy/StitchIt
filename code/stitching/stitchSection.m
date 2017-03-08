@@ -203,15 +203,15 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
 
     mosData = readMetaData2Stitchit(mosaicFileName);
-    pixelPos = stagePos2PixelPos(mosData,[param.voxelsize.x,param.voxelsize.y]);
+    pixelPos = stagePos2PixelPos(mosData,[param.voxelSize.X,param.voxelSize.Y]);
 
     %Determine the final stitched image size as though we were not using stage coords
-    naivePos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]);
+    naivePos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]);
     naiveMaxPos=max(naivePos)+tileSize;
     naiveWidth=naiveMaxPos(1);
     naiveHeight=naiveMaxPos(2);   
   else %just use the naive positions
-    pixelPos=gridPos2Pixels(tileIndex,[param.voxelsize.x,param.voxelsize.y]); 
+    pixelPos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]); 
   end %if doStageCoords
 
   [stitched,tilePosInPixels]=stitcher(imStack,pixelPos,fusionWeight);

@@ -45,13 +45,13 @@ out.paramFileName=fname; %The name of the Mosaic file
 
 %  Sample
 out.sample = raw.sample;
-out.sample.activeChannels = cell2mat(out.sample.activeChannels);
+out.sample.acqStartTime= raw.Acquisition.acqStartTime;
+out.sample.activeChannels = raw.ScannerSettings.activeChannels;
 out.mosaic = raw.mosaic;
-out.scene=raw.scene;
-out.tile =raw.tile;
-out.voxelsize=raw.voxelsize;
-out.numTiles = raw.NUMTILES;  
-out.TileStepSize = raw.TILESTEPSIZE;
+out.tile =raw.Tile;
+out.voxelSize=raw.VoxelSize;
+out.numTiles = raw.NumTiles;  
+out.TileStepSize = raw.TileStepSize;
 out.TileStepSize.X = 1E3 * out.TileStepSize.X; %TODO: we need a decision on this
 out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; %TODO: we need a decision on this
 out.System = raw.SYSTEM;

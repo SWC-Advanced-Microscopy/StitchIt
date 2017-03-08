@@ -87,14 +87,14 @@ end
 %Calculate the original image size
 params=readStitchItINI;
 M=readMetaData2Stitchit;
-z=M.voxelsize.z;
+z=M.voxelSize.Z;
 
 if z==0
   fprintf('** Z voxel size reported as zero. This is not right. Correct meta-data file and re-run %s **\n', mfilename)
   return
 end
 
-xy=mean([M.voxelsize.x,M.voxelsize.y]);
+xy=mean([M.voxelSize.X,M.voxelSize.Y]);
 origDims = [xy,z];
 fprintf('original resolution %0.2f um in x/y and %0.1f um in z\n', xy, z)
 
