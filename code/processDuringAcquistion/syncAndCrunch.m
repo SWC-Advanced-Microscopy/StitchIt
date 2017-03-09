@@ -410,14 +410,14 @@ end
 
 % Find the function that we will run after acquisition
 config=readStitchItINI; %re-read the config file
-if ~isfield('config.syncAndCrunch','postAcqfFun') || config.syncAndCrunch.postAcqfFun==0
-  postAcqfFun='postAcq';
+if ~isfield('config.syncAndCrunch','postAcqFun') || config.syncAndCrunch.postAcqFun==0
+  postAcqFun='postAcq';
 else
-  if exist(config.syncAndCrunch.postAcqfFun,'file')
-    postAcqfFun=config.syncAndCrunch.postAcqfFun;
+  if exist(config.syncAndCrunch.postAcqFun,'file')
+    postAcqFun=config.syncAndCrunch.postAcqFun;
   else
-    fprintf('No function file %s\n. Defaulting to postAcq\n',config.syncAndCrunch.postAcqfFun)
-    postAcqfFun='postAcq'; %Default post-acquisition function
+    fprintf('No function file %s\n. Defaulting to postAcq\n',config.syncAndCrunch.postAcqFun)
+    postAcqFun='postAcq'; %Default post-acquisition function
   end
 end
 
@@ -429,7 +429,7 @@ end
 
 try
   stitchit.tools.warnLowDiskSpace(localDir,90)
-  eval(postAcqfFun) %Run the post-acquisition function
+  eval(postAcqFun) %Run the post-acquisition function
   success=true;
 catch
   if ~expAlreadyFinished
