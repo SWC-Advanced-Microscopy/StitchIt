@@ -1,17 +1,25 @@
-function varargout = maxIntensityPlot(stitchedDir,sectionRange)
-% Calculate maximumn intensity projection using a set of stitched images
+function varargout = calcMaxIntensity(stitchedDir,sectionRange,doPlot)
+% Calculate maximum intensity projection using a set of stitched images
 %
-% function maxImage = maxIntensityPlot(stitchedDir,sectionRange)
+% function maxImage = calcMaxIntensity(stitchedDir,sectionRange,doPlot)
 %
 % Purpose
 % Calculate the maximum intensity projection of a stitched data set from one channel. 
 % Images are loaded in parallel and incrementally, so arbitrarily large stacks can be processed. 
 %
+%
 % Inputs
-% stitchedDir - string defining the location of the stitched images for that channel. So relative
-%               path to the directory that contains the stitched  image files.
-% sectionRange - optional. A vector defining which sections to use. By default all sections are used.
-%                e.g. to use every 10th of 200 sections do 1:10:200
+% stitchedDir - A sring defining the location of the stitched images for that channel. So the 
+%				relative path to the directory that contains the stitched image files.
+% sectionRange - optional. A vector defining which sections to use. By default all sections 
+%				 are used. e.g. to use every 10th of 200 sections do 1:10:200
+% doPlot - false by default. If true, we ploth max image to screen. You might need to re-scale
+%		   it to see anything.
+%
+% 
+% Outputs
+% maxImage - the maximum intensity image.
+%
 %
 %
 % Examples
@@ -20,7 +28,7 @@ function varargout = maxIntensityPlot(stitchedDir,sectionRange)
 %
 % To use only every 10th section of 310 sections
 % maxCh1 =  maxIntensityPlot('stitchedImages_100/1',1:10:310);
-
+%
 %
 %
 % Rob Campbell - Basel 2015
@@ -49,7 +57,9 @@ end
 
 tifs = tifs(sectionRange);
 
-
+if nargin<3
+	doPlot=false;
+end
 
 
 %Read in the images in batches and in parallel in order to use little RAM and be quick
@@ -106,10 +116,12 @@ tmp=max(tmp,[],3);
 maxImage = max(cat(3,maxImage,tmp),[],3);
 fprintf('\n')
 
-clf
-imagesc(maxImage)
-set(gca,'CLim',[0,3.5E3])
-axis equal off
+
+if doPlot
+	clf
+	imagesc(maxImage)
+	axis equal off
+end
 
 
 if nargout>0
