@@ -20,7 +20,7 @@ if nargin<2 | isempty(doMean)
 end
 
 if nargin<3
-	overwrite=0;
+  overwrite=0;
 end
 
 %get a list of file names from channel 1  
@@ -40,8 +40,8 @@ fprintf('Assembling RGB tiffs\n')
 parfor ii=1:length(files)
   rgbFName = [rgbDir,filesep,files(ii).name];
   if exist(rgbFName,'file') & ~overwrite
-  	%fprintf('Skipping %s: already exists\n', rgbFName)
-  	continue
+    %fprintf('Skipping %s: already exists\n', rgbFName)
+    continue
   end
 
   fprintf('Building %s\n', rgbFName);
@@ -51,25 +51,25 @@ parfor ii=1:length(files)
   okToSave=1;
   for jj=2:3
 
-  	%For some reason the different channels can have different sizes. 
-  	%Just in case this happens we catch the error here gracefully. 
-  	tmp=imread(sprintf('%s/%d/%s',directory,jj,files(ii).name));
-  	
-  	%QUICK HACK TO BUILD SPLEEN channels that are only slightly off
-  	%This may result in artifacts. Need to trace the cause of why this is
-  	%even needed
-  	if size(tmp,2)<size(im,2) & size(tmp,2)>(size(im,2)-3)
-		tmp(end,size(im,2))=0;
-  		fprintf('Enlarging image a tad\n')
-  	end
+    %For some reason the different channels can have different sizes. 
+    %Just in case this happens we catch the error here gracefully. 
+    tmp=imread(sprintf('%s/%d/%s',directory,jj,files(ii).name));
+    
+    %QUICK HACK TO BUILD SPLEEN channels that are only slightly off
+    %This may result in artifacts. Need to trace the cause of why this is
+    %even needed
+    if size(tmp,2)<size(im,2) & size(tmp,2)>(size(im,2)-3)
+    tmp(end,size(im,2))=0;
+      fprintf('Enlarging image a tad\n')
+    end
 
 
-  	if any(size(tmp) - [size(im,1),size(im,2)])
-  		fprintf('Trying to add ch.%d (%d,%d) to %dx%d- Channels do not match in size. Skipping\n',...
-  		 jj,size(tmp), size(im,1),size(im,2))
-  		okToSave=0;
-  		continue
-  	end
+    if any(size(tmp) - [size(im,1),size(im,2)])
+      fprintf('Trying to add ch.%d (%d,%d) to %dx%d- Channels do not match in size. Skipping\n',...
+       jj,size(tmp), size(im,1),size(im,2))
+      okToSave=0;
+      continue
+    end
     im(:,:,jj) = tmp;
   end
   
