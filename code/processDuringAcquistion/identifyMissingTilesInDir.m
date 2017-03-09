@@ -1,14 +1,16 @@
-function varargout=identifyMissingTilesInDir(directoryName,reportOnly,verbose,maxMissingThreshold)
+function varargout=identifyMissingTilesInDir(directoryName,reportOnly,replaceWithAdjacentTile,verbose,maxMissingThreshold)
 % Identify missing tiles and create empty tiles to fill these slots
 %
-% function blankTiles=identifyMissingTilesInDir(directoryName,reportOnly,verbose,maxMissingThreshold))
+% function fixedTiles=identifyMissingTilesInDir(directoryName,reportOnly,replaceWithAdjacentTile,verbose,maxMissingThreshold))
 %
 %
 % PURPOSE
 % The TissueCyte has a habit of randomly failing to acquire tiles. This function
-% searches directoryName for missing tiles and optionally creates new, 
-% blank, tiles to replace any missing ones. It reports missing tiles
-% to the screen and optionally returns them as a cell array.
+% searches directoryName for missing tiles and optionally creates EITHER new, 
+% blank, tiles to replace any missing ones OR copies the nearest tile from the same X/Y position. 
+% The latter looks better but may create problems (e.g. leading to incorrect stats results 
+% from stuff you're quantifying in this region). 
+% The function reports missing tiles to the screen and optionally returns them as a cell array.
 %
 %
 % INPUTS
@@ -18,10 +20,12 @@ function varargout=identifyMissingTilesInDir(directoryName,reportOnly,verbose,ma
 %                    In this latter case, the function loops through all 
 %                    section directories. 
 % reportOnly - don't attempt to fix, just report what is missing [1 by default]
-% 
+% replaceWithAdjacentTile - False by default. If true, replace with adjacent tile 
+%                           from the same X/Y positiion. 
+%
 %
 % Output
-% blankTiles - [cell array, optional] a list of file names to the blank 
+% fixedTiles - [cell array, optional] a list of file names to the blank 
 %              tiles that were added.
 %
 %
@@ -38,12 +42,16 @@ if nargin<2 || isempty(reportOnly)
     reportOnly=1;
 end
 
+if nargin<3 || isempty(replaceWithAdjacentTile)
+    replaceWithAdjacentTile=false;
+end
+
 %Hidden arguments
-if nargin<3 || isempty(verbose)
+if nargin<4 || isempty(verbose)
     verbose=1; %we set this to zero in batch mode to keep things neater
 end
 
-if nargin<4
+if nargin<5
     maxMissingThreshold=[]; %If non-zero, we don't fix tiles greater than this number.
                             %We set this for the last section only when in batch mode.
 end
@@ -52,6 +60,11 @@ end
 
 %Figure out if we are to crunch one directory or all of them
 param = readMetaData2Stitchit;
+if ~strcmp(param.System.type,'TissueCyte')
+    fprintf('Not running %s. It is only valid for TissueCyte data\n',mfilename)
+    return
+end
+
 
 DIRS=dir(fullfile(directoryName,[param.sample.ID,'-*']));
 TIFF=dir(fullfile(directoryName,'*.tif'));
@@ -73,7 +86,7 @@ if isempty(TIFF) && ~isempty(DIRS)
             fprintf('Searching %s\n',DIRS(ii).name);
         end
         thisDir=fullfile(directoryName,DIRS(ii).name);
-        theseFnames = identifyMissingTilesInDir(thisDir,reportOnly,0,maxMissingThreshold);
+        theseFnames = identifyMissingTilesInDir(thisDir,reportOnly,replaceWithAdjacentTile,0,maxMissingThreshold);
         fnames = [fnames; theseFnames(:)];
     end
     if nargout>0
@@ -193,27 +206,74 @@ if reportOnly
 end
 
 
+% Create a blank image that will be written to disk if the user is writing blank tiles
+% or if the adjacent tile can't be found for some reason. 
 blackImage = zeros([sectionParams.tile.nRows,sectionParams.tile.nColumns],'uint16');
 
-blankTiles={};
+fixedTiles={};
 for ii=1:length(missingFiles)
+
     fname = missingFiles{ii};
     if exist(fname,'file')
         fprintf('WARNING: %s indeed exists. Not over-writing\n',fname)
         continue
     end
 
-    imwrite(blackImage,fname,'Compression','none')
-    if exist(fname,'file')
-        fprintf('Wrote blank tile to %s\n',fname)
-        blankTiles{length(blankTiles)+1}=fname;
-    else
-        fprintf('  * Tried to write blank tile to %s but failed *\n',fname)
-    end
+    if ~replaceWithAdjacentTile
+        %If we aren't replacing with an adjacent tile we write a black tile.
+        fixedTiles = writeBlankTile(blackImage,fname,fixedTiles);
+     else
+
+        %Find adjacent tile in the same X/Y position
+        tileIndex=regexp(fname,'.*-(\d+)_0\d\.tif','tokens'); %Regex to get tile index
+        if isempty(tileIndex)
+            fprintf('%s failed to find tile index in file name: %s. Writing a blank tile\n', mfilename, fname)
+            fixedTiles = writeBlankTile(blackImage,fname,fixedTiles);
+            continue
+        end
+        tileIndex = str2num(tileIndex{1}{1}); %This is the index of the tile
+
+        % The raw tiles have a unique index and if we add or subtract nImagesPerLayer we get to the same 
+        % image in a different optical sectio. NOTE: I *think* this fails if there is only one optical 
+        % plane per physical section. However, this happens so rarely and only the TissueCyte fails 
+        % randomly to acquire tiles, so we won't worry about this for now too much. Instead, we write a 
+        % blank tile when this happens. 
+        nUpperLayer = num2str(tileIndex+nImagesPerLayer); 
+        nLowerLayer = num2str(tileIndex-nImagesPerLayer);
+
+        %Path to these images.
+        UpperLayerImage = regexprep(fname,'(.*-)(\d+)(_0\d\.tif)', ['$1', nUpperLayer, '$3']);
+        LowerLayerImage = regexprep(fname,'(.*-)(\d+)(_0\d\.tif)', ['$1', nLowerLayer, '$3']);
+
+        if exist (UpperLayerImage, 'file')
+            fprintf('Replacing %s with %s\n',fname,UpperLayerImage)
+            copyfile (UpperLayerImage, fname);
+            fixedTiles{length(fixedTiles)+1}=fname; %Log that the change was made
+        elseif exist (LowerLayerImage, 'file')
+            fprintf('Replacing %s with %s\n',fname,LowerLayerImage)
+            copyfile (LowerLayerImage, fname);
+            fixedTiles{length(fixedTiles)+1}=fname; %Log that the change was made
+        else 
+            fprintf('%s failed to find adjacent image for %s. Writing a blank tile\n', mfilename, fname)
+            fixedTiles = writeBlankTile(blackImage,fname,fixedTiles);
+        end
+    end % if ~replaceWithAdjacentTile
 
 end
 
 
 if nargout>0
-    varargout{1}=blankTiles;
+    varargout{1}=fixedTiles;
 end
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+function fixedTiles = writeBlankTile(blackImage,fname,fixedTiles)
+    imwrite(blackImage,fname,'Compression','none')
+    if exist(fname,'file')
+        fprintf('Wrote blank tile to %s\n',fname)
+        fixedTiles{length(fixedTiles)+1}=fname;
+    else
+        fprintf('  * Tried to write blank tile to %s but failed *\n',fname)
+    end
+
