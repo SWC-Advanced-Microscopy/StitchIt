@@ -1,4 +1,4 @@
-function varargout=identifyMissingTilesInDir(directoryName,reportOnly,verbose,maxMissingThreshold)
+function varargout=identifyMissingTilesInDir(directoryName,reportOnly,verbose,maxMissingThreshold,writBlacktile)
 % Identify missing tiles and create empty tiles to fill these slots
 %	
 % function blankTiles=identifyMissingTilesInDir(directoryName,reportOnly,verbose,maxMissingThreshold))
@@ -202,14 +202,34 @@ for ii=1:length(missingFiles)
 		fprintf('WARNING: %s indeed exists. Not over-writing\n',fname)
 		continue
 	end
+	
+	if writBlacktile
+        imwrite(blackImage,fname,'Compression','none')
+        if exist(fname,'file')
+			fprintf('Wrote blank tile to %s\n',fname)
+			blankTiles{length(blankTiles)+1}=fname;
+		else
+			fprintf('  * Tried to write blank tile to %s but failed *\n',fname)
+		end
+    else
+        SplitedName1 = strsplit (fname,'-');
+        SplitedName2 = SplitedName1{4};
+        SplitedName = strsplit (SplitedName2,'_');
+        nUpperLayer = str2double(SplitedName(:,1))+nImagesPerLayer
+        nLowerLayer = str2double(SplitedName(:,1))-nImagesPerLayer
+        UpperLayerImage = strcat (SplitedName1(:,1),'-',SplitedName1(:,2),'-', SplitedName1(:,3),'-',int2str(nUpperLayer),'_', SplitedName(:,2))
+        LowerLayerImage = strcat (SplitedName1(:,1),'-',SplitedName1(:,2),'-', SplitedName1(:,3),'-',int2str(nLowerLayer),'_', SplitedName(:,2))
 
-	imwrite(blackImage,fname,'Compression','none')
-	if exist(fname,'file')
-		fprintf('Wrote blank tile to %s\n',fname)
-		blankTiles{length(blankTiles)+1}=fname;
-	else
-		fprintf('  * Tried to write blank tile to %s but failed *\n',fname)
-	end
+        if exist (UpperLayerImage{1}, 'file')
+               copyfile (UpperLayerImage{1}, fname);
+        elseif exist (LowerLayerImage{1}, 'file')
+               copyfile (LowerLayerImage{1}, fname);
+        else 
+               display 'You have no image to fill the hole, haha';
+        end
+    end
+	
+
 
 end
 
