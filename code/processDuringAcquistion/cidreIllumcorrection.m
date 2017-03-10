@@ -1,4 +1,4 @@
-function cidreIllumcorrection
+function cidreIllumcorrection(writeBlacktile)
 % default post acquisition function. 
 %
 % You may write your own and have it run via the INI file. 
@@ -11,7 +11,7 @@ M=readMetaData2Stitchit;
 
 %check for and fix missing tiles if this was a TissueCyte acquisition
 if strcmp(M.System.type,'TissueCyte')
-	missingTiles=identifyMissingTilesInDir('rawData',0);
+	missingTiles=identifyMissingTilesInDir('rawData',0,0,[],writeBlacktile);
 else
 	missingTiles = -1;
 end
