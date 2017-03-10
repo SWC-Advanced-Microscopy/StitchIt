@@ -1,7 +1,7 @@
-function tifs=stitchAllSubDirectories(chansToStitch,stitchedSize,combChans,illumChans)
+function tifs=stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 % Find all sub-directories within the current directory containing a mosaic file and stitch all data
 %
-% function tifs=stitchAllSubDirectories(chansToStitch,stitchedSize,combChans,illumChans)
+% function tifs=stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 %
 %
 % Purpose
