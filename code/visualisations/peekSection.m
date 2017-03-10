@@ -151,10 +151,10 @@ end
 
 %Flip sections if needed. 
 st=userConfig.stitching;
-if isfield(st,'flipud') && st.flipud
+if st.flipud
 	stitchedImage=flipud(stitchedImage);
 end
-if isfield(st,'fliplr') && st.fliplr
+if st.fliplr
 	stitchedImage=fliplr(stitchedImage);
 end
 

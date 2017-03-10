@@ -40,11 +40,8 @@ if isempty(doPhaseCorrection)
 	doPhaseCorrection=userConfig.tile.doPhaseCorrection;
 end
 
-if isfield(userConfig.tile,'averageSlowRows') %if 1, we correct only intensity changes along the fast axis
-	averageSlowRows=userConfig.tile.averageSlowRows;
-else
-	averageSlowRows=0;
-end
+averageSlowRows=userConfig.tile.averageSlowRows;
+
 
 
 %Exit gracefully if data directory is missing 

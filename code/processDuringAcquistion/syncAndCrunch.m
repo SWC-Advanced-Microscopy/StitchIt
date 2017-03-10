@@ -410,7 +410,7 @@ end
 
 % Find the function that we will run after acquisition
 config=readStitchItINI; %re-read the config file
-if ~isfield('config.syncAndCrunch','postAcqFun') || config.syncAndCrunch.postAcqFun==0
+if config.syncAndCrunch.postAcqFun==0
   postAcqFun='postAcq';
 else
   if exist(config.syncAndCrunch.postAcqFun,'file')

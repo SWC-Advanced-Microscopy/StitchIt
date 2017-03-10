@@ -154,12 +154,12 @@ end
 
 %Flip sections if needed. 
 st=userConfig.stitching;
-if isfield(st,'flipud') & st.flipud
+if st.flipud
     stitchedPlane=flipud(stitchedPlane);
     tilePositionInPixels(:,3)=abs(tilePositionInPixels(:,3)-max(tilePositionInPixels(:,3)))+1;
 end
 
-if isfield(st,'fliplr') & st.fliplr
+if st.fliplr
     stitchedPlane=fliplr(stitchedPlane);
     tilePositionInPixels(:,1)=abs(tilePositionInPixels(:,1)-max(tilePositionInPixels(:,1)))+1;
 end
