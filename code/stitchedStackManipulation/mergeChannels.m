@@ -230,7 +230,8 @@ end
 %Loop through the sections, load in each turn and perform the requested operation on each in turn
 
 parfor ii=1:length(imName)
-    theseImages={};    
+    theseImages={};
+    mu=[];
     if exist(fullfile(targetDir,imName{ii}), 'file') &&  ~overwrite %Skip if file is present and we're not over-writing
         fprintf('File %s exists. SKIPPING\n', fullfile(targetDir,imName{ii}))
         continue

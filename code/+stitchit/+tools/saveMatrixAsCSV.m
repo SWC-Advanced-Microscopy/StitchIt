@@ -29,6 +29,10 @@ if nargin>2
 	fid=fopen(fname,'w');
 	fprintf(fid, [colNames,'\n']);
 	fclose(fid);
+else
+	%Wipe the file
+	fid=fopen(fname,'w');
+	fclose(fid);
 end
 
 dlmwrite(fname, data, 'delimiter', ',', 'precision', 6, '-append');

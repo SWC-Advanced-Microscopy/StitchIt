@@ -86,6 +86,7 @@ if isempty(TIFF) && ~isempty(DIRS)
             fprintf('Searching %s\n',DIRS(ii).name);
         end
         thisDir=fullfile(directoryName,DIRS(ii).name);
+        %Verbose forced to zero so we don't see the more detailed messages. 
         theseFnames = identifyMissingTilesInDir(thisDir,reportOnly,replaceWithAdjacentTile,0,maxMissingThreshold);
         fnames = [fnames; theseFnames(:)];
     end
