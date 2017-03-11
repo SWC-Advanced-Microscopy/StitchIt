@@ -22,6 +22,7 @@ function tifs=stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 %             already been done. By default it's the same a the chansToStich. 
 %
 %
+%
 % Rob Campbell - Basel 2017
 %
 %

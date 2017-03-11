@@ -1,10 +1,11 @@
 function notify(message)
 % Notify user of events during acquisition of section data
 %
-% function notify(message)
+% function stitchit.tools.notify(message)
 %
 % Purpose
-% send a message (currently only set up for Slack) regarding analysis state
+% Send a message (currently only set up for Slack) regarding analysis state.
+% 
 %
 %
 

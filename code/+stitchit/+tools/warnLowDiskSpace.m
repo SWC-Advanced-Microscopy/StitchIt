@@ -17,8 +17,6 @@ function warnLowDiskSpace(directory,percent)
 % warnLowDiskSpace('/mnt/data/rupert',80)
 %  
 %
-% Notes 
-% Linux only
 %
 % Rob Campbell - Basel 2015
 

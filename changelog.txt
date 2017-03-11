@@ -1,19 +1,25 @@
 StitchIt Change Log
 
 
+17/03/12
+- MAJOR: stitchAllSubDirectories is now stitchAllChannels. please see "help stitchAllChannels"
+- syncAndCrunch does not proceed if local and server dirs are the same.
+- Disk space reporter now works on Windows as well as Mac/Linux.
+- Minor bugfixes and cleanup (isfield calls relating to the INI file)
+
 17/03/09
 - Merge and tidy Fouga commit that allows missing tiles to be replaced with adjacent ones in the same x/y positition instead of a blank tile.  
 - Renamed postAcqfFun to  postAcqFun in the INI file. (BREAKS EXISTING INI FILES)
 
 17/03/03
 - saveMatrixAsCSV now runs on Windows.
-- read BakingTray v0.5 recipe files.
+- Read BakingTray v0.5 recipe files.
 
 17/02/28
 - mergeChannels incorporates in place the addition, subtraction, etc, functions from Yunyun Han.
 
 17/02/21
-- seamless stitching bugfix so it works on more recent MATLAB versions. 
+- Seamless stitching bugfix so it works on more recent MATLAB versions. 
 
 17/01/29
 - syncAndCrunch checks if the user's repo is up to date (Unix only)

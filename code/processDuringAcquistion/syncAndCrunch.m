@@ -42,55 +42,77 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 % Rob Campbell - Basel 2015
 
 
-%Error checks
+%Input argument error checks
 if ~ischar(localDir)
-  error('localDir should be a string')
+  fprintf('ERROR: localDir should be a string\n')
+  return
 end
 if ~exist(localDir,'dir')
-  error('can not find directory %s defined by localDir',localDir)
+  fprintf('ERROR: Cannot find directory %s defined by localDir\n',localDir)
+  return
 end
 if ~ischar(serverDir)
-  error('serverDir should be a string')
+  fprintf('ERROR: serverDir should be a string\n')
+  return
 end
 if ~exist(serverDir,'dir')
-  error('can not find directory %s defined by serverDir',serverDir)
+  fprintf('ERROR: can not find directory %s defined by serverDir\n',serverDir)
+  return
 end
+
+%Remove trailing fileseps
+if strcmp(localDir(end),filesep)
+  localDir(end)=[];
+end
+if strcmp(serverDir(end),filesep)
+  serverDir(end)=[];
+end
+
+%Bail out of the two are the same
+if strcmp(serverDir,localDir)
+  fprintf('ERROR: serverDir and localDir are the same\n')
+  return
+end
+
 
 if nargin<3 | isempty(combCorChans)
   combCorChans=1:2;
+end
+if ~isnumeric(combCorChans)
+  fprintf('ERROR: combCorChans should be a numeric scalar or vector\n')
+  return
 end
 
 if nargin<4 | isempty(illumChans)
   illumChans=1:2;
 end
+if ~isnumeric(illumChans)
+  fprintf('ERROR: illumChans should be a numeric scalar or vector\n')
+  return
+end
 
 if nargin<5 | isempty(removeChan3)
   removeChan3=0;
+end
+if ~isnumeric(removeChan3)
+  fprintf('removeChan3 should be numeric (0 or 1)\n')
+  return
+end
+if removeChan3~=0 & removeChan3~=1
+  fprintf('removeChan3 should be 0 or 1\n')
+  return
 end
 
 if nargin<6 | isempty(chanToPlot)
   chanToPlot=2;
 end
-
-if strcmp(serverDir(end),filesep)
-  serverDir(end)=[];
+if ~isnumeric(chanToPlot) || ~isscalar(chanToPlot)
+  fprintf('chanToPlot should be a numeric scalar\n')
+  return
 end
 
-if ~isnumeric(combCorChans)
-  error('combCorChans should be a numeric scalar or vector')
-end
-if ~isnumeric(illumChans)
-  error('illumChans should be a numeric scalar or vector')
-end
-if ~isnumeric(removeChan3)
-  error('removeChan3 should be 0 or 1')
-end
-if removeChan3~=0 & removeChan3~=1
-  error('removeChan3 should be 0 or 1')
-end
-if ~isnumeric(chanToPlot) | ~isscalar(chanToPlot)
-  error('chanToPlot should be a numeric scalar') 
-end
+
+
 
 
 %Report if StitchIt is not up to date
@@ -111,13 +133,7 @@ end
 
 
 % The experiment name is simply the last directory in the serverDir:
-% TODO: is that really the best way of doing things?
-if strcmp(localDir(end),filesep)
-  localDir(end)=[];
-end
-if strcmp(serverDir(end),filesep)
-  serverDir(end)=[];
-end
+% TODO: is that really the best way of doing things? <--
 
 %If local dir contains the experiment directory at the end,  we should remove this and raise a warning
 [~,expName,extension] = fileparts(serverDir);
