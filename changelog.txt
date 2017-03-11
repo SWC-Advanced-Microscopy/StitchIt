@@ -1,0 +1,32 @@
+StitchIt Change Log
+
+
+17/03/09
+- Merge and tidy Fouga commit that allows missing tiles to be replaced with adjacent ones in the same x/y positition instead of a blank tile.  
+- Renamed postAcqfFun to  postAcqFun in the INI file. (BREAKS EXISTING INI FILES)
+
+17/03/03
+- saveMatrixAsCSV now runs on Windows.
+- read BakingTray v0.5 recipe files.
+
+17/02/28
+- mergeChannels incorporates in place the addition, subtraction, etc, functions from Yunyun Han.
+
+17/02/21
+- seamless stitching bugfix so it works on more recent MATLAB versions. 
+
+17/01/29
+- syncAndCrunch checks if the user's repo is up to date (Unix only)
+
+17/10/19
+- Fix bug that was causing stitching not to begin when acquisition ended.
+
+16/11/22
+- Go back to stitching *sections* in parallel instead of loading tiles in parallel. This is much faster. 
+
+16/11/01
+- BakingTray largely working. (beta feature)
+
+16/05/01
+- Move repo to GitHub
+

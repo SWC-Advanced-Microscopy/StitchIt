@@ -1,5 +1,5 @@
 function free=freemem
-% return number of gigs of free RAM on Unix
+% Return the number of gigs of free RAM on Unix
 %
 %
 % Purpose
