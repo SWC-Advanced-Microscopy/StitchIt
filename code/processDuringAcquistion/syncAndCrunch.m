@@ -460,7 +460,17 @@ if ~expAlreadyFinished && success
   stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
 end
 
+%Delete the web directory if it's there
+if exist(userConfig.subdir.WEBdir,'dir')
+    success=rmdir(userConfig.subdir.WEBdir,'s');
+    if ~success
+      fprintf('Tried to delete directory %s but failed to do so\n',userConfig.subdir.WEBdir)
+    end
+end
+
+
 stitchit.tools.notify('syncAndCrunch finished')
+
 
 
 %-------------------------------------------------------------------------------------
