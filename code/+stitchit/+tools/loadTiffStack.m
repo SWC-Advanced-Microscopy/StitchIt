@@ -1,7 +1,7 @@
 function [imageStack,imageInfo]=loadTiffStack(FileName,varargin)
 % Load multi-image tiff from disk 
 % 
-%function [imageStack,imageInfo]=loadTiffStack(FileName,'param1','val1','param2','val2',...)
+% function [imageStack,imageInfo]=loadTiffStack(FileName,'param1','val1','param2','val2',...)
 %
 % PURPOSE
 % Load a 3D stack (e.g. those exported by ImageJ) as a 3-D matrix. 

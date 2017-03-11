@@ -24,53 +24,38 @@ function warnLowDiskSpace(directory,percent)
 
 
 if nargin<1
-	directory=pwd;
+    directory=pwd;
 end
 
 if nargin<2
-	percent=95;
+    percent=95;
 end
 
 
 if ~exist(directory,'dir')
-	fprintf('%s - %s does not exist\n',mfilename,directory);
-	return
+    fprintf('%s - %s does not exist\n',mfilename,directory);
+    return
 end
 
 if percent>99 | percent<1
-	fprintf('%s - percent is %d. Out of range. [1-99]\n',mfilename,percent)
-	return
+    fprintf('%s - percent is %d. Out of range. [1-99]\n',mfilename,percent)
+    return
 end
 
 
-
-[returnVal,stdout] = unix(['df ',directory]);
-if returnVal ~=0
-	fprintf('%s - df command failed\n',mfilename)
-	return
-end
-
-
-%Get percent full
-tok=regexp(stdout,'(\d+)%','tokens');
-if isempty(tok)
-	fprintf('%s - failed to find percent full\n',mfilename)
-	return
-end
-percentFull = str2num(tok{1}{1});
-
-
-%get mount point
-tok=regexp(stdout,'\d+% (.*\w)','tokens');
-mountPoint = tok{1}{1};
+%Disp space used
+spaceUsed=stitchit.tools.returnDiskSpace;
 
 
 
-
-if percentFull>percent
-	[~,hostname]=unix('hostname');
-    msg=sprintf('Warning free space on %s %s is at %d%%\n',hostname(1:end-1),mountPoint,percentFull)
-	stitchit.tools.notify(msg)
+if spaceUsed.percentUsed>percent
+    if isunix
+        [~,hostname]=unix('hostname');
+    else
+        hostname=[];
+    end
+    msg=sprintf('Warning free space %s is LOW: %d%%\n',['on ' ,hostname(1:end-1)],mountPoint,percentFull);
+    stitchit.tools.notify(msg)
 end
 
 

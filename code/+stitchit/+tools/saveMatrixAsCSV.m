@@ -1,5 +1,5 @@
 function saveMatrixAsCSV(data, fname, colNames)
-% Saves matrix "data" as a CSV file with optional column headings
+% Saves the matrix "data" as a CSV file with optional column headings
 %
 %  function saveMatrixAsCSV(data, fname, colNames)
 %
