@@ -21,7 +21,7 @@ function warnLowDiskSpace(directory,percent)
 % Rob Campbell - Basel 2015
 
 
-if nargin<1
+if nargin<1 || isempty(directory)
     directory=pwd;
 end
 
@@ -31,7 +31,7 @@ end
 
 
 if ~exist(directory,'dir')
-    fprintf('%s - %s does not exist\n',mfilename,directory);
+    fprintf('%s - directory %s does not exist\n',mfilename,directory);
     return
 end
 
@@ -52,7 +52,7 @@ if spaceUsed.percentUsed>percent
     else
         hostname=[];
     end
-    msg=sprintf('Warning free space %s is LOW: %d%%\n',['on ' ,hostname(1:end-1)],mountPoint,percentFull);
+    msg=sprintf('Warning free space %s is LOW: %0.1f%%\n',['on ' ,hostname(1:end-1)],spaceUsed.percentUsed);
     stitchit.tools.notify(msg)
 end
 

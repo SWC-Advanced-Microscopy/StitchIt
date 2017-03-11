@@ -5,6 +5,7 @@ StitchIt Change Log
 - MAJOR: stitchAllSubDirectories is now stitchAllChannels. please see "help stitchAllChannels"
 - syncAndCrunch does not proceed if local and server dirs are the same.
 - Disk space reporter now works on Windows as well as Mac/Linux.
+- Delete web directory at completion of syncAndCrunch
 - Minor bugfixes and cleanup (isfield calls relating to the INI file)
 
 17/03/09

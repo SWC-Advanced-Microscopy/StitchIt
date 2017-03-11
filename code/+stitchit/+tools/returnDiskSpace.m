@@ -43,7 +43,7 @@ function varargout = returnDiskSpace(spaceInPath)
 
     diskSpace.freeGB = results.getFreeSpace * 1024^-3;
     diskSpace.totalGB = results.getTotalSpace * 1024^-3;
-    diskSpace.percentUsed = (diskSpace.freeGB / diskSpace.totalGB) * 100;
+    diskSpace.percentUsed = 100 - (diskSpace.freeGB / diskSpace.totalGB) * 100;
 
 
     if nargout>0
