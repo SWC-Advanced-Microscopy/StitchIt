@@ -41,7 +41,6 @@ out.paramFileName=fname; %The name of the Mosaic file
 out.sample.ID = raw.SampleID;
 out.sample.acqStartTime = raw.acqDate; %convert from: '10/9/2015 10:10:49 AM'
 out.sample.objectiveName='';
-out.sample.scanmode='tile';
 out.sample.excitationWavelength = raw.excwavelength; %depends on the user filling this in
 
 if raw.channels==3
@@ -57,7 +56,7 @@ out.mosaic.numSections=raw.sections; %How many physical sections did the user as
 out.mosaic.sliceThickness=raw.sectionres; 
 out.mosaic.numOpticalPlanes=raw.layers; %Number of optical sections per physical section
 out.mosaic.overlapProportion=[];
-
+out.mosaic.scanmode='tile';
 
 % tile
 % The number of columns and rows of voxels in each tile
