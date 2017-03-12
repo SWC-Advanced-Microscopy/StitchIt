@@ -55,14 +55,14 @@ stagePos=bsxfun(@minus,stagePos,min(stagePos)); %start at zero
 doBacklash=0;
 if doBacklash
 
-	%TODO: YUK - use mod to find odd and even rows
-	r=~repmat(0,sum(stagePos(:,2)==0),1); %TEEK: seems this needs to be flipped between brains from time time. WHY?
-	rows=[];
-	while length(rows)<length(stagePos) %logicals to indicate alternate rows
-		r=~r;
-		rows=[r;rows];
-	end
-	stagePos(logical(rows),1)=stagePos(logical(rows),1)-16;
+    %TODO: YUK - use mod to find odd and even rows
+    r=~repmat(0,sum(stagePos(:,2)==0),1); %TEEK: seems this needs to be flipped between brains from time time. WHY?
+    rows=[];
+    while length(rows)<length(stagePos) %logicals to indicate alternate rows
+        r=~r;
+        rows=[r;rows];
+    end
+    stagePos(logical(rows),1)=stagePos(logical(rows),1)-16;
 end
 
 

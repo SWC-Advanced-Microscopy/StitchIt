@@ -1,6 +1,6 @@
 function imLPF=removeTilingPattern(im)
 
-	%see if we can remove the tiling pattern of the image by conducting a frequency domain filtering operation
+    %see if we can remove the tiling pattern of the image by conducting a frequency domain filtering operation
 
 
 

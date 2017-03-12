@@ -1,7 +1,7 @@
 function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
 % Convert a tile's position to pixels. 
 %
-%	function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
+%    function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
 %
 % Purpose
 % Take an array of tile coordinates, the image size, and the overlap and 
@@ -18,7 +18,7 @@ function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
 %
 % INPUTS
 %  tileCoords - a matrix of tile coordinates. First column is tile row pos. Second is tile column position.
-%				i.e. these are the row and column indexes of the tiles. 
+%                i.e. these are the row and column indexes of the tiles. 
 %  pixelRes - The number of microns per pixel as obtained from the INI file. Either a scalar (in which
 %             case we use the same number of microns per pixel in X and Y) or vector of length 2, in which
 %             case we interpret it as being [pixResRows,pixResColumns]. If this value is missing, we load
@@ -42,35 +42,35 @@ tileCol = tileCoords(:,2);
 
 if nargin<2 | isempty(pixelRes) %read in number of microns per pixel if needed
 
-	userConfig=readStitchItINI;
-	if userConfig.micsPerPixel.usemeasured
-		pixResR = userConfig.micsPerPixel.micsPerPixelMeasured;
-		pixResC = userConfig.micsPerPixel.micsPerPixelMeasured;
-	else
-		pixResR = userConfig.micsPerPixel.micsPerPixelRows;
-		pixResC = userConfig.micsPerPixel.micsPerPixelCols;
-	end
+    userConfig=readStitchItINI;
+    if userConfig.micsPerPixel.usemeasured
+        pixResR = userConfig.micsPerPixel.micsPerPixelMeasured;
+        pixResC = userConfig.micsPerPixel.micsPerPixelMeasured;
+    else
+        pixResR = userConfig.micsPerPixel.micsPerPixelRows;
+        pixResC = userConfig.micsPerPixel.micsPerPixelCols;
+    end
 
 else
 
-	if length(pixelRes)==1
-		pixResR = pixelRes;
-		pixResC = pixelRes;
-	elseif length(pixelRes)>1
-		pixResR = pixelRes(1);
-		pixResC = pixelRes(2);
-	end
+    if length(pixelRes)==1
+        pixResR = pixelRes;
+        pixResC = pixelRes;
+    elseif length(pixelRes)>1
+        pixResR = pixelRes(1);
+        pixResC = pixelRes(2);
+    end
 
 end
 
 
 if nargin<3 | isempty(stepSize)
-	M=readMetaData2Stitchit;
-	stepSize = [M.TileStepSize.X,M.TileStepSize.Y];
+    M=readMetaData2Stitchit;
+    stepSize = [M.TileStepSize.X,M.TileStepSize.Y];
 end
 
 if length(stepSize)==1
-	stepSize=[stepSize,stepSize];
+    stepSize=[stepSize,stepSize];
 end
 
 

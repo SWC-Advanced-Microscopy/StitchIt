@@ -25,17 +25,17 @@ function varargout=makeMontage(stitchDirectory,layer,displayFrames)
 % Rob Campbell - Basel 2015
 
 if strmatch(stitchDirectory(end),filesep)
-	stitchDirectory(end)=[];
+    stitchDirectory(end)=[];
 end
 
 tifs=dir([stitchDirectory,filesep,'*.tif']);
 
 if isempty(tifs)
-	error('Can not find tifs in %s\n',stitchDirectory)
+    error('Can not find tifs in %s\n',stitchDirectory)
 end
 
 if nargin<2
-	layer=1;
+    layer=1;
 end
 
 
@@ -43,15 +43,15 @@ tifs={tifs.name};
 
 %remove all but the required optical section
 for ii=length(tifs):-1:1
-	if isempty(regexp(tifs{ii},sprintf('_%02d.tif$',layer))) & layer>0
-		tifs(ii)=[];
-	else
-		tifs{ii} = [stitchDirectory,filesep,tifs{ii}];
-	end
+    if isempty(regexp(tifs{ii},sprintf('_%02d.tif$',layer))) & layer>0
+        tifs(ii)=[];
+    else
+        tifs{ii} = [stitchDirectory,filesep,tifs{ii}];
+    end
 end
 
 if nargin<3
-	displayFrames=[1:length(tifs)];
+    displayFrames=[1:length(tifs)];
 end
 
 %Make plots
@@ -62,5 +62,5 @@ H=montage(tifs,'DisplayRange',[0,1500],'Indices',displayFrames);
 
 %optionally return handle
 if nargout>0
-	varargout{1}=H;
+    varargout{1}=H;
 end

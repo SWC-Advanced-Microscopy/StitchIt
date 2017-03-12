@@ -37,30 +37,30 @@ function varargout=correctZilluminationInDirectory(sectionDirectory,outputDirect
 
 % Handle input arguments
 if ~exist(sectionDirectory,'dir')
-	error('Section directory %s not present',sectionDirectory);
+    error('Section directory %s not present',sectionDirectory);
 end
 
 %Add seperator to the end if needed
 if isempty(regexp(sectionDirectory(end),'[\\/]'))
-	sectionDirectory(end+1)=filesep;
+    sectionDirectory(end+1)=filesep;
 end
 
 if nargin<3
-	verbose=0;
+    verbose=0;
 end
 
 if nargin<2 | isempty(outputDirectory)
-	outputDirectory=sectionDirectory;
+    outputDirectory=sectionDirectory;
 else
-	if isempty(regexp(outputDirectory(end),'[\\/]')) 
-		outputDirectory(end+1)=filesep;
-	end
+    if isempty(regexp(outputDirectory(end),'[\\/]')) 
+        outputDirectory(end+1)=filesep;
+    end
 
 end
 
 if verbose & strcmp(outputDirectory,sectionDirectory)
-	fprintf('%s: replacing sections in %s with illumination corrected versions\n',...
-		mfilename, sectionDirectory)
+    fprintf('%s: replacing sections in %s with illumination corrected versions\n',...
+        mfilename, sectionDirectory)
 end
 
 
@@ -70,19 +70,19 @@ end
 %Figure out how many optical and physical sections we have
 sections=dir([sectionDirectory,'*.tif']);
 if length(sections)==0
-	error('Can not find any tif files in %s\n',sectionDirectory)
+    error('Can not find any tif files in %s\n',sectionDirectory)
 end
 
 
 %Figure out the number of optical sections per physical section
 sectionId=ones(length(sections),3); %[physical section index, optical section index]
 for ii=1:length(sectionId)
-	tok=regexp(sections(ii).name,'\D+_(\d+)_(\d+).*tif','tokens');
-	tok=tok{1};
+    tok=regexp(sections(ii).name,'\D+_(\d+)_(\d+).*tif','tokens');
+    tok=tok{1};
 
-	sectionId(ii,1)=ii;
-	sectionId(ii,2)=str2num(tok{1});
-	sectionId(ii,3)=str2num(tok{2});
+    sectionId(ii,1)=ii;
+    sectionId(ii,2)=str2num(tok{1});
+    sectionId(ii,3)=str2num(tok{2});
 end
 
 uPhys=unique(sectionId(:,2));
@@ -92,23 +92,23 @@ uOpt=unique(sectionId(:,3));
 nOpt=length(uOpt);  %number of optical sections per physical section
 
 if verbose
-	fprintf('Found %d physical sections with %d optical sections each\n',nPhys,nOpt)
+    fprintf('Found %d physical sections with %d optical sections each\n',nPhys,nOpt)
 end
 
 
 
 %Create data directory if needed
 if ~exist(outputDirectory)
-	mkdir(outputDirectory)
-	if verbose
-		fprintf('Making %s\n', outputDirectory)
-	end
+    mkdir(outputDirectory)
+    if verbose
+        fprintf('Making %s\n', outputDirectory)
+    end
 end
 
 %If verbose, we make a plot of brain intensity profile before and after correction
 if verbose
-	profileBefore = ones(nOpt,nPhys);
-	profileAfter = ones(nOpt,nPhys);
+    profileBefore = ones(nOpt,nPhys);
+    profileAfter = ones(nOpt,nPhys);
 end
 
 
@@ -120,79 +120,79 @@ G=gcp;
 maxWorkers = G.NumWorkers;
 
 if strcmp(im.Compression,'Uncompressed') 
-	fSize=im.FileSize/1024^3; %Gigs per image
+    fSize=im.FileSize/1024^3; %Gigs per image
     params=readMetaData2Stitchit(getTiledAcquisitionParamFile);
     RAMperSection = params.mosaic.numOpticalPlanes * fSize * 3.1; %Rough empirical estimate of RAM requried 
     freeGigs = freemem * 0.85; %Because we don't want to use it all
     nWorkers=floor(freeGigs/RAMperSection);
     if nWorkers>maxWorkers
-    	nWorkers=maxWorkers;
+        nWorkers=maxWorkers;
     end
     fprintf('Using %d workers with estimated RAM usage of %1.1f GB per thread.\n',nWorkers,RAMperSection)
 else
-	nWorkers=maxWorkers;
-	fprintf('Files are compressed. Just using %d cores. May run out of RAM.\n',nWorkers)
+    nWorkers=maxWorkers;
+    fprintf('Files are compressed. Just using %d cores. May run out of RAM.\n',nWorkers)
 end
 
 %Loop through each physical section. We load the images corresponding to it, apply 
 %the correction, save the data, the on to the next physical section. 
 parfor (ii=1:nPhys,nWorkers)
-	f=find(sectionId(:,2)==uPhys(ii));
-	
-	thisSectionId=sectionId(f,:);
-	%Issue a warning if the number of optical sections don't match what we
-	%expect
-	if size(thisSectionId,1)~=nOpt
-		fprintf('%s: at Z=%d expected %d optical sections but found %d\n',...
-			mfilename, uPhys(ii), nOpt, size(thisSectionId,1))
-	end
+    f=find(sectionId(:,2)==uPhys(ii));
+    
+    thisSectionId=sectionId(f,:);
+    %Issue a warning if the number of optical sections don't match what we
+    %expect
+    if size(thisSectionId,1)~=nOpt
+        fprintf('%s: at Z=%d expected %d optical sections but found %d\n',...
+            mfilename, uPhys(ii), nOpt, size(thisSectionId,1))
+    end
 
 
-	%Load all optical sections for this physical section
-	thisSection=stitchit.tools.openTiff([sectionDirectory,sections(thisSectionId(1,1)).name]);
-	thisSection=repmat(thisSection,[1,1,size(thisSectionId,1)]);
-	for jj=2:size(thisSectionId,1)
-		thisSection(:,:,jj)=stitchit.tools.openTiff([sectionDirectory,sections(thisSectionId(jj,1)).name]);
-	end
-	if verbose
-		fprintf('\n')
-	end
+    %Load all optical sections for this physical section
+    thisSection=stitchit.tools.openTiff([sectionDirectory,sections(thisSectionId(1,1)).name]);
+    thisSection=repmat(thisSection,[1,1,size(thisSectionId,1)]);
+    for jj=2:size(thisSectionId,1)
+        thisSection(:,:,jj)=stitchit.tools.openTiff([sectionDirectory,sections(thisSectionId(jj,1)).name]);
+    end
+    if verbose
+        fprintf('\n')
+    end
 
-	if verbose
-		fprintf('%0.3d/%0.3d.\n',ii,nPhys)
+    if verbose
+        fprintf('%0.3d/%0.3d.\n',ii,nPhys)
         muBefore=round(squeeze(mean(mean(thisSection))));
         %medBefore=round(squeeze(median(median(thisSection))));
         profileBefore(:,ii)=muBefore;
-	end
+    end
 
 
 
-	%Correct the data
-	thisSection=smoothingRescale(thisSection,verbose);
+    %Correct the data
+    thisSection=smoothingRescale(thisSection,verbose);
 
 
-	if verbose
+    if verbose
         muAfter=round(squeeze(mean(mean(thisSection))));
         %medAfter=round(squeeze(median(median(thisSection))));
         profileAfter(:,ii)=muAfter;
-	end
+    end
 
 
-	%Save the data
-	for jj=1:size(thisSectionId,1)
-		imwrite(thisSection(:,:,jj),...
-    		[outputDirectory,sections(thisSectionId(jj,1)).name],'tif','Compression','none')
-	end
+    %Save the data
+    for jj=1:size(thisSectionId,1)
+        imwrite(thisSection(:,:,jj),...
+            [outputDirectory,sections(thisSectionId(jj,1)).name],'tif','Compression','none')
+    end
 
 
 end
 
 if verbose
-	fprintf('\n')
+    fprintf('\n')
 end
 
 if ~verbose
-	return
+    return
 end
 
 clf
@@ -204,9 +204,9 @@ xlim([1,length(profileAfter(:))])
 xlabel('Section')
 ylabel('Mean intensity')
 if nargout>0
-	out.before=profileBefore;
-	out.after=profileAfter;
-	varargout{1}=out;
+    out.before=profileBefore;
+    out.after=profileAfter;
+    varargout{1}=out;
 end
 
 
@@ -223,88 +223,88 @@ function thisSection=smoothingRescale(thisSection,verbose)
 % 2. Figure out the ratio at each pixel between the top section and the lower ones
 % 3. Divide all sections beneath the surface by the number in 2. 
 
-	
-	thisSection=single(thisSection);
+    
+    thisSection=single(thisSection);
 
 
     %This failed for the full size images. No time yet to figure out why [raac]
-	doReducePixelValues=0; 
-	
-	if doReducePixelValues
+    doReducePixelValues=0; 
+    
+    if doReducePixelValues
 
-		if verbose
-			fprintf('Removing very high pixel values')
-		end
+        if verbose
+            fprintf('Removing very high pixel values')
+        end
 
-		%Keep reducing the effective bit depth until we have removed the top 0.01% or fewer pixels of pixels. 
-		%These are just noisy crap. Doing this should be safe, and keeps the images neater.
-		p=0;
-		bitDepth=17;
-		while p<0.01
-			bitDepth=bitDepth-1;
-			p=(length(find(thisSection>2^bitDepth))/length(thisSection(:)))*100;
-			%fprintf('New effective bit depth: %d, prop removed pixels: %0.1f\n',bitDepth,p)
-		end
+        %Keep reducing the effective bit depth until we have removed the top 0.01% or fewer pixels of pixels. 
+        %These are just noisy crap. Doing this should be safe, and keeps the images neater.
+        p=0;
+        bitDepth=17;
+        while p<0.01
+            bitDepth=bitDepth-1;
+            p=(length(find(thisSection>2^bitDepth))/length(thisSection(:)))*100;
+            %fprintf('New effective bit depth: %d, prop removed pixels: %0.1f\n',bitDepth,p)
+        end
 
-		bitDepth=bitDepth+1;
-		thisSection(thisSection>2^bitDepth)=2^bitDepth; 
+        bitDepth=bitDepth+1;
+        thisSection(thisSection>2^bitDepth)=2^bitDepth; 
 
-		if verbose
-			fprintf('\nReducing pixel values to %d bit\n',bitDepth)
-		end
+        if verbose
+            fprintf('\nReducing pixel values to %d bit\n',bitDepth)
+        end
     end %doReducePixelValues [TODO: must fix this for large images - raac]
 
 
 
 
 
-	%Speed up the processing by reducing the size of the filtered imagesj
-	%another option would be to do this in the frequency domain
-	maxImSize=1.5E6; %images larger than this number of pixels will be reduced to this size
-	thisImSize=prod(size(thisSection(:,:,1)));
-	if thisImSize>maxImSize
-		resizeBy = thisImSize/maxImSize;
+    %Speed up the processing by reducing the size of the filtered imagesj
+    %another option would be to do this in the frequency domain
+    maxImSize=1.5E6; %images larger than this number of pixels will be reduced to this size
+    thisImSize=prod(size(thisSection(:,:,1)));
+    if thisImSize>maxImSize
+        resizeBy = thisImSize/maxImSize;
 
-		%So the target image size to achieve 1.5E6 pixels
-		targetSize = floor(size(thisSection(:,:,1))/sqrt(resizeBy));
-	else
-		targetSize = size(thisSection(:,:,1));
-		resizeBy=1; 
-	end
-	
-	%The filter area will be a fixed fraction of the image size
-	filterArea = 0.01; %The area of the SD will be this proportion of the image size
-	imSize = prod(targetSize);
-	SDgaus = round(sqrt(imSize*filterArea/pi)*2);
+        %So the target image size to achieve 1.5E6 pixels
+        targetSize = floor(size(thisSection(:,:,1))/sqrt(resizeBy));
+    else
+        targetSize = size(thisSection(:,:,1));
+        resizeBy=1; 
+    end
+    
+    %The filter area will be a fixed fraction of the image size
+    filterArea = 0.01; %The area of the SD will be this proportion of the image size
+    imSize = prod(targetSize);
+    SDgaus = round(sqrt(imSize*filterArea/pi)*2);
 
-	G=fspecial('gaussian',SDgaus*3,SDgaus); %great big Gaussian
-		
+    G=fspecial('gaussian',SDgaus*3,SDgaus); %great big Gaussian
+        
 
-	%Filter and divide 
-	if verbose
-		if resizeBy>1
-			fprintf('Filtering using %1.1fx downsampled data\n',resizeBy)
-		else
-			fprintf('Filtering without downsampling data\n')
-		end
+    %Filter and divide 
+    if verbose
+        if resizeBy>1
+            fprintf('Filtering using %1.1fx downsampled data\n',resizeBy)
+        else
+            fprintf('Filtering without downsampling data\n')
+        end
 
-	end
+    end
 
 
-  	%The following line is fairly expensive
+      %The following line is fairly expensive
     F1=single(imfilter( imresize(thisSection(:,:,1),'OutputSize',targetSize) , G)); %The first layer 
 
-	%Now go through and divide
+    %Now go through and divide
     for jj=2:size(thisSection,3)
-    	%The following line is where the bulk of the time is taken
-		FthisLayer=single( F1 ./ single(imfilter(imresize(thisSection(:,:,jj),'OutputSize',targetSize),G)) ); 
+        %The following line is where the bulk of the time is taken
+        FthisLayer=single( F1 ./ single(imfilter(imresize(thisSection(:,:,jj),'OutputSize',targetSize),G)) ); 
 
         %Now correct each section by this factor
         thisSection(:,:,jj)=thisSection(:,:,jj).*imresize(FthisLayer,'OutputSize',size(thisSection(:,:,1)) );
-	end
+    end
 
 
-	thisSection=uint16(thisSection);
+    thisSection=uint16(thisSection);
 
 
 

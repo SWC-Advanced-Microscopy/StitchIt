@@ -42,11 +42,11 @@ set(gca,'XColor','w','YColor','w')
 
 %optionally draw bar
 if nargin>1
-	if thresh<1 or thresh >2^16
-		fprintf('Thresh out of range\n')
-	end
-	
-	hold on 
-	plot([thresh,thresh],ylim,'--','Color',[1,0.5,0.5],'LineWidth',2)
-	hold off
+    if thresh<1 or thresh >2^16
+        fprintf('Thresh out of range\n')
+    end
+    
+    hold on 
+    plot([thresh,thresh],ylim,'--','Color',[1,0.5,0.5],'LineWidth',2)
+    hold off
 end

@@ -32,8 +32,8 @@ end
 %Determine where the ini file is located and refuse to move on if it's the master copy
 INIfname = fullfile(pwd,INIfname);
 if ~exist(INIfname,'file')
-	fprintf('\nYou have no local INI file!\nPlease make a local copy then re-run this function. Value not changed!\n\n')
-	return
+    fprintf('\nYou have no local INI file!\nPlease make a local copy then re-run this function. Value not changed!\n\n')
+    return
 end
 
 
@@ -41,9 +41,9 @@ end
 [keys,ini]=stitchItINIkeys(INIfname);
 index = strmatch(lower(key), lower(keys) );
 if isempty(index)
-	fprintf('Could not find key ''%s''.\nAvailable keys are:\n\n',key)
-	disp(keys)
-	return
+    fprintf('Could not find key ''%s''.\nAvailable keys are:\n\n',key)
+    disp(keys)
+    return
 end
 
 
@@ -52,10 +52,10 @@ end
 %Find the section that contains the key
 sections = ini.GetSections;
 for ii=1:length(sections)
-	f=strmatch(key,ini.GetKeys(sections{ii}));
-	if ~isempty(f)
-		break
-	end
+    f=strmatch(key,ini.GetKeys(sections{ii}));
+    if ~isempty(f)
+        break
+    end
 end
 
 

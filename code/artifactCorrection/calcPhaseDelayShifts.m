@@ -75,23 +75,23 @@ function stats=calcPhaseDelayShifts(im,nBands,verbose)
 
 %Parse input arguments
 if nargin<2 | isempty(nBands)
-	nBands=1;
+    nBands=1;
 end
 
 if nargin<3 | isempty(verbose)
-	verbose=0;
+    verbose=0;
 end
 
 
 
 %Loop over image layers (if this is an image stack) using a recursive function call
 if size(im,3)>1
-	stats = calcPhaseDelayShifts(im(:,:,1),nBands,verbose);
-	stats = repmat(stats,1,size(im,3));
-	parfor ii=2:size(im,3) %Requires parallel computing toolbox
-		stats(ii)=calcPhaseDelayShifts(im(:,:,ii),nBands,verbose);
-	end
-	return
+    stats = calcPhaseDelayShifts(im(:,:,1),nBands,verbose);
+    stats = repmat(stats,1,size(im,3));
+    parfor ii=2:size(im,3) %Requires parallel computing toolbox
+        stats(ii)=calcPhaseDelayShifts(im(:,:,ii),nBands,verbose);
+    end
+    return
 end
 
 
@@ -99,7 +99,7 @@ imSize=size(im);
 
 %make sure number of rows are even so the two images we create are the same size
 if mod(size(im,1),2)
-	im(end,:)=[];
+    im(end,:)=[];
 end
 
 
@@ -117,21 +117,21 @@ movingRows = 2:2:size(im,1); %These will be shifted
 xShifts = ones(1,nBands); %pre-allocate array that will contain the shift values in x
 
 if verbose
-	fprintf('Shifts: ');
+    fprintf('Shifts: ');
 end
 
 
 for ii=1:nBands
-	imageCols = colX(ii):colX(ii+1);
+    imageCols = colX(ii):colX(ii+1);
     %Calculate the x shift in pixels 
     xShifts(ii) = dftCalcXShift(im(targetRows,imageCols),...
-                              	im(movingRows,imageCols));
+                                  im(movingRows,imageCols));
 end
 
 
 if verbose
-	fprintf('%d ',xShifts)
-	fprintf(' for image size %d by %d\n',size(im))
+    fprintf('%d ',xShifts)
+    fprintf(' for image size %d by %d\n',size(im))
 end
 
 

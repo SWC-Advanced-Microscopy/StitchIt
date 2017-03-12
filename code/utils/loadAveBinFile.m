@@ -38,11 +38,11 @@ function [data,nImages]=loadAveBinFile(fName,split)
 
 
 if ~exist(fName,'file')
-	error('Can not find %s',fName)
+    error('Can not find %s',fName)
 end
 
 if nargin<2
-	split=1;
+    split=1;
 end
 
 fid = fopen(fName,'r');
@@ -58,7 +58,7 @@ data = fread(fid,inf,dataClass); %read the rest
 data=reshape(data,[nRows,nCols,2]); %Reshape to make a matrix
 
 if ~split
-	data=mean(data,3);
+    data=mean(data,3);
 end
 
 

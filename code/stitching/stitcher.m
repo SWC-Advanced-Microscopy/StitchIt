@@ -28,17 +28,17 @@ function varargout = stitcher(imStack,tileCoords,fusionWeight,verbose)
 
 
 if nargin<3
-	%zero to 1. zero is no transparancy and 1 is 100% transparancy
-	fusionWeight=0; 
+    %zero to 1. zero is no transparancy and 1 is 100% transparancy
+    fusionWeight=0; 
 end
 
 if nargin<4
-	verbose=0;
+    verbose=0;
 end
 
 if isempty(imStack)
-	fprintf('%s: image stack is empty. Aborting.\n',mfilename)
-	return
+    fprintf('%s: image stack is empty. Aborting.\n',mfilename)
+    return
 end
 
 
@@ -90,8 +90,8 @@ maxY=0;
 for ii=1:size(imStack,3)
 
     %The indexes of the stitched image where we will be placing this tile
-	xPos = [tileCoords(ii,2), tileCoords(ii,2)+tileSize(2)-1];
-	yPos = [tileCoords(ii,1), tileCoords(ii,1)+tileSize(1)-1];
+    xPos = [tileCoords(ii,2), tileCoords(ii,2)+tileSize(2)-1];
+    yPos = [tileCoords(ii,1), tileCoords(ii,1)+tileSize(1)-1];
     tilePositionInPixels(ii,:) = [xPos(1),tileSize(2),yPos(1),tileSize(1)]; %this is stored to disk
 
     if xPos(2)>maxX, maxX=xPos(2); end
@@ -147,8 +147,8 @@ stitchedPlane = stitchedPlane(1:maxY,1:maxX,:);
 
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)
-	fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n'...
-		     'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedPlane))
+    fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n'...
+             'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedPlane))
 end
 
 
@@ -168,7 +168,7 @@ end
 
 %Handle output arguments
 if nargout>0
-  	varargout{1}=stitchedPlane;
+      varargout{1}=stitchedPlane;
 end
 
 if nargout>1

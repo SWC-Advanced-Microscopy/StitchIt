@@ -2,7 +2,7 @@ function baseName=directoryBaseName(~,parameterFile)
 % For user documentation run "help directoryBaseName" at the command line
 
 if nargin<2
-	parameterFile=getTiledAcquisitionParamFile;
+    parameterFile=getTiledAcquisitionParamFile;
 end
 
 if isempty(parameterFile)
@@ -12,7 +12,7 @@ end
 tok=regexp(parameterFile,'Mosaic_(.*)\.txt','tokens');
 
 if isempty(tok)
-	error('Can not generate base name')
+    error('Can not generate base name')
 end
 
 baseName=[tok{1}{1},'-'];

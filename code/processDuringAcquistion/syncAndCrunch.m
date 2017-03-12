@@ -95,11 +95,11 @@ if nargin<5 | isempty(removeChan3)
   removeChan3=0;
 end
 if ~isnumeric(removeChan3)
-  fprintf('removeChan3 should be numeric (0 or 1)\n')
+  fprintf('ERROR: removeChan3 should be numeric (0 or 1)\n')
   return
 end
 if removeChan3~=0 & removeChan3~=1
-  fprintf('removeChan3 should be 0 or 1\n')
+  fprintf('ERROR: removeChan3 should be 0 or 1\n')
   return
 end
 
@@ -107,7 +107,7 @@ if nargin<6 | isempty(chanToPlot)
   chanToPlot=2;
 end
 if ~isnumeric(chanToPlot) || ~isscalar(chanToPlot)
-  fprintf('chanToPlot should be a numeric scalar\n')
+  fprintf('ERROR: chanToPlot should be a numeric scalar\n')
   return
 end
 

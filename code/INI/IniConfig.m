@@ -1506,7 +1506,7 @@ end
 
 %==========================================================================
 function cell_data = PadDataToCell(data, number_elems)
-	%PadDataToCell - pad data to cell array
+    %PadDataToCell - pad data to cell array
     
     cell_data = {data};
     cell_data = cell_data(ones(1, number_elems), :);

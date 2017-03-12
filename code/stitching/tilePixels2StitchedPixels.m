@@ -24,8 +24,8 @@ function pixelPositions=tilePixels2StitchedPixels(pixels,tileSize,tilePixelPos)
 
 %Convert from index values to array subscripts if needed
 if length(pixels)>2 & prod(size(pixels))==length(pixels)
-	[I,J] = ind2sub([tileSize,tileSize],pixels);
-	pixels = [I',J'];
+    [I,J] = ind2sub([tileSize,tileSize],pixels);
+    pixels = [I',J'];
 end
 
 

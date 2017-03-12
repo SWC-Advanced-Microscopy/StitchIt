@@ -62,22 +62,22 @@ colormap gray
 
 
 function showTile(tile)
-	imagesc(tile)
-	axis equal tight off
-	set(gca,'CLim',[0,3000])
+    imagesc(tile)
+    axis equal tight off
+    set(gca,'CLim',[0,3000])
 
-	%Add some markers to indicate overlapping areas
-	imSize=size(tile,1);
+    %Add some markers to indicate overlapping areas
+    imSize=size(tile,1);
 
-	hold on
-
-
-	ov=0.045*imSize; %approx overlap at fast axis (give or take)
-	props={'-','color',[1,0.5,0.5]};
-	plot([ov,ov],[0,imSize],props{:})
-	plot(imSize-[ov,ov],[0,imSize],props{:})
+    hold on
 
 
-	ov=0.049*imSize; %approx overlap at slow axis
-	plot([0,imSize],[ov,ov],props{:})
-	plot([0,imSize],imSize-[ov,ov],props{:})
+    ov=0.045*imSize; %approx overlap at fast axis (give or take)
+    props={'-','color',[1,0.5,0.5]};
+    plot([ov,ov],[0,imSize],props{:})
+    plot(imSize-[ov,ov],[0,imSize],props{:})
+
+
+    ov=0.049*imSize; %approx overlap at slow axis
+    plot([0,imSize],[ov,ov],props{:})
+    plot([0,imSize],imSize-[ov,ov],props{:})

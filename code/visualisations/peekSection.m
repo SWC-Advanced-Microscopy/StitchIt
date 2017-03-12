@@ -2,7 +2,7 @@ function varargout=peekSection(section,channel,resize)
 % Crudely assemble a section from raw tiles and show on screen
 %
 % function [section,imStack,coords] = peekSection(section,channel,resize)
-%	
+%   
 % Purpose
 % Crudely assemble a section from raw tiles and show on screen. This is a quick and 
 % dirty way of viewing the stitched data. To aid visualisation, tiles are median 
@@ -40,21 +40,21 @@ userConfig=readStitchItINI;
 
 
 if nargin<2
-	channel=1;
+    channel=1;
 end
 
 if nargin<3
-	fullWidth = param.numTiles.X * param.tile.nRows;
-	screenSize=get(0,'screenSize');
-	resize=(screenSize(3)/fullWidth)*1.25;
-	if resize>1
-		resize=1;
-	end
+    fullWidth = param.numTiles.X * param.tile.nRows;
+    screenSize=get(0,'screenSize');
+    resize=(screenSize(3)/fullWidth)*1.25;
+    if resize>1
+        resize=1;
+    end
 else
-	if resize>1
-		fprintf('Resize must be between 0 and 1\n')
-		return
-	end
+    if resize>1
+        fprintf('Resize must be between 0 and 1\n')
+        return
+    end
 end
 
 
@@ -62,51 +62,51 @@ end
 
 %Load data if needed 
 if ~iscell(section)
-	if verbose, tic, end
-	%Get the physical section and optical section if needed
-	if length(section)<2
-		section=zPlane2section(section);
-	end
+    if verbose, tic, end
+    %Get the physical section and optical section if needed
+    if length(section)<2
+        section=zPlane2section(section);
+    end
 
-	if exist([userConfig.subdir.rawDataDir,filesep,'averageDir']) %Only illum correction if the directory is there. 
-		doIlumCor=1;
-	else
-		doIlumCor=0;
-	end
+    if exist([userConfig.subdir.rawDataDir,filesep,'averageDir']) %Only illum correction if the directory is there. 
+        doIlumCor=1;
+    else
+        doIlumCor=0;
+    end
 
-	if verbose
-		fprintf('Loading tiles from section %d/%d channel %d\n',section,channel)
-	end
+    if verbose
+        fprintf('Loading tiles from section %d/%d channel %d\n',section,channel)
+    end
 
-	[im,tileIndex]=tileLoad([section,0,0,channel],doIlumCor); 
-
-
-	if isempty(im) 
-		fprintf('Failed to load data from section %d/%d channel %d.\n',section, channel)
-		if nargout>0 
-			varargout{1}=[];
-		end
-		if nargout>1
-			varargout{2}=[];
-		end
-		return
-	end
+    [im,tileIndex]=tileLoad([section,0,0,channel],doIlumCor); 
 
 
-	if verbose
-		timeIt=toc;
-		fprintf('Tiles loaded in %0.1f s',timeIt)
-	end
+    if isempty(im) 
+        fprintf('Failed to load data from section %d/%d channel %d.\n',section, channel)
+        if nargout>0 
+            varargout{1}=[];
+        end
+        if nargout>1
+            varargout{2}=[];
+        end
+        return
+    end
+
+
+    if verbose
+        timeIt=toc;
+        fprintf('Tiles loaded in %0.1f s',timeIt)
+    end
 else
-	im=section{1};
-	tileIndex=section{2};
+    im=section{1};
+    tileIndex=section{2};
 end
 
 tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
 
 
 if resize<1
-	im = imresize(im,resize);	
+    im = imresize(im,resize);   
 end
 
 
@@ -134,41 +134,41 @@ for ii=1:size(im,3)
     xPos = [pixelPositions(ii,2), pixelPositions(ii,2)+tileSize-1];
     yPos = [pixelPositions(ii,1), pixelPositions(ii,1)+tileSize-1];
 
-	stitchedImage(yPos(1):yPos(2),xPos(1):xPos(2))=im(:,:,ii);
+    stitchedImage(yPos(1):yPos(2),xPos(1):xPos(2))=im(:,:,ii);
 end
 
 
 stitchedImage = medfilt2(stitchedImage);
 if nargout==0 %Adjust the image only if we'll be displaying locally
-	if verbose
-		fprintf('; ')
-	end
-	fprintf('adjusting image intensity\n')
+    if verbose
+        fprintf('; ')
+    end
+    fprintf('adjusting image intensity\n')
 
-	stitchedImage =imadjust(stitchedImage);
+    stitchedImage =imadjust(stitchedImage);
 end
 
 
 %Flip sections if needed. 
 st=userConfig.stitching;
 if st.flipud
-	stitchedImage=flipud(stitchedImage);
+    stitchedImage=flipud(stitchedImage);
 end
 if st.fliplr
-	stitchedImage=fliplr(stitchedImage);
+    stitchedImage=fliplr(stitchedImage);
 end
 
 
 if verbose
-	timeIt=toc;
-	fprintf('; stitching in %0.1f ms\n',timeIt*1E3)
+    timeIt=toc;
+    fprintf('; stitching in %0.1f ms\n',timeIt*1E3)
 end
 
 
 %If the matrix has grown, we have a pre-allocation issue
 if any(size(stitchedImage)-allocatedSize)
-	fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n'...
-		     'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedImage))
+    fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n'...
+             'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedImage))
 end
 
 
@@ -178,20 +178,20 @@ end
 %-----------------------------------------------------------------------
 %Output data if requested. 
 if nargout>0
-	varargout{1}=stitchedImage;
+    varargout{1}=stitchedImage;
 end
 
 if nargout>1
-	varargout{2}=im;
+    varargout{2}=im;
 end
 
 if nargout>2
-	varargout{3}=tileIndex;
+    varargout{3}=tileIndex;
 end
 
 %If no output is requested we plot 
 if nargout==0
-	imagesc(stitchedImage)
-	axis equal off
-	colormap gray
+    imagesc(stitchedImage)
+    axis equal off
+    colormap gray
 end

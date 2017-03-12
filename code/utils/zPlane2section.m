@@ -24,7 +24,7 @@ function [section,param]=zPlane2section(zPlane,param)
 % handleSectionArg
 
 if nargin<2
-	param=readMetaData2Stitchit(getTiledAcquisitionParamFile); 
+    param=readMetaData2Stitchit(getTiledAcquisitionParamFile); 
 end
 
 zPlane=zPlane(:);

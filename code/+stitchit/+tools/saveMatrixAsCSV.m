@@ -23,16 +23,16 @@ if nargin==0
 end
 
 if nargin>2
-	if length(strsplit(colNames,',')) ~= size(data,2)
-		error('Your specified column names do not match the number of columns in "data"')
-	end
-	fid=fopen(fname,'w');
-	fprintf(fid, [colNames,'\n']);
-	fclose(fid);
+    if length(strsplit(colNames,',')) ~= size(data,2)
+        error('Your specified column names do not match the number of columns in "data"')
+    end
+    fid=fopen(fname,'w');
+    fprintf(fid, [colNames,'\n']);
+    fclose(fid);
 else
-	%Wipe the file
-	fid=fopen(fname,'w');
-	fclose(fid);
+    %Wipe the file
+    fid=fopen(fname,'w');
+    fclose(fid);
 end
 
 dlmwrite(fname, data, 'delimiter', ',', 'precision', 6, '-append');

@@ -10,11 +10,11 @@ stack = stack(1:2:end,1:2:end,1:2:end);
 fprintf('pre-processing\n')
 cropit=0;
 if cropit
-	[x,y,z,stack] = subvolume(stack,[round(size(stack,1)*0.5),nan,...
-	                             round(size(stack,2)*0.5),nan,...
-	                             round(size(stack,3)*0.66),nan]);
+    [x,y,z,stack] = subvolume(stack,[round(size(stack,1)*0.5),nan,...
+                                 round(size(stack,2)*0.5),nan,...
+                                 round(size(stack,3)*0.66),nan]);
 else
-	[x,y,z,stack] = subvolume(stack,[1,nan,1,nan,1,nan]);
+    [x,y,z,stack] = subvolume(stack,[1,nan,1,nan,1,nan]);
 end
 
 fprintf('doing isonormals\n')

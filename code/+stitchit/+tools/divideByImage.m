@@ -10,7 +10,7 @@ function im = divideByImage(im, template)
 
 %Issue error if images are not the same
 if size(im,1)~=size(template,1) || size(im,2)~=size(template,2)
-	error('Image sizes not identical')
+    error('Image sizes not identical')
 end
 
 

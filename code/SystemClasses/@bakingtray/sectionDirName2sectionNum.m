@@ -4,7 +4,7 @@ function sectionNumber = sectionDirName2sectionNum(~,sectionDirName)
 tok=regexp(sectionDirName,'.*-(\d+)','tokens');
 
 if isempty(tok)
-	error('Unable to find section number from directory string')
+    error('Unable to find section number from directory string')
 end
 
 sectionNumber = str2num(tok{1}{1});

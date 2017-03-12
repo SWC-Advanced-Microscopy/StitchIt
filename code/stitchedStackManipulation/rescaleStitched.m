@@ -30,18 +30,18 @@ function rescaleStitched(stitchedDir,targetResize)
 % Also see: resampleVolume
 
 if strcmp(stitchedDir(end),filesep)
-	stitchedDir(end)=[];
+    stitchedDir(end)=[];
 end
 
 if ~exist(stitchedDir,'dir')
-	error('Can not find %s',stitchedDir)
+    error('Can not find %s',stitchedDir)
 end
 
 
 %Get the current data image resize value from the directory name
 tok=regexp(stitchedDir,'.*_(\d+)','tokens');
 if isempty(tok)
-	error('Can not get image resize value from directory %s',stitchedDir);
+    error('Can not get image resize value from directory %s',stitchedDir);
 end
 
 currentResizeVal=str2num(tok{1}{1});
@@ -50,7 +50,7 @@ currentResizeVal=str2num(tok{1}{1});
 rescaleValue = targetResize/currentResizeVal;
 
 if rescaleValue>=1
-	error('Up-scaling is not allowed')
+    error('Up-scaling is not allowed')
 end
 
 
@@ -59,10 +59,10 @@ end
 newDirectoryName = sprintf('stitchedImages_%03d',targetResize);
 
 if exist(newDirectoryName,'dir')
-	fprintf('Deleting existing directory %s\n', newDirectoryName)
-	rmdir(newDirectoryName,'s');
+    fprintf('Deleting existing directory %s\n', newDirectoryName)
+    rmdir(newDirectoryName,'s');
 else
-	mkdir(newDirectoryName)
+    mkdir(newDirectoryName)
 end
 
 
@@ -71,9 +71,9 @@ end
 chans=dir(stitchedDir);
 chans=chans([chans.isdir]);
 for ii=length(chans):-1:1
-	if isempty(regexp(chans(ii).name,'\d+')) %remove everything that's not a channel
-		chans(ii)=[];
-	end
+    if isempty(regexp(chans(ii).name,'\d+')) %remove everything that's not a channel
+        chans(ii)=[];
+    end
 end
 
 
@@ -85,21 +85,21 @@ chans = {chans.name};
 fprintf('Found %d channels\n',length(chans))
 
 for ii=1:length(chans)
-	fprintf('Rescaling channel %s\n', chans{ii})
+    fprintf('Rescaling channel %s\n', chans{ii})
 
     sourceDir=[stitchedDir,filesep,chans{ii},filesep];
-	tifs = dir([sourceDir,'*.tif']);
-	if isempty(tifs)
-		fprintf('No tiffs found in %s. Skipping.\n',sourceDir)
-		continue
-	end
+    tifs = dir([sourceDir,'*.tif']);
+    if isempty(tifs)
+        fprintf('No tiffs found in %s. Skipping.\n',sourceDir)
+        continue
+    end
 
-	mkdir([newDirectoryName,filesep,chans{ii}]);	
-	targetDir = [newDirectoryName,filesep,chans{ii},filesep];
+    mkdir([newDirectoryName,filesep,chans{ii}]);    
+    targetDir = [newDirectoryName,filesep,chans{ii},filesep];
 
-	parfor jj=1:length(tifs)
-	    im=stitchit.tools.openTiff([sourceDir,tifs(jj).name]);
-	    imwrite(imresize(im,rescaleValue,'bicubic'), [targetDir,tifs(jj).name],'compression','none')
+    parfor jj=1:length(tifs)
+        im=stitchit.tools.openTiff([sourceDir,tifs(jj).name]);
+        imwrite(imresize(im,rescaleValue,'bicubic'), [targetDir,tifs(jj).name],'compression','none')
     end
 
 end

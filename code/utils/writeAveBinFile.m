@@ -34,7 +34,7 @@ function writeAveBinFile(fName,evenData,oddData,imagesInAve)
 
 
 if any(size(evenData)-size(oddData))
-	error('evenData and oddData must be the same size\n')
+    error('evenData and oddData must be the same size\n')
 end
 
 

@@ -4,21 +4,21 @@ function [out,sucessfulRead,rawOut]=readMetaData2Stitchit(obj,fname,verbose)
 
 %Input argument error checking 
 if nargin<2
-	fname=obj.getTiledAcquisitionParamFile;
+    fname=obj.getTiledAcquisitionParamFile;
 end
 if ~exist(fname,'file')
-	error('Can not find parameter file: %s',fname)
+    error('Can not find parameter file: %s',fname)
 end
 
 if nargin<3
-	verbose=0;
+    verbose=0;
 end
 
 %Read the TissueCyte mosaic file
 [rawOut,sucessfulRead]=obj.readMosaicMetaData(fname,verbose);
 
 if ~sucessfulRead
-	error('Failed to read %s',fname)
+    error('Failed to read %s',fname)
 end
 
 out = mosaic2StitchIt(rawOut,fname);
@@ -44,9 +44,9 @@ out.sample.objectiveName='';
 out.sample.excitationWavelength = raw.excwavelength; %depends on the user filling this in
 
 if raw.channels==3
-	out.sample.activeChannels=1:3;
+    out.sample.activeChannels=1:3;
 elseif raw.channels==1
-	out.sample.activeChannels=1;
+    out.sample.activeChannels=1;
 end
 
 
@@ -77,19 +77,19 @@ userConfig.micsPerPixel.micsPerPixelCols = userConfig.micsPerPixel.micsPerPixelC
 
 %Process the mics per pixel
 if userConfig.micsPerPixel.usemeasured
-	%If usemeasured is true, we use the measured value of mics per pixel from measuring with a grid.
-	pixRes = [userConfig.micsPerPixel.micsPerPixel, userConfig.micsPerPixel.micsPerPixel];
+    %If usemeasured is true, we use the measured value of mics per pixel from measuring with a grid.
+    pixRes = [userConfig.micsPerPixel.micsPerPixel, userConfig.micsPerPixel.micsPerPixel];
 else
-	%Otherwise we use these tweaked values. 
-	pixRes = [userConfig.micsPerPixel.micsPerPixelRows, userConfig.micsPerPixel.micsPerPixelCols];
+    %Otherwise we use these tweaked values. 
+    pixRes = [userConfig.micsPerPixel.micsPerPixelRows, userConfig.micsPerPixel.micsPerPixelCols];
 end
 
 out.voxelSize.X=pixRes(1); %x means along the direction of the x stage
 out.voxelSize.Y=pixRes(2); %y means along the direction of the y stage
 if raw.layers>1 %if we do optical sections, the separation is stored as a resolution
-	out.voxelSize.Z=raw.zres*2;
+    out.voxelSize.Z=raw.zres*2;
 else %if we didn't do optical sections, it is the separation between layers which is stored
-	out.voxelSize.Z=raw.zres;
+    out.voxelSize.Z=raw.zres;
 end
 
 
@@ -120,26 +120,26 @@ out.Slicer.cuttingSpeed=raw.SliceTranslationSpeed;
 
 %Fill in the system specific fields
 TVfields={'comments','Description','Pixrestime',...
-		'PdTauFwd','PdTauRev','MCSkew','ScanRange','ScannerVScalar',...
-		'TriggerLevel','ImageAdjFactor','ZdefaultVoltage','ZScanDirection',...
-		'Zposition','ZWaitTime','Zscan'};
+        'PdTauFwd','PdTauRev','MCSkew','ScanRange','ScannerVScalar',...
+        'TriggerLevel','ImageAdjFactor','ZdefaultVoltage','ZScanDirection',...
+        'Zposition','ZWaitTime','Zscan'};
 
 for ii=1:length(TVfields)
-	out.systemSpecific.(TVfields{ii}) = raw.(TVfields{ii});
+    out.systemSpecific.(TVfields{ii}) = raw.(TVfields{ii});
 end
 
 %X and Y stage positions
 % The TissueCyte saves the stage positions in the section-specific mosaic files
 
 if ~isempty(raw.XPos)
-	out.stageLocations.requestedStep.X = raw.XPos(:,1); %What was the motion step requested by the microscope?
-	out.stageLocations.expected.X = cumsum(raw.XPos(:,1)); %Infer what the position shoudld be
-	out.stageLocations.reported.X = raw.XPos(:,2);
+    out.stageLocations.requestedStep.X = raw.XPos(:,1); %What was the motion step requested by the microscope?
+    out.stageLocations.expected.X = cumsum(raw.XPos(:,1)); %Infer what the position shoudld be
+    out.stageLocations.reported.X = raw.XPos(:,2);
 
 end
 
 if ~isempty(raw.YPos)
-	out.stageLocations.requestedStep.Y = raw.YPos(:,1); %What was the motion step requested by the microscope?
-	out.stageLocations.expected.Y = cumsum(raw.YPos(:,1)); %Infer what the position shoudld be
-	out.stageLocations.reported.Y = raw.YPos(:,2);
+    out.stageLocations.requestedStep.Y = raw.YPos(:,1); %What was the motion step requested by the microscope?
+    out.stageLocations.expected.Y = cumsum(raw.YPos(:,1)); %Infer what the position shoudld be
+    out.stageLocations.reported.Y = raw.YPos(:,2);
 end

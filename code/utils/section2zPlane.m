@@ -29,23 +29,23 @@ function [zPlane,param]=section2zPlane(section,param)
 % Rob Campbell - Basel 2014
 
 if length(section)~=2
-	error('section should be a vector with a length of 2')
+    error('section should be a vector with a length of 2')
 end
 
 
 if nargin<2
-	param=readMetaData2Stitchit(getTiledAcquisitionParamFile); 
+    param=readMetaData2Stitchit(getTiledAcquisitionParamFile); 
 end
 
 %Error check
 if section(1)>param.mosaic.numSections
-	error('Physical section %d does not exist. Maximum physical section is %d',...
-		section(1), param.mosaic.numSections)
+    error('Physical section %d does not exist. Maximum physical section is %d',...
+        section(1), param.mosaic.numSections)
 end
 
 if section(2)>param.mosaic.numOpticalPlanes
-	error('Optical section %d does not exist. Maximum optical section is %d',...
-		section(2), param.mosaic.numOpticalPlanes)
+    error('Optical section %d does not exist. Maximum optical section is %d',...
+        section(2), param.mosaic.numOpticalPlanes)
 end
 
 

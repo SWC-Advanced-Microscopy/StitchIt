@@ -55,29 +55,29 @@ nThreads=4;
 
 section=handleSectionArg(section);
 if length(section) ~= 2
-	fprintf('%s requires a single section to be defined. Quitting.\n',mfilename)
-	return
+    fprintf('%s requires a single section to be defined. Quitting.\n',mfilename)
+    return
 end
 
 if nargin<2 || isempty(chan)
-	chan=2;
+    chan=2;
 end
 
 if nargin<3 || isempty(saveFname)
-	saveFname='OUT.tif';
+    saveFname='OUT.tif';
 end
 
 if nargin<4 || isempty(ind)
-	ind=0;
+    ind=0;
 end
 
 if nargin<5 || isempty(ind)
-	runInBackGround=0;
+    runInBackGround=0;
 end
 
 if ispc && runInBackGround
-	fprintf('Running in the background is not supported on Windows. Reverting to non-background mode\n')
-	runInBackGround=1;
+    fprintf('Running in the background is not supported on Windows. Reverting to non-background mode\n')
+    runInBackGround=1;
 end
 
 
@@ -89,15 +89,15 @@ resize=100;
 %Find the path for the full-res (for now) stitched section
 stitchedDir = sprintf('stitchedImages_%03d%s%d',resize,filesep,chan);
 if ~exist(stitchedDir,'dir')
-	fprintf('Stitched directory %s does not exist\n',stitchedDir)
-	return
+    fprintf('Stitched directory %s does not exist\n',stitchedDir)
+    return
 end
 
 stitchedFname = sprintf('%s%ssection_%03d_%02d.tif',stitchedDir,filesep,section);
 if ~exist(stitchedFname,'file')
-	fprintf('Stitched section %s does not exist\n',stitchedFname)
-	varargout{1}=0;
-	return
+    fprintf('Stitched section %s does not exist\n',stitchedFname)
+    varargout{1}=0;
+    return
 end
 
 
@@ -106,7 +106,7 @@ fprintf('Building mask\n')
 detailsFname = sprintf('%s%sdetails%stilePos_%03d_%02d.csv',stitchedDir,filesep,filesep,section);
 mask=tileCoords2MaskIm(detailsFname);
 if isempty(mask)
-	return %error already issued by tileCoords2MaskIm
+    return %error already issued by tileCoords2MaskIm
 end
 
 
@@ -123,8 +123,8 @@ im=imread(stitchedFname);
 
 %Raise a warning if the mask and image are different sizes
 if any(size(mask)-size(im))
-	fprintf('WARNING! image (%dx%d) and mask (%dx%d) are different sizes\n',size(im),size(mask))
-	return
+    fprintf('WARNING! image (%dx%d) and mask (%dx%d) are different sizes\n',size(im),size(mask))
+    return
 end
 
 fprintf('Saving mask (%dx%d)\n',size(mask))
@@ -148,10 +148,10 @@ serverCommand = sprintf('Server --count 1 --port 1234%d --quality 0 --gray --iWe
 
 
 clientCommand=sprintf('Client --pixels %s --labels %s --lowPixels %s --address 127.0.1.1 --port 1234%d --threads %d --hdr --inCore --temp %s --out %s',...
-	localSection,maskFname,localSection,ind,nThreads,tempDir,saveFname);
+    localSection,maskFname,localSection,ind,nThreads,tempDir,saveFname);
 
 if runInBackGround
-	clientCommand = [clientCommand,' &'];
+    clientCommand = [clientCommand,' &'];
 end
 
 
@@ -166,21 +166,21 @@ unix(['LD_LIBRARY_PATH= ',clientCommand]); %defining LD_LIBRARY_PATH as blank is
 
 %Tidy up
 if ~runInBackGround
-	%tidy up
-	delete(localSection)
-	delete(maskFname)
+    %tidy up
+    delete(localSection)
+    delete(maskFname)
 end
 
 
 
 if nargout>0
-	varargout{1}=im;
+    varargout{1}=im;
 end
 
 if nargout>1
-	varargout{2}=mask;
+    varargout{2}=mask;
 end
 
 if nargout>2
-	varargout{3}={localSection,maskFname};
+    varargout{3}={localSection,maskFname};
 end
