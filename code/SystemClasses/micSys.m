@@ -29,6 +29,9 @@ classdef (Abstract) micSys
         %Extract section number from directory name
         sectionDirName2sectionNum(obj,sectionDirName)
 
+        %Determine which channels are available
+        channelsAvailableForStitching
+
     end
 
 end

@@ -1,7 +1,7 @@
-function tifs=stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
+function stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 % Stitch all channels within the current sample directory
 %
-% function tifs=stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
+% function stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 %
 %
 % Purpose
@@ -21,6 +21,13 @@ function tifs=stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 % illumChans - the channels to use for illumination correction if this hasn't 
 %             already been done. By default it's the same a the chansToStich. 
 %
+%
+% Examples
+% * stitch all available channels at full resolution
+% >> stitchAllChannels
+%
+% * stitch all available channels at 10% of their original size
+% >> stitchAllChannels([],10)
 %
 %
 % Rob Campbell - Basel 2017
@@ -66,61 +73,20 @@ if nargin<4 || isempty(illumChans)
 end
 
 
-%See which channels we have to stitch
-availableChans=[];
-baseName=directoryBaseName;
-sectionDirs = dir([config.subdir.rawDataDir,filesep,baseName,'*']);
-if isempty(sectionDirs)
-    fprintf('ERROR: No data directories found in %s. Quitting.\n',thisDir)
-    return
-end
-tifs=dir(fullfile(config.subdir.rawDataDir,sectionDirs(1).name,'*.tif'));
-switch determineStitchItSystemType %TODO: Determining the number of available channels this way is a bit shit
-    case 'TissueCyte'
-        for ii=1:length(tifs)
-            tok=regexp(tifs(ii).name,'.*_(\d{2})\.tif','tokens');
-            if isempty(tok)
-                continue
-            end
-                availableChans=[availableChans,str2num(tok{1}{1})];
-        end
-    case 'BakingTray'
-        for ii=1:length(tifs)
-            tok=regexp(tifs(ii).name,'.*_chn(\d{1})\.tif','tokens');
-            if isempty(tok)
-                continue
-            end
-            availableChans=[availableChans,str2num(tok{1}{1})];
-        end
-end
-
-if isempty(availableChans)
-    fprintf('%s Could not find any channels to stitch.\n',mfilename)
-    return
-end
-
-availableChans=unique(availableChans);
-
-
-%Loop through and stitch all requested channels (or available channels)
+%See which channels we have avilable to stitch if the user didn't define this
 if isempty(chansToStitch)
-    doStitch(combChans,availableChans,availableChans,stitchedSize)
-else
-    doStitch(combChans,illumChans,chansToStitch,stitchedSize)
+    chansToStitch=channelsAvailableForStitching;
 end
 
 
 
-%------------------------------------------------------------------------------------------
-function doStitch(combChans,illumChans,chansToStitch,stitchedSize)
-    % doStitch - perform the stitching 
+%Loop through and stitch all requested channels
+generateTileIndex; %Ensure the tile index is present
+analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
+if analysesPerformed.illumCor
+    collateAverageImages
+end
 
-    generateTileIndex; %Ensure the tile index is present
-    analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
-    if analysesPerformed.illumCor
-        collateAverageImages
-    end
-
-    for thisChan=chansToStitch 
-        stitchSection([],thisChan,'stitchedSize',stitchedSize) %Stitch all required channels
-    end
+for thisChan=chansToStitch 
+    stitchSection([],thisChan,'stitchedSize',stitchedSize) %Stitch all sections from this channels
+end
