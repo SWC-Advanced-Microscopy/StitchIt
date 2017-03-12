@@ -7,7 +7,6 @@ StitchIt Change Log
     * "combCorChans" argument now defaults to 1.
     * "illumChans" argument now automatically selects all available channels.
     * "chanToPlot" argument now automatically selects the first channel in illumChans.
-
 - buildSectionPreview by default chooses the first available channel if none are provided.
 - stitchSection will not proceed if the requested operation will fill the disk.
 - syncAndCrunch does not proceed if local and server dirs are the same.
@@ -16,7 +15,7 @@ StitchIt Change Log
 - DEVELOPER NOTE: Minor bugfixes, cleanup (isfield calls relating to the INI file), mass tabs to spaces conversion.
 
 17/03/09
-- Merge and tidy Fouga commit that allows missing tiles to be replaced with adjacent ones in the same x/y positition instead of a blank tile.  
+- MAJOR: identifyMissingTilesInDir now optionally replaces missing tiles with adjacent ones in the same x/y positition instead of blank tiles. (Merged commit from Natalia Chicherova, Fouga fork).
 - Renamed postAcqfFun to  postAcqFun in the INI file. (BREAKS EXISTING INI FILES)
 
 17/03/03
