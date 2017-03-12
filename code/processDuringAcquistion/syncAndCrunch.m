@@ -19,7 +19,8 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 % removeChan3 - zero by default. If 1, we wipe channel 3 on the server and local directories.
 %               This is an option because the TissueVision does not let us choose which channels
 %               to save.
-% chanToPlot - which channel to send to web (2 by default). If zero, don't do the web plots. 
+% chanToPlot - Which channel to send to web (by default this is the first channel in illumChans). 
+%              If zero, don't do the web plots. 
 %
 %
 % Example
@@ -89,7 +90,7 @@ if ~isnumeric(combCorChans)
   return
 end
 
-if nargin<4 || isempty(illumChans)
+if nargin<4
   illumChans=[];
 end
 if ~isnumeric(illumChans)
@@ -109,8 +110,8 @@ if removeChan3~=0 && removeChan3~=1
   return
 end
 
-if nargin<6 || isempty(chanToPlot)
-  chanToPlot=2;
+if nargin<6
+  chanToPlot=[];
 end
 if ~isnumeric(chanToPlot) || ~isscalar(chanToPlot)
   fprintf('ERROR: chanToPlot should be a numeric scalar\n')
@@ -193,6 +194,13 @@ unix(sprintf('rsync %s %s%s*.* %s',config.syncAndCrunch.rsyncFlag, serverDir,fil
 % is being used
 if isempty(illumChans)
   illumChans = channelsAvailableForStitching;
+  if isempty(illumChans)
+    fprintf('ERROR: can not find any channels to work with.')
+    return
+  end
+end
+if isempty(chanToPlot)
+  chanToPlot=illumChans(1);
 end
 
 
@@ -407,16 +415,16 @@ while 1
   else
     fprintf('Building images and sending to web\n') 
       try 
-          buildSectionPreview([],chanToPlot); %plot last completed section as per the trigger file
+        buildSectionPreview([],chanToPlot); %plot last completed section as per the trigger file
       catch
         L=lasterror;
-          if ~sentPlotwarning %So we don't send a flood of messages
-            stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',L.message])
-            sentPlotwarning=1;
-          else
-            fprintf(['Failed to plot image. ',L.message])
-          end 
-          stitchit.tools.logger(L,logFileName)
+        if ~sentPlotwarning %So we don't send a flood of messages
+          stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',L.message])
+          sentPlotwarning=1;
+        else
+          fprintf(['Failed to plot image. ',L.message])
+        end 
+        stitchit.tools.logger(L,logFileName)
       end %try/catch
   end
 
