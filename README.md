@@ -4,9 +4,9 @@
 
 *StitchIt* is a MATLAB package that was originally built for stitching data from the TissueVision 2-photon tomography system.
 However, *StitchIt* is now sufficiently modular that it can handle other tiled data sets too (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments using [ScanImage](http://scanimage.vidriotechnologies.com/)).
-To get started, please read the [PDF user manual](http://mouse.vision/st_manual_161122.pdf) and see the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki).
-StitchIt is under heavy modification and the user manual will not be completely up to date.
-
+To get started, please read the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki). 
+Some older information is for now only available in the [PDF user manual](http://mouse.vision/st_manual_161122.pdf).
+There is a [changelog](https://raw.githubusercontent.com/BaselLaserMouse/StitchIt/master/changelog.txt)
 
 ## Features
 
@@ -18,9 +18,10 @@ StitchIt is under heavy modification and the user manual will not be completely 
 - Send Slack notifications when acquisition completes or pre-processing fails. 
 - Automatically conduct arbitrary analyses after acquisition completes.
 
+
 **StitchIt has commands for basic tasks such as**:
 
-- Stitching a data set.
+- Stitching subsets of a data set.
 - Calculating the average tile for illumination correction.
 - Calculating coefficients for correcting for scanning artifacts (experimental).
 - Randomly accessing any tile in the dataset.
@@ -50,9 +51,6 @@ Stitchit will automatically check if it's up to date whenever the user runs `syn
 
 ## Questions and bug reports
 Please use the project's [issue tracker](https://github.com/BaselLaserMouse/StitchIt/issues) for questions, bug reports, feature requests, etc.
-
-## Contributing
-See the [contribution instructions](https://github.com/BaselLaserMouse/StitchIt/wiki/Contributing-code-to-StitchIt) on the wiki. 
 
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
