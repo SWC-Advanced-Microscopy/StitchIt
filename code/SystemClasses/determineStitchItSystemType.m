@@ -1,13 +1,21 @@
 function systemType = determineStitchItSystemType
-% allow StitchIt to determine the name of the acquisition system used for the current experiment
+% Allow StitchIt to determine the name of the acquisition system used for the current experiment
 %
-%    function systemType = determineStitchItSystemType
+%    function systemType = determineStitchItSystemType(quiet)
+%
+% Purpose
+% Returns the name of the acquisition system type based on the meta-data file it finds
+% in the current experiment directory. 
 %
 % 
 % Outputs
 % systemType - a string defining the name of the acquisition system used.
 %              Currently returns one of 'TissueCyte' or 'BakingTray'
 %
+%
+%
+%
+
 
 %Assign particular file names found in the experiment path to sub-directories in the SystemSpecifc directory
 if ~isempty(dir('Mosaic_*.txt'))

@@ -12,9 +12,10 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 % localDir - the full path to the local directory which will house the data directory. 
 % serverDir - the full path to data directory on the server
 % combCorChans - vector defining which channels will contribute to comb correction.
-%               if empty or missing 1:2. To not do the correction set to 0.
+%               if empty or missing this is set to 0, so no correction is done.
 % illumChans - vector defining which channels will have mean images calculated.
-%               if empty or missing 1:2. To not calculate set to zero. These chans are stitched at the end
+%              If empty or missing, all available channels are corrected. To not calculate set to zero.
+%              These chans are stitched at the end.
 % removeChan3 - zero by default. If 1, we wipe channel 3 on the server and local directories.
 %               This is an option because the TissueVision does not let us choose which channels
 %               to save.
@@ -22,8 +23,9 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 %
 %
 % Example
-% The following will create the directory AE033 in /mnt/data/TissueCyte/AwesomeExperiments
-% and sync data to it.
+% 1) The following will create the directory AE033 in /mnt/data/TissueCyte/AwesomeExperiments
+% and sync data to it. Conduct comb-correction and illumination correction on chans 1:3
+% 
 %
 % LDir = '/mnt/data/TissueCyte/AwesomeExperiments'
 % SDir = '/mnt/tvbuffer/Data/AwesomeExperiments/AE033'
@@ -37,6 +39,10 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 % '/mnt/data/TissueCyte/AwesomeExperiments/''
 % However, syncAndCrunch will attept to catch this error.
 %
+%
+% 2) Perform no comb correction but do illumination correction on
+%    all available channels:
+% syncAndCrunch(LDir,SDir,1:3,1:3,0,1)
 %
 %
 % Rob Campbell - Basel 2015
@@ -75,35 +81,35 @@ if strcmp(serverDir,localDir)
 end
 
 
-if nargin<3 | isempty(combCorChans)
-  combCorChans=1:2;
+if nargin<3 || isempty(combCorChans)
+  combCorChans=0;
 end
 if ~isnumeric(combCorChans)
   fprintf('ERROR: combCorChans should be a numeric scalar or vector\n')
   return
 end
 
-if nargin<4 | isempty(illumChans)
-  illumChans=1:2;
+if nargin<4 || isempty(illumChans)
+  illumChans=[];
 end
 if ~isnumeric(illumChans)
   fprintf('ERROR: illumChans should be a numeric scalar or vector\n')
   return
 end
 
-if nargin<5 | isempty(removeChan3)
+if nargin<5 || isempty(removeChan3)
   removeChan3=0;
 end
 if ~isnumeric(removeChan3)
   fprintf('ERROR: removeChan3 should be numeric (0 or 1)\n')
   return
 end
-if removeChan3~=0 & removeChan3~=1
+if removeChan3~=0 && removeChan3~=1
   fprintf('ERROR: removeChan3 should be 0 or 1\n')
   return
 end
 
-if nargin<6 | isempty(chanToPlot)
+if nargin<6 || isempty(chanToPlot)
   chanToPlot=2;
 end
 if ~isnumeric(chanToPlot) || ~isscalar(chanToPlot)
@@ -156,10 +162,6 @@ end
 expDir = fullfile(localDir,expName,extension); %we add extension just in case the user put a "." in the file name
 
 
-%Initial INI file read
-config=readStitchItINI;
-
-
 %Do an initial rsync 
 if removeChan3
   fprintf('Removing channel 3 from server\n')
@@ -169,13 +171,32 @@ end
 
 %copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
+  fprintf('Making local raw data directory %s\n', expDir)
   mkdir(expDir)
 end
 
+
+% Copy meta-data files and so forth but no experimentd data yet.
+% We do this to ensure we have the meta-data file present
+unix(sprintf('rsync -rv --exclude="/*/" %s%s %s', serverDir,filesep,expDir));
+
+cd(expDir) %The directory where we are writing the experimental data
+
+%Initial INI file read
+config=readStitchItINI;
+
+
+
 unix(sprintf('rsync %s %s%s*.* %s',config.syncAndCrunch.rsyncFlag, serverDir,filesep,expDir));
 
+% Now figure out which channels are available for illumination correction if the default (all available)
+% is being used
+if isempty(illumChans)
+  illumChans = channelsAvailableForStitching;
+end
 
-rawDataDir = [expDir,filesep,config.subdir.rawDataDir];
+
+rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
 fprintf('Getting first batch of data from server and copying to %s\n',rawDataDir)
 
 
@@ -183,7 +204,6 @@ cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filese
 fprintf('Running:\n%s\n',cmd)
 unix(cmd);
 
-cd(expDir) %The directory where we are writing the experimental data
 if finished
   %If already finished when we start then we don't send Slack messages at the end. 
   expAlreadyFinished=true;

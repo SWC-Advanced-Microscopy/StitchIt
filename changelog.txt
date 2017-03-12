@@ -5,6 +5,8 @@ StitchIt Change Log
 - MAJOR: stitchAllSubDirectories is now stitchAllChannels. please see "help stitchAllChannels"
 - stitchSection will not proceed if the requested operation will fill the disk.
 - syncAndCrunch does not proceed if local and server dirs are the same.
+- The syncAndCrunch "combCorChans" argument now defaults to 1.
+- The syncAndCrunch "illumChans" argument now automatically selects all available channels.
 - Disk space reporter now works on Windows as well as Mac/Linux.
 - Delete web directory (forWWW) at completion of syncAndCrunch.
 - DEVELOPER NOTE: Minor bugfixes, cleanup (isfield calls relating to the INI file), mass tabs to spaces conversion.

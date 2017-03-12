@@ -40,19 +40,19 @@ if nargin<1 | isempty(INIfname)
         % because we will get a recursive function call otherwise. TODO: fix this shit
         switch determineStitchItSystemType
             case 'TissueCyte' 
-                T=tissuecyte;   
+                T=tissuecyte;
                 M=T.readMosaicMetaData(T.getTiledAcquisitionParamFile);
                 M.System.ID = M.ScannerID; %TODO: shit, that's horrible
-            otherwise %sanity prevails 
+            otherwise %Sanity prevails 
                 M=readMetaData2Stitchit;
         end
-                
+ 
         sysINIfname=sprintf('stitchitConf_%s.ini', lower(M.System.ID));
         defaultINIfname='stitchitConf.ini';
         if exist(sysINIfname,'file')        
            INIfname = sysINIfname;
-        elseif exist(defaultINIfname,'file')        
-           INIfname = defaultINIfname;                 
+        elseif exist(defaultINIfname,'file')
+           INIfname = defaultINIfname;
         else
            error(['Can not find any valid stitchit INI files. Not even a default one called %s.\n',...
             'Likely you have not set things up properly.'],defaultINIfname)

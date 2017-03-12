@@ -6,7 +6,7 @@
 However, *StitchIt* is now sufficiently modular that it can handle other tiled data sets too (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments using [ScanImage](http://scanimage.vidriotechnologies.com/)).
 To get started, please read the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki). 
 Some older information is for now only available in the [PDF user manual](http://mouse.vision/st_manual_161122.pdf).
-There is a [changelog](https://raw.githubusercontent.com/BaselLaserMouse/StitchIt/master/changelog.txt)
+There is a [changelog](https://raw.githubusercontent.com/BaselLaserMouse/StitchIt/master/changelog.txt).
 
 ## Features
 
