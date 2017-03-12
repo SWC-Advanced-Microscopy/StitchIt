@@ -13,7 +13,7 @@ function [running,msg] = clientAtPort(portNumber)
 
 
 if ~isunix
-	error('This function requires Mac or Linux')
+    error('This function requires Mac or Linux')
 end
 
 %Find all clients run by this user
@@ -28,36 +28,36 @@ uid=regexprep(uid,'\n','');
 msg = strsplit(msg,'\n');
 
 for ii=length(msg):-1:1
-	if isempty(msg{ii}) | findstr(msg{ii},'grep')
-		msg(ii)=[]; 
-	end
+    if isempty(msg{ii}) | findstr(msg{ii},'grep')
+        msg(ii)=[]; 
+    end
 end
 
 
 if isempty(msg)
-	running=0;
-	return 
+    running=0;
+    return 
 end
 
 
 
 %msg should have a length of 1 at this point and contain the PID
 if length(msg)~=1
-	fprintf('length msg does not equal 1:\n')
-	for ii=1:length(msg)
-		fprintf('\n%d: "%s"\n',ii,msg{ii});
-	end
-	error('multiple PIDs returned')
+    fprintf('length msg does not equal 1:\n')
+    for ii=1:length(msg)
+        fprintf('\n%d: "%s"\n',ii,msg{ii});
+    end
+    error('multiple PIDs returned')
 end
 
 
 tok=regexp(msg{1},'^ *(\d+).*Client --pixels.*--labels','tokens'); 
 if isempty(tok)
-	fprintf('WARNING! Can not find PID in string "%s". Returning a NAN!\n',msg{1})
-	msg=msg{1};
-	running=nan;
+    fprintf('WARNING! Can not find PID in string "%s". Returning a NAN!\n',msg{1})
+    msg=msg{1};
+    running=nan;
 else
-	running=str2num(tok{1}{1});
+    running=str2num(tok{1}{1});
 end
 
 

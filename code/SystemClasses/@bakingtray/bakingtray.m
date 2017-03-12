@@ -1,14 +1,14 @@
 classdef bakingtray < micSys
 
-	%Inherits abstract class micSys. 
+    %Inherits abstract class micSys. 
 
-	properties (Constant)
-	end
+    properties (Constant)
+    end
 
 
 
-	methods
+    methods
 
-	end
+    end
 
 end

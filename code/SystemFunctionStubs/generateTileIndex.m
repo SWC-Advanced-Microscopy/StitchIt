@@ -14,9 +14,9 @@ function [nCompleted,indexPresent] = generateTileIndex(varargin)
 %
 % INPUTS
 % sectionDir - [empty or string]. If a string, it should be the name of a section directory
-%			   within the raw data dirctory. If so we generate the index for this directory only. 
-%			   Otherwise (if empty) the function loops through all section directories in the
-%			   raw data directory.
+%               within the raw data dirctory. If so we generate the index for this directory only. 
+%               Otherwise (if empty) the function loops through all section directories in the
+%               raw data directory.
 % forceOverwrite - zero by default. If 1 the function over-write existing the existing
 %                  tileIndex file
 % verbose - few messages if 0. 1 by default, for more messages.

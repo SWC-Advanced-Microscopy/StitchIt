@@ -102,8 +102,29 @@ doChessBoard=params.Results.chessboard;
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
-param=readMetaData2Stitchit(getTiledAcquisitionParamFile); 
+param=readMetaData2Stitchit;
 userConfig=readStitchItINI;
+
+%Do not proceeed if stitching will fill the disk
+
+%TODO: the following assumes a regular grid of tiles. 
+%if data weren't acquired this way, send a warning to screen.
+bytesPerTile = param.tile.nRows * param.tile.nColumns * 2; %assume 16 bit images
+MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
+
+%TODO: calculate GB to be used based on number of sections
+nSections = length(section);
+GBrequired= nSections * MBPerPlane / 1024;
+
+fprintf('Producing %d stitched images from channel %d. This will consume %0.2f GB of disk space.\n',...
+  nSections, channel, GBrequired )
+
+spaceUsed=stitchit.tools.returnDiskSpace;
+if (spaceUsed.freeGB + GBrequired) > spaceUsed.totalGB
+  fprintf('\n ** Not enough disk space to stitch these sections. You have only %d GB left!\n ** %s is aborting\n\n',...
+    round(spaceUsed.freeGB), mfilename)
+  return
+end
 
 
 %Extract preferences from INI file structure

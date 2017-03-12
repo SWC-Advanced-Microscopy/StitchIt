@@ -2,7 +2,7 @@ function baseName=directoryBaseName(~,parameterFile)
 % For user documentation run "help directoryBaseName" at the command line
 
 if nargin<2
-	parameterFile=getTiledAcquisitionParamFile;
+    parameterFile=getTiledAcquisitionParamFile;
 end
 
 

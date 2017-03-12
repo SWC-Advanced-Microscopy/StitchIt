@@ -1,7 +1,7 @@
 function returnedClass = returnSystemSpecificClass
 % Determine the acquisition system used for this experiment and return the class that handles this
 %
-%	function returnedClass = returnSystemSpecificClass
+%    function returnedClass = returnSystemSpecificClass
 %
 %
 % Purpose
@@ -41,9 +41,9 @@ function returnedClass = returnSystemSpecificClass
 
 switch determineStitchItSystemType;
 case 'TissueCyte'
-	returnedClass=tissuecyte;
+    returnedClass=tissuecyte;
 case 'BakingTray'
-	returnedClass=bakingtray;
+    returnedClass=bakingtray;
 otherwise
-	error('Can not find acquisition system log file in %s\n',pwd)
+    error('Can not find acquisition system log file in %s\n',pwd)
 end

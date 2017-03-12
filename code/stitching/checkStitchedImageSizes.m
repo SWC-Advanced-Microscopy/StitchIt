@@ -30,13 +30,13 @@ function [out,imSizes]=checkStitchedImageSizes(sectionDir)
 
 
 if ~exist(sectionDir,'dir')
-	fprintf('%s - section directory %s does not exist\n',...
-		mfilename,sectionDir);
-	return
+    fprintf('%s - section directory %s does not exist\n',...
+        mfilename,sectionDir);
+    return
 end
 
 if strcmp(sectionDir(end),filesep)
-	sectionDir(end)=[];
+    sectionDir(end)=[];
 end
 
 
@@ -44,23 +44,23 @@ end
 tifs = dir([sectionDir,filesep,'*.tif']);
 
 if isempty(tifs)
-	fprintf('%s - no tiffs found in directory %s\n',...
-		mfilename,sectionDir);
-	return
+    fprintf('%s - no tiffs found in directory %s\n',...
+        mfilename,sectionDir);
+    return
 end
 
 if length(tifs)==1 %don't proceed if there's just one image
-	out=0;
-	imSizes=0;
-	return
+    out=0;
+    imSizes=0;
+    return
 end
 
 
 imSizes=ones(length(tifs),2);
 
 parfor ii=1:length(tifs)
-	I=imfinfo([sectionDir,filesep,tifs(ii).name]);  
-	imSizes(ii,:) = [I.Width, I.Height];
+    I=imfinfo([sectionDir,filesep,tifs(ii).name]);  
+    imSizes(ii,:) = [I.Width, I.Height];
 end
 
 

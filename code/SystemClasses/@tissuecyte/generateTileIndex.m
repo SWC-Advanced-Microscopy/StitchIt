@@ -40,12 +40,12 @@ if verbose
     %Report experiment details to screen
     fprintf(['\nFound experiment with the following parameters:\n',...
          ' Image size: %d^2\n',...
-	     ' Expected final number of physical sections: %d\n',...
-	     ' Section thickness: %d\n',...
-	     ' Optical sections: %d\n',...
-	     ' Tiles: %d by %d \n'],...
-	     data.tile.nRows, data.mosaic.numSections, data.mosaic.sliceThickness,...
-	     data.mosaic.numOpticalPlanes, data.numTiles.X, data.numTiles.Y)
+         ' Expected final number of physical sections: %d\n',...
+         ' Section thickness: %d\n',...
+         ' Optical sections: %d\n',...
+         ' Tiles: %d by %d \n'],...
+         data.tile.nRows, data.mosaic.numSections, data.mosaic.sliceThickness,...
+         data.mosaic.numOpticalPlanes, data.numTiles.X, data.numTiles.Y)
 end
 
 
@@ -67,10 +67,10 @@ end
 
 
 if isempty(sectionDirectories)
-	error('Can not find any raw data directories')
+    error('Can not find any raw data directories')
 else
     if verbose
-    	fprintf('\nFound %d raw data directories\n', length(sectionDirectories))
+        fprintf('\nFound %d raw data directories\n', length(sectionDirectories))
     end
 end
 
@@ -233,12 +233,12 @@ fid=fopen(tileIndexFname,'w+');
 fwrite(fid,8,'uint32'); %The number of ints in one row
 
 for thisLayer = 1:param.mosaic.numOpticalPlanes  %Iterate over optical sections within this physical section
-	for ii = 1:nImages %Loop through the number files in an optical section
+    for ii = 1:nImages %Loop through the number files in an optical section
 
-   	    %The y, x, and z position of the tile in the whole volume (all physical sections)
-   	    thisTileYID = tileYID(ii);
-   	    thisTileXID = tileXID(ii);
-   	    thisTileZID   = param.mosaic.numOpticalPlanes * (sectionNumber-1) + thisLayer; 
+           %The y, x, and z position of the tile in the whole volume (all physical sections)
+           thisTileYID = tileYID(ii);
+           thisTileXID = tileXID(ii);
+           thisTileZID   = param.mosaic.numOpticalPlanes * (sectionNumber-1) + thisLayer; 
 
         thisFileIndex = fileIndex(ii) + nImages*(thisLayer-1); %The index of this tile
 

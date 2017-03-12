@@ -1,6 +1,6 @@
 function sectionNumber = sectionDirName2sectionNum(varargin)
 % Get section number from the directory name containing raw data from that section
-%	
+%    
 % function sectionNumber = sectionDirName2sectionNum(sectionDirName)
 %
 % PURPOSE

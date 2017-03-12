@@ -44,6 +44,6 @@ end
 
 %-----------------------------------------------------
 %attempt to stitch all the data
-stitchAllSubDirectories
+stitchAllChannels
 %-----------------------------------------------------
 

@@ -4,28 +4,28 @@ function [out,sucessfulRead,rawOut]=readMetaData2Stitchit(obj,fname,verbose)
 
 %Input argument error checking 
 if nargin<2
-	fname=obj.getTiledAcquisitionParamFile;
+    fname=obj.getTiledAcquisitionParamFile;
 end
 
 if ~exist(fname,'file')
-	error('Can not find parameter file: %s',fname)
+    error('Can not find parameter file: %s',fname)
 end
 
 if nargin<3
-	verbose=0;
+    verbose=0;
 end
 
 %Read the TissueCyte mosaic file
 rawOut=yaml.ReadYaml(fname,verbose);
 
 if isstruct(rawOut) %TODO: is this check even meaningful?
-	sucessfulRead=true;
+    sucessfulRead=true;
 else 
-	sucessfulRead=false;
+    sucessfulRead=false;
 end
 
 if ~sucessfulRead
-	error('Failed to read %s',fname)
+    error('Failed to read %s',fname)
 end
 out = recipe2StitchIt(rawOut,fname);
 
@@ -60,13 +60,13 @@ out.Slicer = raw.SLICER;
 return
 %TODO: we need the stage locations
 if ~isempty(raw.XPos)
-	out.stageLocations.requestedStep.X = raw.XPos(:,1); %What was the motion step requested by the microscope?
-	out.stageLocations.expected.X = cumsum(raw.XPos(:,1)); %Infer what the position shoudld be
-	out.stageLocations.reported.X = raw.XPos(:,2);
+    out.stageLocations.requestedStep.X = raw.XPos(:,1); %What was the motion step requested by the microscope?
+    out.stageLocations.expected.X = cumsum(raw.XPos(:,1)); %Infer what the position shoudld be
+    out.stageLocations.reported.X = raw.XPos(:,2);
 end
 
 if ~isempty(raw.YPos)
-	out.stageLocations.requestedStep.Y = raw.YPos(:,1); %What was the motion step requested by the microscope?
-	out.stageLocations.expected.Y = cumsum(raw.YPos(:,1)); %Infer what the position shoudld be
-	out.stageLocations.reported.Y = raw.YPos(:,2);
+    out.stageLocations.requestedStep.Y = raw.YPos(:,1); %What was the motion step requested by the microscope?
+    out.stageLocations.expected.Y = cumsum(raw.YPos(:,1)); %Infer what the position shoudld be
+    out.stageLocations.reported.Y = raw.YPos(:,2);
 end

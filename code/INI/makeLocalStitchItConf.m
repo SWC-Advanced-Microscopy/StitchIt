@@ -15,9 +15,9 @@ function makeLocalStitchItConf
 fname = which('stitchitConf_DEFAULT.ini');
 
 if ~exist(fname)
-	error('Can not find %s',fname)
+    error('Can not find %s',fname)
 else
-	copyfile(fname,'stitchitConf.ini')
+    copyfile(fname,'stitchitConf.ini')
 end
 
 

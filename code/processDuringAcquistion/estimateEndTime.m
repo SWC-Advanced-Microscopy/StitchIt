@@ -18,11 +18,11 @@ param=readMetaData2Stitchit;
 
 
 if strcmp(param.System.type,'bakingtray')
-	out=estimateEndTimeBT; %TODO: have BT calculate this so StitchIt does nothing at all
-	if nargout>0
-		varargout{1}=out;
-	end
-	return
+    out=estimateEndTimeBT; %TODO: have BT calculate this so StitchIt does nothing at all
+    if nargout>0
+        varargout{1}=out;
+    end
+    return
 end
 
 %TODO: the following is a poor way of proceeding
@@ -49,10 +49,10 @@ userConfig=readStitchItINI;
 d=dir( fullfile(userConfig.subdir.rawDataDir,[directoryBaseName,'*']) );
 
 if length(d)>5
-	nDir = length(d);
-	elapsedDays = now-datenum(param.sample.acqStartTime);
+    nDir = length(d);
+    elapsedDays = now-datenum(param.sample.acqStartTime);
         hoursPerDirectory = (elapsedDays*24)/nDir;
-   	totalTime = hoursPerDirectory * param.mosaic.numSections;
+       totalTime = hoursPerDirectory * param.mosaic.numSections;
 end
 
 
@@ -61,28 +61,28 @@ end
 timeLeft = totalTime * (param.mosaic.numSections-length(d))/param.mosaic.numSections;
 
 if timeLeft > 1.5
-	remainingString=sprintf('Time left: %d hours', round(timeLeft));
+    remainingString=sprintf('Time left: %d hours', round(timeLeft));
 elseif timeLeft <= hoursPerDirectory
-	remainingString='All sections acquired';
+    remainingString='All sections acquired';
 else
-	remainingString=sprintf('Time left: %d minutes', round(timeLeft*60));
+    remainingString=sprintf('Time left: %d minutes', round(timeLeft*60));
 end
 
 if timeLeft <= hoursPerDirectory
-	finishingString='FINISHED';
+    finishingString='FINISHED';
 else
-	finishingString=sprintf('Finishing at %s', datestr(now+timeLeft/24, 'HH:MM on ddd dd/mm'));
+    finishingString=sprintf('Finishing at %s', datestr(now+timeLeft/24, 'HH:MM on ddd dd/mm'));
 end
 
-	
+    
 if nargout<1
-	fprintf('%s\n',remainingString);
-	fprintf('%s\n',finishingString);
+    fprintf('%s\n',remainingString);
+    fprintf('%s\n',finishingString);
 end
 
 if nargout>0
-	out.finishingString=finishingString;
-	out.remainingString=remainingString;
-	out.hoursPerDirectory=hoursPerDirectory;
-	varargout{1}=out;
+    out.finishingString=finishingString;
+    out.remainingString=remainingString;
+    out.hoursPerDirectory=hoursPerDirectory;
+    varargout{1}=out;
 end

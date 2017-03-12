@@ -12,18 +12,21 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 % localDir - the full path to the local directory which will house the data directory. 
 % serverDir - the full path to data directory on the server
 % combCorChans - vector defining which channels will contribute to comb correction.
-%               if empty or missing 1:2. To not do the correction set to 0.
+%               if empty or missing this is set to 0, so no correction is done.
 % illumChans - vector defining which channels will have mean images calculated.
-%               if empty or missing 1:2. To not calculate set to zero. These chans are stitched at the end
+%              If empty or missing, all available channels are corrected. To not calculate set to zero.
+%              These chans are stitched at the end.
 % removeChan3 - zero by default. If 1, we wipe channel 3 on the server and local directories.
 %               This is an option because the TissueVision does not let us choose which channels
 %               to save.
-% chanToPlot - which channel to send to web (2 by default). If zero, don't do the web plots. 
+% chanToPlot - Which channel to send to web (by default this is the first channel in illumChans). 
+%              If zero, don't do the web plots. 
 %
 %
 % Example
-% The following will create the directory AE033 in /mnt/data/TissueCyte/AwesomeExperiments
-% and sync data to it.
+% 1) The following will create the directory AE033 in /mnt/data/TissueCyte/AwesomeExperiments
+% and sync data to it. Conduct comb-correction and illumination correction on chans 1:3
+% 
 %
 % LDir = '/mnt/data/TissueCyte/AwesomeExperiments'
 % SDir = '/mnt/tvbuffer/Data/AwesomeExperiments/AE033'
@@ -38,59 +41,85 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 % However, syncAndCrunch will attept to catch this error.
 %
 %
+% 2) Perform no comb correction but do illumination correction on
+%    all available channels:
+% syncAndCrunch(LDir,SDir,1:3,1:3,0,1)
+%
 %
 % Rob Campbell - Basel 2015
 
 
-%Error checks
+%Input argument error checks
 if ~ischar(localDir)
-  error('localDir should be a string')
+  fprintf('ERROR: localDir should be a string\n')
+  return
 end
 if ~exist(localDir,'dir')
-  error('can not find directory %s defined by localDir',localDir)
+  fprintf('ERROR: Cannot find directory %s defined by localDir\n',localDir)
+  return
 end
 if ~ischar(serverDir)
-  error('serverDir should be a string')
+  fprintf('ERROR: serverDir should be a string\n')
+  return
 end
 if ~exist(serverDir,'dir')
-  error('can not find directory %s defined by serverDir',serverDir)
+  fprintf('ERROR: can not find directory %s defined by serverDir\n',serverDir)
+  return
 end
 
-if nargin<3 | isempty(combCorChans)
-  combCorChans=1:2;
+%Remove trailing fileseps
+if strcmp(localDir(end),filesep)
+  localDir(end)=[];
 end
-
-if nargin<4 | isempty(illumChans)
-  illumChans=1:2;
-end
-
-if nargin<5 | isempty(removeChan3)
-  removeChan3=0;
-end
-
-if nargin<6 | isempty(chanToPlot)
-  chanToPlot=2;
-end
-
 if strcmp(serverDir(end),filesep)
   serverDir(end)=[];
 end
 
+%Bail out of the two are the same
+if strcmp(serverDir,localDir)
+  fprintf('ERROR: serverDir and localDir are the same\n')
+  return
+end
+
+
+if nargin<3 || isempty(combCorChans)
+  combCorChans=0;
+end
 if ~isnumeric(combCorChans)
-  error('combCorChans should be a numeric scalar or vector')
+  fprintf('ERROR: combCorChans should be a numeric scalar or vector\n')
+  return
+end
+
+if nargin<4
+  illumChans=[];
 end
 if ~isnumeric(illumChans)
-  error('illumChans should be a numeric scalar or vector')
+  fprintf('ERROR: illumChans should be a numeric scalar or vector\n')
+  return
+end
+
+if nargin<5 || isempty(removeChan3)
+  removeChan3=0;
 end
 if ~isnumeric(removeChan3)
-  error('removeChan3 should be 0 or 1')
+  fprintf('ERROR: removeChan3 should be numeric (0 or 1)\n')
+  return
 end
-if removeChan3~=0 & removeChan3~=1
-  error('removeChan3 should be 0 or 1')
+if removeChan3~=0 && removeChan3~=1
+  fprintf('ERROR: removeChan3 should be 0 or 1\n')
+  return
 end
-if ~isnumeric(chanToPlot) | ~isscalar(chanToPlot)
-  error('chanToPlot should be a numeric scalar') 
+
+if nargin<6
+  chanToPlot=[];
 end
+if ~isnumeric(chanToPlot) || ~isscalar(chanToPlot)
+  fprintf('ERROR: chanToPlot should be a numeric scalar\n')
+  return
+end
+
+
+
 
 
 %Report if StitchIt is not up to date
@@ -111,13 +140,7 @@ end
 
 
 % The experiment name is simply the last directory in the serverDir:
-% TODO: is that really the best way of doing things?
-if strcmp(localDir(end),filesep)
-  localDir(end)=[];
-end
-if strcmp(serverDir(end),filesep)
-  serverDir(end)=[];
-end
+% TODO: is that really the best way of doing things? <--
 
 %If local dir contains the experiment directory at the end,  we should remove this and raise a warning
 [~,expName,extension] = fileparts(serverDir);
@@ -140,10 +163,6 @@ end
 expDir = fullfile(localDir,expName,extension); %we add extension just in case the user put a "." in the file name
 
 
-%Initial INI file read
-config=readStitchItINI;
-
-
 %Do an initial rsync 
 if removeChan3
   fprintf('Removing channel 3 from server\n')
@@ -153,13 +172,39 @@ end
 
 %copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
+  fprintf('Making local raw data directory %s\n', expDir)
   mkdir(expDir)
 end
 
+
+% Copy meta-data files and so forth but no experimentd data yet.
+% We do this to ensure we have the meta-data file present
+unix(sprintf('rsync -rv --exclude="/*/" %s%s %s', serverDir,filesep,expDir));
+
+cd(expDir) %The directory where we are writing the experimental data
+
+%Initial INI file read
+config=readStitchItINI;
+
+
+
 unix(sprintf('rsync %s %s%s*.* %s',config.syncAndCrunch.rsyncFlag, serverDir,filesep,expDir));
 
+% Now figure out which channels are available for illumination correction if the default (all available)
+% is being used
+if isempty(illumChans)
+  illumChans = channelsAvailableForStitching;
+  if isempty(illumChans)
+    fprintf('ERROR: can not find any channels to work with.')
+    return
+  end
+end
+if isempty(chanToPlot)
+  chanToPlot=illumChans(1);
+end
 
-rawDataDir = [expDir,filesep,config.subdir.rawDataDir];
+
+rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
 fprintf('Getting first batch of data from server and copying to %s\n',rawDataDir)
 
 
@@ -167,7 +212,6 @@ cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filese
 fprintf('Running:\n%s\n',cmd)
 unix(cmd);
 
-cd(expDir) %The directory where we are writing the experimental data
 if finished
   %If already finished when we start then we don't send Slack messages at the end. 
   expAlreadyFinished=true;
@@ -371,16 +415,16 @@ while 1
   else
     fprintf('Building images and sending to web\n') 
       try 
-          buildSectionPreview([],chanToPlot); %plot last completed section as per the trigger file
+        buildSectionPreview([],chanToPlot); %plot last completed section as per the trigger file
       catch
         L=lasterror;
-          if ~sentPlotwarning %So we don't send a flood of messages
-            stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',L.message])
-            sentPlotwarning=1;
-          else
-            fprintf(['Failed to plot image. ',L.message])
-          end 
-          stitchit.tools.logger(L,logFileName)
+        if ~sentPlotwarning %So we don't send a flood of messages
+          stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',L.message])
+          sentPlotwarning=1;
+        else
+          fprintf(['Failed to plot image. ',L.message])
+        end 
+        stitchit.tools.logger(L,logFileName)
       end %try/catch
   end
 
@@ -444,7 +488,17 @@ if ~expAlreadyFinished && success
   stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
 end
 
+%Delete the web directory if it's there
+if exist(config.subdir.WEBdir,'dir')
+    success=rmdir(config.subdir.WEBdir,'s');
+    if ~success
+      fprintf('Tried to delete directory %s but failed to do so\n',config.subdir.WEBdir)
+    end
+end
+
+
 stitchit.tools.notify('syncAndCrunch finished')
+
 
 
 %-------------------------------------------------------------------------------------

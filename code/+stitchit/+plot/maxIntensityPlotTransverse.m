@@ -16,11 +16,11 @@ function [M1,mu1,med1] = maxIntensityPlotTransverse(stitchedDir)
 % Rob Campbell - Basel 2015
 
 if strcmp(stitchedDir(end),filesep)
-	stitchedDir(end)=[];
+    stitchedDir(end)=[];
 end
 
 if ~exist(stitchedDir,'dir')
-	error('Directory %s not found',stitchedDir)
+    error('Directory %s not found',stitchedDir)
 end
 
 
@@ -28,7 +28,7 @@ tifs = dir([stitchedDir,filesep,'*.tif']);
 
 
 if isempty(tifs)
-	error('No tifs found in %s', stitchedDir)
+    error('No tifs found in %s', stitchedDir)
 end
 
 
@@ -50,9 +50,9 @@ parfor ii=2:length(tifs)
 
     IM=stitchit.tools.openTiff([stitchedDir,filesep,tifs(ii).name]);
 
-	M1(ii,:)=max(IM,[],1);
-	mu1(ii,:)=mean(IM,1);
-	med1(ii,:)=median(IM,1);
+    M1(ii,:)=max(IM,[],1);
+    mu1(ii,:)=mean(IM,1);
+    med1(ii,:)=median(IM,1);
 
 end
 

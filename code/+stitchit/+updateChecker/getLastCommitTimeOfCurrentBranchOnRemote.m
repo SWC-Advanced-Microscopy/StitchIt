@@ -8,7 +8,7 @@ function [timeAsString,status] = getLastCommitTimeOfCurrentBranchOnRemote(localD
 %
 % Outputs
 % timeAsString - string defining the last commit time. Returns 
-%				 empty if it fails to get this for some reason.
+%                 empty if it fails to get this for some reason.
 %
 %
 % Rob Campbell - Basel 2017
@@ -16,8 +16,8 @@ function [timeAsString,status] = getLastCommitTimeOfCurrentBranchOnRemote(localD
 
 branchName = stitchit.updateChecker.getCurrentBranchName(localDir);
 if isempty(branchName)
-	timeAsString='';
-	return
+    timeAsString='';
+    return
 end
 
 
@@ -32,7 +32,7 @@ end
 
 tok=regexp(status,'(20\d\d-\d\d-\d\d .* ago)','tokens');
 if isempty(tok)
-	timeAsString='';
+    timeAsString='';
 end
 
 timeAsString = tok{1}{1};

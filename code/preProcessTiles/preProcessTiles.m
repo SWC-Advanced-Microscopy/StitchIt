@@ -88,15 +88,15 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 % Handle input arguments
 if nargin<1 || isempty(sectionsToProcess)
-	sectionsToProcess=0; 
+    sectionsToProcess=0; 
 end
 
 if nargin<2 || isempty(combCorChans)
-	combCorChans=0;
+    combCorChans=0;
 end
 
 if nargin<3 || isempty(illumChans)
-	illumChans=0;
+    illumChans=0;
 end
 
 
@@ -105,15 +105,15 @@ analysesPerformed.combCor=0;
 analysesPerformed.illumCor=0;
 
 if ~illumChans & ~combCorChans
-	fprintf('%s exiting with no analyses performed\n',mfilename)
-	if nargout>0
-		varargout{1}=analysesPerformed;
-	end
-	return
+    fprintf('%s exiting with no analyses performed\n',mfilename)
+    if nargout>0
+        varargout{1}=analysesPerformed;
+    end
+    return
 end
 
 if nargin<4
-	verbose=1;
+    verbose=1;
 end
 
 
@@ -131,27 +131,27 @@ param=readMetaData2Stitchit(paramFile);
 baseName=directoryBaseName(paramFile);
 
 if ~exist(userConfig.subdir.rawDataDir,'dir')
-	error('%s can not find raw data directory: .%s%s',mfilename,filesep,userConfig.subdir.rawDataDir)
+    error('%s can not find raw data directory: .%s%s',mfilename,filesep,userConfig.subdir.rawDataDir)
 end
 
 
-if length(sectionsToProcess)==1 && sectionsToProcess<=0 	%Attempt to process all directories
-	searchPath=[fullfile(userConfig.subdir.rawDataDir,baseName),'*'];
-	sectionDirectories=dir(searchPath); %Create structure of directory names
+if length(sectionsToProcess)==1 && sectionsToProcess<=0     %Attempt to process all directories
+    searchPath=[fullfile(userConfig.subdir.rawDataDir,baseName),'*'];
+    sectionDirectories=dir(searchPath); %Create structure of directory names
     fprintf('\nFound %d raw data directories\n', length(sectionDirectories))
 elseif length(sectionsToProcess)>1 || sectionsToProcess(1)>0
-	fprintf('Looping through a user-defined subset of directories\n')
-	sectionDirectories=struct;
-	for ii=1:length(sectionsToProcess)
-		thisDirName=sprintf('%s%04d',baseName,sectionsToProcess(ii));
-		if ~exist(fullfile(userConfig.subdir.rawDataDir,thisDirName),'dir'), continue, end
-		sectionDirectories(sectionsToProcess(ii)).name=thisDirName;
-	end
+    fprintf('Looping through a user-defined subset of directories\n')
+    sectionDirectories=struct;
+    for ii=1:length(sectionsToProcess)
+        thisDirName=sprintf('%s%04d',baseName,sectionsToProcess(ii));
+        if ~exist(fullfile(userConfig.subdir.rawDataDir,thisDirName),'dir'), continue, end
+        sectionDirectories(sectionsToProcess(ii)).name=thisDirName;
+    end
 end
 
 
 if isempty(sectionDirectories) || ~isfield(sectionDirectories,'name')
-	error('%s can not find any raw data directories belonging to sample %s',mfilename,param.sample.ID)
+    error('%s can not find any raw data directories belonging to sample %s',mfilename,param.sample.ID)
 end
 
 fprintf('\n')
@@ -168,118 +168,118 @@ chansToLoad = unique([illumChans,combCorChans]);
 
 for thisDir = 1:length(sectionDirectories)
 
-	if isempty(sectionDirectories(thisDir).name)
-		continue %Is only executed if user defined specific directories to process
-	end
-
-
-
-	%Skip if everything has been done and the user asked to loop through all directories.
-	sectionDirName=fullfile(userConfig.subdir.rawDataDir,sectionDirectories(thisDir).name);
-	statsFile=fullfile(sectionDirName,'tileStats');
-	combFile=fullfile(sectionDirName,'phaseStats_01.mat');
-	aveDir=fullfile(sectionDirName,'averages');
-
-    %We skip if everything exists in the directory or if the non-existing files weren't ask for
-    if ( exist(statsFile,'file') || exist([statsFile,'.mat'],'file') ) && ...
-    	(exist(combFile,'file') || (length(combCorChans)==1 && combCorChans==0)) &&...
-    	(exist(aveDir,'file')   || (length(illumChans)==1   && illumChans==0))   && ...
-    	length(sectionsToProcess)==1 && ...
-    	sectionsToProcess==0 
-    	if verbose
-    	    	fprintf('Nothing to do in %s. Skipping.\n', sectionDirectories(thisDir).name)
-   	    end
-   	    
-    	continue
+    if isempty(sectionDirectories(thisDir).name)
+        continue %Is only executed if user defined specific directories to process
     end
 
 
-	%Load all layers and all channels in parallel 
-	maxChans=3;
-	imStack=cell(maxChans,param.mosaic.numOpticalPlanes);
+
+    %Skip if everything has been done and the user asked to loop through all directories.
+    sectionDirName=fullfile(userConfig.subdir.rawDataDir,sectionDirectories(thisDir).name);
+    statsFile=fullfile(sectionDirName,'tileStats');
+    combFile=fullfile(sectionDirName,'phaseStats_01.mat');
+    aveDir=fullfile(sectionDirName,'averages');
+
+    %We skip if everything exists in the directory or if the non-existing files weren't ask for
+    if ( exist(statsFile,'file') || exist([statsFile,'.mat'],'file') ) && ...
+        (exist(combFile,'file') || (length(combCorChans)==1 && combCorChans==0)) &&...
+        (exist(aveDir,'file')   || (length(illumChans)==1   && illumChans==0))   && ...
+        length(sectionsToProcess)==1 && ...
+        sectionsToProcess==0 
+        if verbose
+                fprintf('Nothing to do in %s. Skipping.\n', sectionDirectories(thisDir).name)
+        end
+        
+        continue
+    end
+
+
+    %Load all layers and all channels in parallel 
+    maxChans=3;
+    imStack=cell(maxChans,param.mosaic.numOpticalPlanes);
     tileIndex=cell(maxChans,param.mosaic.numOpticalPlanes);
 
-	%Extract section number from directory name
-	sectionNumber = sectionDirName2sectionNum(sectionDirectories(thisDir).name);
+    %Extract section number from directory name
+    sectionNumber = sectionDirName2sectionNum(sectionDirectories(thisDir).name);
 
-	for thisChan = chansToLoad
-		if thisChan==0
-			continue
-		end
+    for thisChan = chansToLoad
+        if thisChan==0
+            continue
+        end
 
-		for thisLayer=1:param.mosaic.numOpticalPlanes
-			fprintf('Loading section %03d, layer %02d, chan %d\n',sectionNumber,thisLayer,thisChan)
-			%Load the raw tiles for this layer without cropping, illumination correction, or phase correction
-			try 
-				[thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan],0,0,0); 
-			catch
-				fprintf('%s. Failed to load images. Quitting.\n',mfilename)
-				analysesPerformed=[];
-				break
-			end
-			imStack{thisChan,thisLayer}=thisImStack;
-			tileIndex{thisChan,thisLayer}=thisTileIndex;
-		end
-	end
-
-
-	%Bail out of this iteration if we couldn't load image data (likely due to missing tileIndex file)
-	%the tileIndex file isn't created if generateTileIndex is confused about the number of raw TIFF files 
-	%or if it can't find raw TIFF files
-	if all(cellfun(@isempty,imStack))
-		fprintf('%s couldn''t load image data from directory %s. SKIPPING\n',...
-			mfilename, sectionDirectories(thisDir).name)
-		continue
-	end
+        for thisLayer=1:param.mosaic.numOpticalPlanes
+            fprintf('Loading section %03d, layer %02d, chan %d\n',sectionNumber,thisLayer,thisChan)
+            %Load the raw tiles for this layer without cropping, illumination correction, or phase correction
+            try 
+                [thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan],0,0,0); 
+            catch
+                fprintf('%s. Could not find images to load for channel %d. Is this channel missing?\n',mfilename, thisChan)
+                analysesPerformed=[];
+                break
+            end
+            imStack{thisChan,thisLayer}=thisImStack;
+            tileIndex{thisChan,thisLayer}=thisTileIndex;
+        end
+    end
 
 
-	%-----------------------------------------------------------------
-	%Write tile statistics to a file. 
-	if exist(statsFile,'file') & length(sectionsToProcess)==1 & sectionsToProcess==0 %Skip if sectionsToProcess is zero and file exists
-		fprintf('%s stats file already exists\n',sectionDirectories(thisDir).name)
-	else
-		% Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
-		% the backround tiles. 
-		tileStats=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
-	end
-
-	%TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present
-	%-----------------------------------------------------------------
-	%Do comb correction if user asked for it
-
-	if combCorChans
-		if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
-			fprintf('%s exists. Skipping this comb corrrection\n',combFile)
-		else	
-			writeCombCorCoefs(imStack, sectionDirName, combCorChans)
-			analysesPerformed.combCor=1;
-		end
-	end
+    %Bail out of this iteration if we couldn't load image data (likely due to missing tileIndex file)
+    %the tileIndex file isn't created if generateTileIndex is confused about the number of raw TIFF files 
+    %or if it can't find raw TIFF files
+    if all(cellfun(@isempty,imStack))
+        fprintf('%s couldn''t load any image data from directory %s. SKIPPING\n',...
+            mfilename, sectionDirectories(thisDir).name)
+        continue
+    end
 
 
-	%-----------------------------------------------------------------
-	%Do illumination correction if the user asked for it
-	%Handle existing average files: wipe if necessary or load them in order to add to them. 
-	if illumChans
-		if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
-			fprintf('Skipping illumination corrrection\n')
-		else
-			writeAverageFiles(imStack, tileIndex, sectionDirName, illumChans,tileStats.emptyTileThresh)
-			analysesPerformed.illumCor=1;
-		end
-	end
+    %-----------------------------------------------------------------
+    %Write tile statistics to a file. 
+    if exist(statsFile,'file') & length(sectionsToProcess)==1 & sectionsToProcess==0 %Skip if sectionsToProcess is zero and file exists
+        fprintf('%s stats file already exists\n',sectionDirectories(thisDir).name)
+    else
+        % Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
+        % the backround tiles. 
+        tileStats=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
+    end
+
+    %TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present
+    %-----------------------------------------------------------------
+    %Do comb correction if user asked for it
+
+    if combCorChans
+        if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
+            fprintf('%s exists. Skipping this comb corrrection\n',combFile)
+        else    
+            writeCombCorCoefs(imStack, sectionDirName, combCorChans)
+            analysesPerformed.combCor=1;
+        end
+    end
+
+
+    %-----------------------------------------------------------------
+    %Do illumination correction if the user asked for it
+    %Handle existing average files: wipe if necessary or load them in order to add to them. 
+    if illumChans
+        if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
+            fprintf('Skipping illumination corrrection\n')
+        else
+            writeAverageFiles(imStack, tileIndex, sectionDirName, illumChans,tileStats.emptyTileThresh)
+            analysesPerformed.illumCor=1;
+        end
+    end
 
 end 
 
 
 timeIt = toc;
 if timeIt>180
-	fprintf('Total time: %d minutes.\n',round(timeIt/60))
+    fprintf('Total time: %d minutes.\n',round(timeIt/60))
 else
-	fprintf('Total time: %d seconds.\n',round(timeIt))
+    fprintf('Total time: %d seconds.\n',round(timeIt))
 end
 
 if nargout>0
-	varargout{1}=analysesPerformed;
+    varargout{1}=analysesPerformed;
 end
 

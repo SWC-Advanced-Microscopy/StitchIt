@@ -33,39 +33,39 @@ function cropStitched(stitchedDir,targetDir,rect)
 
 
 if strcmp(stitchedDir(end),filesep)
-	stitchedDir(end)=[];
+    stitchedDir(end)=[];
 end
 
 if strcmp(targetDir(end),filesep)
-	targetDir(end)=[];
+    targetDir(end)=[];
 end
 
 if ~exist(stitchedDir,'dir')
-	error('Can not find %s',stitchedDir)
+    error('Can not find %s',stitchedDir)
 end
 
 if exist(targetDir,'dir')
-	fprintf('Wiping existing directory %s\n', targetDir)
-	rmdir(targetDir,'s');
-	mkdir(targetDir)
+    fprintf('Wiping existing directory %s\n', targetDir)
+    rmdir(targetDir,'s');
+    mkdir(targetDir)
 else
-	mkdir(targetDir)
+    mkdir(targetDir)
 end
 
 
 tifs = dir([stitchedDir,filesep,'*.tif']);
 if isempty(tifs)
-	error('No tiffs found in %s',stitchedDir);
+    error('No tiffs found in %s',stitchedDir);
 else
-	fprintf('Found %d images\n',length(tifs))
+    fprintf('Found %d images\n',length(tifs))
 end
 
 
 
 parfor ii=1:length(tifs)
-	sourceIm = [stitchedDir,filesep,tifs(ii).name];
-	fprintf('cropping %s\n', sourceIm)
-	im=stitchit.tools.openTiff(sourceIm, [rect(2),rect(1),rect(3:4)]);
+    sourceIm = [stitchedDir,filesep,tifs(ii).name];
+    fprintf('cropping %s\n', sourceIm)
+    im=stitchit.tools.openTiff(sourceIm, [rect(2),rect(1),rect(3:4)]);
     imwrite(im,[targetDir,filesep,tifs(ii).name],'Compression','none')
 end
 

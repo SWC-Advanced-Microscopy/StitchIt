@@ -13,18 +13,18 @@ function mask=tileCoords2MaskIm(tileCoords)
 %
 
 if isstr(tileCoords)
-	if ~exist(tileCoords)
-		fprintf('%s can not load tile coords file %s\n',mfilename,tileCoords)
-		mask=[];
-		return
-	end
-	tileCoords = csvread(tileCoords,1);
+    if ~exist(tileCoords)
+        fprintf('%s can not load tile coords file %s\n',mfilename,tileCoords)
+        mask=[];
+        return
+    end
+    tileCoords = csvread(tileCoords,1);
 end
 
 if length(tileCoords)>2^8-1
-	imClass = 'uint16';
+    imClass = 'uint16';
 else
-	imClass = 'uint8';
+    imClass = 'uint8';
 end
 
 %Pre-allocate
@@ -41,21 +41,21 @@ origSize=size(mask);
 %We will randomise the IDs just because it's easier to debug visually. The algorithm doesn't care
 R=randperm(length(tileCoords));
 for ii=1:length(tileCoords)
-	%The indexes of the stitched image where we will be placing this tile
-	xPos = (tileCoords(ii,1):tileCoords(ii,1)+tileCoords(ii,2)-1);
-	yPos = (tileCoords(ii,3):tileCoords(ii,3)+tileCoords(ii,4)-1);
+    %The indexes of the stitched image where we will be placing this tile
+    xPos = (tileCoords(ii,1):tileCoords(ii,1)+tileCoords(ii,2)-1);
+    yPos = (tileCoords(ii,3):tileCoords(ii,3)+tileCoords(ii,4)-1);
 
-	mask(yPos,xPos)=R(ii);
+    mask(yPos,xPos)=R(ii);
 end
 
 
 if any(origSize-size(mask))
-	fprintf('%s - Mask started out at %dx%d and is now %dx%d\n',mfilename,origMask,size(mask))
+    fprintf('%s - Mask started out at %dx%d and is now %dx%d\n',mfilename,origMask,size(mask))
 end
 
 
 if any(mask(:)==0)
-	fprintf('%s WARNING: not all pixels in the mask have been assigned\n',mfilename)
+    fprintf('%s WARNING: not all pixels in the mask have been assigned\n',mfilename)
 end
 
 
