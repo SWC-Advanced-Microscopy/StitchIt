@@ -1,4 +1,4 @@
-function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doPhaseCorrection)
+function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCorrection)
 % For user documentation run "help tileLoad" at the command line
 % 
 % This function works without the need for generateTileIndex
@@ -20,7 +20,7 @@ if nargin<4
 end
 
 if nargin<5
-    doPhaseCorrection=[];
+    doCombCorrection=[];
 end
 
 verbose=0; %Enable this for debugging. Otherwise it's best to leave it off
@@ -36,8 +36,8 @@ end
 if isempty(doCrop)
     doCrop=userConfig.tile.docrop; 
 end
-if isempty(doPhaseCorrection)
-    doPhaseCorrection=userConfig.tile.doPhaseCorrection;
+if isempty(doCombCorrection)
+    doCombCorrection=userConfig.tile.doPhaseCorrection;
 end
 
 averageSlowRows=userConfig.tile.averageSlowRows;
@@ -45,7 +45,7 @@ averageSlowRows=userConfig.tile.averageSlowRows;
 
 
 %Exit gracefully if data directory is missing 
-param = readMetaData2Stitchit(getTiledAcquisitionParamFile);
+param = readMetaData2Stitchit;
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
 
 if ~exist(sectionDir,'dir')
@@ -198,7 +198,7 @@ index(:,4) = abs(colInd - max(colInd))+1;
 
 %COMMON
 %correctPhase delay if requested to do so
-if doPhaseCorrection
+if doCombCorrection
     corrStatsFname = sprintf('%s%sphaseStats_%02d.mat',sectionDir,filesep,coords(2));
     if ~exist(corrStatsFname,'file')
         fprintf('%s. phase stats file %s missing. \n',mfilename,corrStatsFname)
@@ -220,7 +220,8 @@ if doCrop
 end
 
 
-
+%-----------------------
+% BT SPECIFIC
 %Remove the background (mean of the empty tiles)
 if ~isempty(emptyTileIndexes) %zero very low values
     emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
@@ -231,6 +232,8 @@ else
     offsetValue=0;
     fprintf('%s found no empty tiles\n',mfilename)
 end
+%-----------------------
+
 
 
 %Do illumination correction if requested to do so %TODO: *REALLY* need this stuff abstracted elsewhere
@@ -288,6 +291,7 @@ if doIlluminationCorrection
     end
 
 
+    %FOLLOWING IS BT-SPECIFIC
     % Again, remove the very low values after subtraction
     % TODO: this won't do anything if the offset value is very far from zero
     if ~isempty(emptyTileIndexes)
@@ -315,5 +319,5 @@ function aveTemplate = coords2ave(coords,userConfig)
         aveTemplate=[];
         fprintf('%s Can not find average template file %s\n',mfilename,fname)
     end
-    
+
 %/COMMON
