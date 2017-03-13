@@ -297,62 +297,23 @@ if doIlluminationCorrection
     end
 
 end
-%/COMMON
+
 
 %Calculate average filename from tile coordinates. We could simply load the
 %image for one layer and one channel, or we could try odd stuff like averaging
 %layers or channels. This may make things worse or it may make things better. 
 function aveTemplate = coords2ave(coords,userConfig)
 
-    section=coords(1); % The physical section
     layer=coords(2); % Optical section
     chan=coords(5);
-    if userConfig.tile.restrictAverageToRange<=0 %use the grand average
-        fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer);
-        if exist(fname,'file')
-            %The OS caches, so for repeated image loads this is negligible. 
-            aveTemplate = loadAveBinFile(fname); 
-        else
-            aveTemplate=[];
-            fprintf('%s Can not find average template file %s\n',mfilename,fname)
-        end
+
+    fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer);
+    if exist(fname,'file')
+        %The OS caches, so for repeated image loads this is negligible. 
+        aveTemplate = loadAveBinFile(fname); 
     else
-        baseName=directoryBaseName;
-        directorySearchPath=fullfile(userConfig.subdir.rawDataDir,[baseName,'*']);
-        sectionDirectories=dir(directorySearchPath);
-        [~,dirsToKeep]=generateTileIndex([],[],false);
-        sectionDirectories=sectionDirectories(find(dirsToKeep));
-
-        dirsToAverage = stitchit.tools.indexWithBuffer(1:length(sectionDirectories),section,userConfig.tile.restrictAverageToRange);
-
-        averages={};
-        for ii=1:length(dirsToAverage)
-            ind=dirsToAverage(ii);
-            thisDir = sprintf('%s%04d',baseName,ind);
-            aveName = sprintf('%02d.bin',layer);
-            fullPathToAveFile = fullfile(userConfig.subdir.rawDataDir,thisDir,'averages',num2str(chan),aveName);
-            if ~exist(fullPathToAveFile,'file')
-                fprintf('Skipping non-existent average file: %s\n',fullPathToAveFile);
-                continue
-            end
-            averages{end+1}=loadAveBinFile(fullPathToAveFile);
-        end
-        if isempty(averages)
-            fprintf('Found no average images')
-            aveTemplate=[];
-            return
-        end
-        if length(averages)==1
-            aveTemplate=averages{1};
-            return
-        end
-
-        %Calculate the average
-        aveTemplate=averages{1};
-        for ii=2:length(averages)
-            aveTemplate = aveTemplate+averages{ii};
-        end
-        aveTemplate=aveTemplate/length(averages);
-
+        aveTemplate=[];
+        fprintf('%s Can not find average template file %s\n',mfilename,fname)
     end
-
+    
+%/COMMON
