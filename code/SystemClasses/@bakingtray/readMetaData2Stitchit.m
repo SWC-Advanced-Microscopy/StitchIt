@@ -52,10 +52,15 @@ out.tile =raw.Tile;
 out.voxelSize=raw.VoxelSize;
 out.numTiles = raw.NumTiles;  
 out.TileStepSize = raw.TileStepSize;
-out.TileStepSize.X = 1E3 * out.TileStepSize.X; %TODO: we need a decision on this
-out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; %TODO: we need a decision on this
+out.TileStepSize.X = 1E3 * out.TileStepSize.X; 
+out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; 
 out.System = raw.SYSTEM;
 out.Slicer = raw.SLICER;
+
+%Ensure slice thickness is in microns
+if out.mosaic.sliceThickness<1
+    out.mosaic.sliceThickness = out.mosaic.sliceThickness*1E3;
+end
 
 return
 %TODO: we need the stage locations

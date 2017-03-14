@@ -163,13 +163,8 @@ end
 
 %The following string will be displayed on the website above the section 
 currentTime = datestr(now,'YYYY/mm/dd HH:MM:SS');
+sliceThicknessInMicrons =  params.mosaic.sliceThickness
 
-if params.mosaic.sliceThickness>1 
-    sliceThicknessInMicrons =  params.mosaic.sliceThickness;
-else %A bit of hack to convert slice thickess in mm to microns. 
-    %TODO: if baking tray moves to microns for the cut thickness, then we can get rid of this
-    sliceThicknessInMicrons =  params.mosaic.sliceThickness*1E3;
-end
 
 details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
     sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
