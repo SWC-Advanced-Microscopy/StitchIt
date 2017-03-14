@@ -1,5 +1,9 @@
 StitchIt Change Log
 
+17/03/14
+ - Peeksection now stitches the first available channel by default. Not channel 2. 
+ - DEVELOPER NOTE: meta-data format is now documented ( help readMetaData2Stitchit)
+ - DEVELOPER NOTE: image processing moved out of tileLoad functions
 
 17/03/12
 - MAJOR: stitchAllSubDirectories is now stitchAllChannels. please see "help stitchAllChannels"

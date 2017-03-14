@@ -15,7 +15,8 @@ function varargout=peekSection(section,channel,resize)
 %                   2) a vector of length two [physical section, optical section] 
 %                   3) a cell array that's {tileStack, tileIndex}
 %
-% channel - channel to load (1 to 3)
+% channel - scalar defining the channel to show. By default this is the first 
+%           available channel.
 %
 % resize - a number from 0 to 1 that defines by how much we should 
 %          re-scale the brain. optional. 
@@ -39,8 +40,9 @@ userConfig=readStitchItINI;
 
 
 
-if nargin<2
-    channel=1;
+if nargin<2 || isempty(channel)
+    chans = channelsAvailableForStitching;
+    channel=chans(1);
 end
 
 if nargin<3
