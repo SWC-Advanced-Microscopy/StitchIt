@@ -18,7 +18,7 @@ end
 %Read the TissueCyte mosaic file
 rawOut=yaml.ReadYaml(fname,verbose);
 
-if isstruct(rawOut) %TODO: is this check even meaningful?
+if isstruct(rawOut)
     sucessfulRead=true;
 else 
     sucessfulRead=false;
@@ -28,11 +28,6 @@ if ~sucessfulRead
     error('Failed to read %s',fname)
 end
 out = recipe2StitchIt(rawOut,fname);
-
-%TODO:
-% Save the stitchit file to the current directory? But don't do it yet, because we need
-% to be sure that the format of the file is as we want it to be. 
-
 
 
 

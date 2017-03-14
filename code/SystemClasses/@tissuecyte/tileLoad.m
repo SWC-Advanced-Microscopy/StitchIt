@@ -154,7 +154,7 @@ end
 %Begin processing the loaded image or image stack
 
 
-%correctPhase delay if requested to do so
+%correct phase delay (comb artifact) if requested to do so
 if doCombCorrection
     im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig);
 end

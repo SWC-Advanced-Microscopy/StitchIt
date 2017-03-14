@@ -41,7 +41,7 @@ function [out,sucessfulRead,mosOut]=readMetaData2Stitchit(varargin)
 %  M.TileStepSize.X - how far the stage moves in X between tile acquisitions in microns
 %  M.TileStepSize.Y - how far the stage moves in Y between tile acquisitions in microns
 %  M.System.ID - string defining the name of the acquisition system (used to read system-specific INI file)
-%  M.System.type - string defining the type of system acquiring the data. e.g. tissuecyte, bakingtray, slidescanner, etc
+%  M.System.type - string defining the type of system acquiring the data. e.g. TissueCyte, bakingtray, slidescanner, etc
 %
 %
 %

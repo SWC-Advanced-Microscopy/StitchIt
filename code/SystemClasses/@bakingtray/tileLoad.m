@@ -120,6 +120,7 @@ for XYposInd=1:size(positionArray,1)
     if ~exist(path2stack,'file') %TODO: bad 
         fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);     
         im=[];
+        index=[];
         positionArray=[];
         return
     end
@@ -197,26 +198,10 @@ index(:,4) = abs(colInd - max(colInd))+1;
 %Begin processing the loaded image or image stack
 
 %COMMON
-%correctPhase delay if requested to do so
+
+%correct phase delay (comb artifact) if requested to do so
 if doCombCorrection
-    corrStatsFname = sprintf('%s%sphaseStats_%02d.mat',sectionDir,filesep,coords(2));
-    if ~exist(corrStatsFname,'file')
-        fprintf('%s. phase stats file %s missing. \n',mfilename,corrStatsFname)
-    else
-        load(corrStatsFname);
-        phaseShifts = phaseShifts(indsToKeep);
-        im = applyPhaseDelayShifts(im,phaseShifts);
-    end
-end
-
-
-%Crop if requested to do so
-if doCrop
-    cropBy=round(size(im,1)*userConfig.tile.cropProportion); 
-    if verbose
-        fprintf('Cropping images by %d pixels on each size\n',crop)
-    end
-    im  = im(cropBy+1:end-cropBy, cropBy+1:end-cropBy, :);
+    im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig);
 end
 
 
@@ -236,71 +221,27 @@ end
 
 
 
-%Do illumination correction if requested to do so %TODO: *REALLY* need this stuff abstracted elsewhere
-if doIlluminationCorrection
-    avDir = fullfile(userConfig.subdir.rawDataDir,userConfig.subdir.averageDir);
-
-    if ~exist(avDir,'dir')
-        fprintf('Please create grand averages with collateAverageImages\n')
-    end
-
-    aveTemplate = coords2ave(coords,userConfig);
-    if doCrop
-         aveTemplate = aveTemplate(cropBy+1:end-cropBy, cropBy+1:end-cropBy, :);
-    end
-    aveTemplate = aveTemplate-offsetValue;
-    aveTemplate(aveTemplate<1)=1;
-
-    if isempty(aveTemplate)
-        fprintf('Illumination correction requested but not performed\n')
-        return
-    end
-
-    if verbose
-        fprintf('Doing %s illumination correction\n',userConfig.tile.illumCorType)
-    end
-
-
-    switch userConfig.tile.illumCorType %loaded from INI file
-
-        case 'split'
-            if averageSlowRows
-                aveTemplate(:,:,1) = repmat(mean(aveTemplate(:,:,1),1), [size(aveTemplate,1),1]);
-                aveTemplate(:,:,2) = repmat(mean(aveTemplate(:,:,2),1), [size(aveTemplate,1),1]);
-            end
-
-            %Divide by the template. Separate odd and even rows as needed       
-
-            oddRows=find(mod(positionArray(:,2),2)); %Different from TV!
-            if ~isempty(oddRows)
-                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate(:,:,2)); 
-            end
-
-            evenRows=find(~mod(positionArray(:,2),2)); %Different from TV!
-            if ~isempty(evenRows)
-                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate(:,:,1));
-            end
-        case 'pool'
-            aveTemplate = mean(aveTemplate,3);
-            if averageSlowRows
-                aveTemplate = repmat(mean(aveTemplate,1), [size(aveTemplate,1),1]);
-            end
-            im=stitchit.tools.divideByImage(im,aveTemplate);
-        otherwise
-            fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
-    end
-
-
-    %FOLLOWING IS BT-SPECIFIC
-    % Again, remove the very low values after subtraction
-    % TODO: this won't do anything if the offset value is very far from zero
-    if ~isempty(emptyTileIndexes)
-        emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
-        offsetValue=mean(emptyTiles(:));
-        im(im<offsetValue)=0;
-    end
-
+%Do illumination correction if requested to do so
+if doIlluminationCorrection 
+    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,verbose);
 end
+
+%FOLLOWING IS BT-SPECIFIC
+% Again, remove the very low values after subtraction
+% TODO: this won't do anything if the offset value is very far from zero
+if ~isempty(emptyTileIndexes)
+    emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
+    offsetValue=mean(emptyTiles(:));
+    im(im<offsetValue)=0;
+end
+
+
+%Crop if requested to do so
+if doCrop
+    im = stitchit.tileload.cropper(im,userConfig,verbose);
+end
+
+
 
 
 %Calculate average filename from tile coordinates. We could simply load the
