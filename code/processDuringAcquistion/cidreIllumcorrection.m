@@ -27,6 +27,13 @@ function cidreIllumcorrection
 % 	%nothing happens. No TissueCyte.
 % end
 
+% destination folder is average dir of the average images
+userConfig=readStitchItINI;
+avDir = [userConfig.subdir.rawDataDir,filesep,userConfig.subdir.averageDir];
+if ~exist(avDir,'dir')
+    mkdir(avDir)
+end
+
 chansToStitch=channelsAvailableForStitching;
 
 % calculate background model for illumination correction with CIDRE
@@ -34,8 +41,7 @@ for thisChan=chansToStitch
     tic;
      % source directory name is adjusted to the Tissue way of saving
     source = sprintf('./rawData/*_0%i.tif',thisChan);
-    destination = './model/';
-    [~] = cidre(source, 'destination',destination);
+    cidre(source, 'destination',avDir);
     t=toc/60;
     fprintf('Time for one channel is %i minutes\n',t);
 end

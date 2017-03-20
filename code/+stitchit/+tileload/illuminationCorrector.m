@@ -41,8 +41,35 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
         fprintf('Please create grand averages with collateAverageImages\n')
     end
 
-    aveTemplate = coords2ave(coords,userConfig);
+    % if finds mat files - cidre stitch, otherwise average
+    cidre_correction = check_cidreModel(userConfig);
+    if cidre_correction
+        im = correct_cidre(im);
+    else
+        im = correct_average(coords,userConfig,im);
+    end
 
+
+
+
+
+%Calculate average filename from tile coordinates. We could simply load the
+%image for one layer and one channel, or we could try odd stuff like averaging
+%layers or channels. This may make things worse or it may make things better. 
+function im = correct_average(coords,userConfig,im)
+
+    layer=coords(2); %optical section
+    chan=coords(5);
+
+    fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer); %TODO: replace with fullfile
+    if exist(fname,'file')
+        %The OS caches, so for repeated image loads this is negligible. 
+        aveTemplate = loadAveBinFile(fname); 
+    else
+        aveTemplate=[];
+        fprintf('%s Can not find average template file %s\n',mfilename,fname)
+    end
+    
     if isempty(aveTemplate)
         fprintf('Illumination correction requested but not performed\n')
         return
@@ -85,25 +112,5 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
 
-
-
-
-
-%Calculate average filename from tile coordinates. We could simply load the
-%image for one layer and one channel, or we could try odd stuff like averaging
-%layers or channels. This may make things worse or it may make things better. 
-function aveTemplate = coords2ave(coords,userConfig)
-
-    layer=coords(2); %optical section
-    chan=coords(5);
-
-    fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer); %TODO: replace with fullfile
-    if exist(fname,'file')
-        %The OS caches, so for repeated image loads this is negligible. 
-        aveTemplate = loadAveBinFile(fname); 
-    else
-        aveTemplate=[];
-        fprintf('%s Can not find average template file %s\n',mfilename,fname)
-    end
 
 
