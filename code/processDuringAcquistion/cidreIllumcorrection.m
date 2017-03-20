@@ -1,11 +1,12 @@
-function cidreIllumcorrection(writeBlacktile)
+function cidreIllumcorrection(source_dir,writeBlacktile)
 % default post acquisition function. 
 %
 % You may write your own and have it run via the INI file. 
 %
 %
 % Rob Campbell - Basel 2015
-
+cd (source_dir);
+addpath(genpath('/home/natasha/Programming/GitHub_clone/StitchIt_cidre/'));
 % read info from Mosaic.txt 
 M=readMetaData2Stitchit;
 
@@ -27,13 +28,14 @@ elseif ~iscell(missingTiles) && missingTiles == -1
 	%nothing happens. No TissueCyte.
 end
 
+chansToStitch=channelsAvailableForStitching;
 
 % calculate background model for illumination correction with CIDRE
 for thisChan=chansToStitch 
     tic;
      % source directory name is adjusted to the Tissue way of saving
     source = sprintf('./rawData/*_0%i.tif',thisChan);
-    destination = './CIDRE_rawData/';
+    destination = './model/';
     [~] = cidre(source, 'destination',destination);
     t=toc/60;
     fprintf('Time for one channel is %i minutes\n',t);
@@ -41,7 +43,7 @@ end
 
 %-----------------------------------------------------
 %attempt to stitch all the data
-stitchAllSubDirectories
+stitchAllChannels
 %-----------------------------------------------------
 
 
