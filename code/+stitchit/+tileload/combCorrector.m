@@ -2,7 +2,7 @@
 function im = combCorrector(im,sectionDir,coords,userConfig)
     % crops tiles for stitchit tileLoad
     %
-    % function im = stitchit.tileLoad.combCorrector(im,sectionDir,coords,userConfig)
+    % function im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig)
     %
     % Purpose
     % There are multiple tileLoad functions for different imaging systems
@@ -15,7 +15,7 @@ function im = combCorrector(im,sectionDir,coords,userConfig)
     % coords - the coords argument from tileLoad
     % userConfig - [optional] this INI file details. If missing, this 
     %              is loaded and cropping params extracted from it. 
-    %       
+    %
     % Outputs
     % im - the cropped stack. 
     %

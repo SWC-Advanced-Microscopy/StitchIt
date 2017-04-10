@@ -163,7 +163,7 @@ end
 
 %The following string will be displayed on the website above the section 
 currentTime = datestr(now,'YYYY/mm/dd HH:MM:SS');
-sliceThicknessInMicrons =  params.mosaic.sliceThickness
+sliceThicknessInMicrons =  params.mosaic.sliceThickness;
 
 
 details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...

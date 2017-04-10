@@ -1,7 +1,7 @@
 function [im,cropByPixels] = cropper(im,userConfig,verbose)
     % crops tiles for stitchit tileLoad
     %
-    % function im = stitchit.tileLoad.cropper(im,userConfig,verbose)
+    % function im = stitchit.tileload.cropper(im,userConfig,verbose)
     %
     % Purpose
     % There are multiple tileLoad functions for different imaging systems
@@ -13,7 +13,7 @@ function [im,cropByPixels] = cropper(im,userConfig,verbose)
     % userConfig - [optional] this INI file details. If missing, this 
     %              is loaded and cropping params extracted from it. 
     % verbose - false by default
-    %       
+    %
     % Outputs
     % im - the cropped stack. 
     % cropByPixels - The number of pixels on each side of the image that were trimmed. 

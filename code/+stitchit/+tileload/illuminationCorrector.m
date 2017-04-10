@@ -1,7 +1,7 @@
 function im = illuminationCorrector(im,coords,userConfig,verbose)
     % illumination corrects tiles for stitchit tileLoad
     %
-    % function im = stitchit.tileLoad.illuminationCorrector(im,coords,cropBy,userConfig,verbose)
+    % function im = stitchit.tileload.illuminationCorrector(im,coords,cropBy,userConfig,verbose)
     %
     % Purpose
     % There are multiple tileLoad functions for different imaging systems
@@ -14,7 +14,7 @@ function im = illuminationCorrector(im,coords,userConfig,verbose)
     % userConfig - [optional] this INI file details. If missing, this 
     %              is loaded and cropping params extracted from it. 
     % verbose - false by default
-    %       
+    %
     % Outputs
     % im - the cropped stack. 
     %
@@ -69,7 +69,7 @@ function im = illuminationCorrector(im,coords,userConfig,verbose)
         otherwise
             fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
     end
-        
+
 
 
 
