@@ -1,7 +1,7 @@
-function im = illuminationCorrector(im,coords,userConfig,verbose)
+function im = illuminationCorrector(im,coords,userConfig,offSetValue,verbose)
     % illumination corrects tiles for stitchit tileLoad
     %
-    % function im = stitchit.tileload.illuminationCorrector(im,coords,cropBy,userConfig,verbose)
+    % function im = stitchit.tileload.illuminationCorrector(im,coords,cropBy,userConfig,offSetValue,verbose)
     %
     % Purpose
     % There are multiple tileLoad functions for different imaging systems
@@ -13,6 +13,7 @@ function im = illuminationCorrector(im,coords,userConfig,verbose)
     % coords - the coords argument from tileLoad
     % userConfig - [optional] this INI file details. If missing, this 
     %              is loaded and cropping params extracted from it. 
+    % offSetValue - if non-zero, this scalar is subtract from the average tiles
     % verbose - false by default
     %
     % Outputs
@@ -26,6 +27,15 @@ function im = illuminationCorrector(im,coords,userConfig,verbose)
         userConfig = readStitchItINI;
     end
 
+    if nargin<4 || isempty(offSetValue)
+        offSetValue=0;
+    end
+
+    if nargin<5 || isempty(verbose)
+        verbose=false;
+    end
+
+
     avDir = [userConfig.subdir.rawDataDir,filesep,userConfig.subdir.averageDir];
 
     if ~exist(avDir,'dir')
@@ -33,6 +43,10 @@ function im = illuminationCorrector(im,coords,userConfig,verbose)
     end
 
     aveTemplate = coords2ave(coords,userConfig);
+    if offSetValue~=0
+        aveTemplate = aveTemplate-offSetValue;
+        aveTemplate(aveTemplate<1)=1;
+    end
 
     if isempty(aveTemplate)
         fprintf('Illumination correction requested but not performed\n')

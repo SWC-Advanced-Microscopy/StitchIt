@@ -223,7 +223,7 @@ end
 
 %Do illumination correction if requested to do so
 if doIlluminationCorrection 
-    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,verbose);
+    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,offsetValue,verbose);
 end
 
 %FOLLOWING IS BT-SPECIFIC

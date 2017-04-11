@@ -161,7 +161,7 @@ end
 
 %Do illumination correction if requested to do so
 if doIlluminationCorrection 
-    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,verbose);
+    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,0,verbose);
 end
 
 %Crop if requested to do so
