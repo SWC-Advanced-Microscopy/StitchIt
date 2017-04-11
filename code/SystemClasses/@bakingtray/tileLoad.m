@@ -151,27 +151,6 @@ if size(im,3) ~= expectedNumberOfTiles
     return
 end
 
-%Load the tile stats data and pull out the empty tile threshold for this sample
-tileStatsName = fullfile(sectionDir, 'tileStats.mat');
-if exist(tileStatsName)
-    load(tileStatsName); %contains variable tileStats
-    emptyTileThresh = tileStats.emptyTileThresh(channel,planeNum);
-    %so the empty tiles are:
-    emptyTileIndexes = find(tileStats.mu{channel,planeNum}<=emptyTileThresh);
-    if isempty(emptyTileIndexes)
-        fprintf('%s failed to find empty tiles for %s channel %d plane %d. All have means of over %0.4f\n',...
-            mfilename, sectionDir, channel, planeNum, emptyTileThresh)
-    end
-else
-    emptyTileIndexes=[];
-end
-
-% The TIFFs we pull out of ScanImage will likely have negative numbers 
-% in as we're trying to maximise the dynamic range. This will get 
-% the numbers going from 0 to 2^12-1, but we maybe need a way determining
-% for sure if this is needed. TODO: put into INI file?
-% TODO: We should pull the DAQ range from the card and store it or the following may fail
-im = im + 2^11-1; 
 im = rot90(im,-1); 
 
 
@@ -197,42 +176,15 @@ index(:,4) = abs(colInd - max(colInd))+1;
 %--------------------------------------------------------------------
 %Begin processing the loaded image or image stack
 
-%COMMON
-
 %correct phase delay (comb artifact) if requested to do so
 if doCombCorrection
     im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig);
 end
 
 
-%-----------------------
-% BT SPECIFIC
-%Remove the background (mean of the empty tiles)
-if ~isempty(emptyTileIndexes) %zero very low values
-    emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
-    offsetValue=mean(emptyTiles(:));
-    im = im-offsetValue;
-    im(im<0)=0;
-else
-    offsetValue=0;
-    fprintf('%s found no empty tiles\n',mfilename)
-end
-%-----------------------
-
-
-
 %Do illumination correction if requested to do so
 if doIlluminationCorrection 
-    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,offsetValue,verbose);
-end
-
-%FOLLOWING IS BT-SPECIFIC
-% Again, remove the very low values after subtraction
-% TODO: this won't do anything if the offset value is very far from zero
-if ~isempty(emptyTileIndexes)
-    emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
-    offsetValue=mean(emptyTiles(:));
-    im(im<offsetValue)=0;
+    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,verbose);
 end
 
 
