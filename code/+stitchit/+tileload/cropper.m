@@ -32,7 +32,7 @@ function [im,cropByPixels] = cropper(im,userConfig,verbose)
     cropByPixels=round(size(im,1) * userConfig.tile.cropProportion); 
 
     if verbose
-        fprintf('Cropping images by %d pixels on each size\n',crop)
+        fprintf('Cropping images by %d pixels on each size\n', cropByPixels)
     end
 
     im  = im(cropByPixels+1:end-cropByPixels, cropByPixels+1:end-cropByPixels, :);
