@@ -1,11 +1,11 @@
 StitchIt Change Log
 
-17/04/11
+
+NEXT: 
+ - MAJOR: take away the option to remove channel 3 in syncAndCrunch
  - Fix regression that was causing average image correction to fail with BT data
- 
-17/03/14
  - Peeksection now stitches the first available channel by default. Not channel 2. 
- - DEVELOPER NOTE: meta-data format is now documented ( help readMetaData2Stitchit)
+ - DEVELOPER NOTE: meta-data format is now documented (help readMetaData2Stitchit)
  - DEVELOPER NOTE: image processing moved out of tileLoad functions
 
 17/03/12
