@@ -1,5 +1,8 @@
 function out=estimateEndTimeBT
-
+    % Estimate time left for a BT acquisition
+    %
+    % This is a temporary function 
+    
     d=dir('acqLog_*.txt');
 
 
@@ -21,9 +24,11 @@ function out=estimateEndTimeBT
 
     finishedTimes=[];
     while 1
-        tok=regexp(tline,' completed in (\d+)','tokens');
+        tok=regexp(tline,' completed in (\d+) min (\d+) sec','tokens');
         if ~isempty(tok)
-            finishedTimes(end+1)=str2num(tok{1}{1});
+            m=str2num(tok{1}{1});
+            s=str2num(tok{1}{2});
+            finishedTimes(end+1)=(m*60)+s;
         end
         tline=fgetl(fid);
 
