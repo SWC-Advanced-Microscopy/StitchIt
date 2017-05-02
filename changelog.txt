@@ -1,5 +1,7 @@
 StitchIt Change Log
 
+17/05/02
+- Add makeCompositeOfPlane.m, which creates composite RGB images for use in Fiji with Bioformats
 
 17/03/12
 - MAJOR: stitchAllSubDirectories is now stitchAllChannels. please see "help stitchAllChannels"
