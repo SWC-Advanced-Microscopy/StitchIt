@@ -114,21 +114,21 @@ for ii = 1:nbrOfImages(1)
     %Write tiff files.
     %/!\ 2 16bit planes images will be seen as 32bit images, readable in Fiji only with Bioformats.
     out = cat(3,A{:});
-%     t = Tiff(fullfile(outputFolder, listImages{1}(ii).name),'w');
-%     t.setTag('ImageLength',size(out,1));
-%     t.setTag('ImageWidth', size(out,2));
-%     t.setTag('Photometric', Tiff.Photometric.MinIsBlack);
-%     t.setTag('BitsPerSample', bitDepth);
-%     t.setTag('SamplesPerPixel', size(out,3));
-%     t.setTag('TileWidth', 128);
-%     t.setTag('TileLength', 128);
-%     t.setTag('Compression', Tiff.Compression.None);
-%     t.setTag('PlanarConfiguration', Tiff.PlanarConfiguration.Chunky);
-%     t.setTag('Software', 'MATLAB');
-    %t.setTag('SampleFormat',Tiff.SampleFormat.Int);
-    imwrite(out, fullfile(outputFolder, listImages{1}(ii).name));
-%     t.write(out),
-%     t.close();
+    t = Tiff(fullfile(outputFolder, listImages{1}(ii).name),'w');
+    t.setTag('ImageLength',size(out,1));
+    t.setTag('ImageWidth', size(out,2));
+    t.setTag('Photometric', Tiff.Photometric.MinIsBlack);
+    t.setTag('BitsPerSample', bitDepth);
+    t.setTag('SamplesPerPixel', size(out,3));
+    t.setTag('TileWidth', 128);
+    t.setTag('TileLength', 128);
+    t.setTag('Compression', Tiff.Compression.None);
+    t.setTag('PlanarConfiguration', Tiff.PlanarConfiguration.Chunky);
+    t.setTag('Software', 'MATLAB');
+    t.setTag('SampleFormat',Tiff.SampleFormat.Int);
+    %imwrite(out, fullfile(outputFolder, listImages{1}(ii).name));
+    t.write(out),
+    t.close();
 
 end
 
