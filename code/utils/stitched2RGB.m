@@ -4,7 +4,7 @@ function varargout=stitched2RGB(directory,doMean,overwrite)
 %
 % function stitched2RGB(directory,doMean,overwrite)
 %
-% directory - [required] directory containing full file names]
+% directory - [required] directory containing full file names.
 % doMean - [optional] if 1, then just average layers and don't save as RGB
 %          0 by default. So this is a merge of all three channels in the same layer.
 %
