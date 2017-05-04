@@ -7,7 +7,11 @@ function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCo
 
 %COMMON
 %Handle input arguments
+
+
 if length(coords)~=5
+    % coords - a vector of length 5 4 with the fields:
+    %     [physical section, optical section, yID, xID,channel]
     error('Coords should have a length of 5. Instead it has a length of %d', length(coords))
 end
 
@@ -99,6 +103,7 @@ if coords(4)>0
     indsToKeep=indsToKeep(f);
 end
 %/BT
+
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 % TODO: loads of this will be common across systems and should be abstracted away
 %       in fact, should probably use tiffstack at some point as this would work better
@@ -107,24 +112,41 @@ end
 
 %So now build the expected file name of the TIFF stack
 sectionNum = coords(1);
-planeNum = coords(2);
+planeNum = coords(2); %Optical plane
 channel = coords(5);
 
 %TODO: we're just loading the full stack right now
 im=[];
 
+
 %Check that all requested data exist
 for XYposInd=1:size(positionArray,1)
-    sectionTiff = sprintf('%s-%04d_%05d_chn%d.tif',param.sample.ID,sectionNum,XYposInd,channel);
+    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,XYposInd);
     path2stack = fullfile(sectionDir,sectionTiff);
-    if ~exist(path2stack,'file') %TODO: bad 
-        fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);     
+    if ~exist(path2stack,'file') %TODO: bad [why? -- RAAC 02/05/2017]
+        fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);
         im=[];
         index=[];
         positionArray=[];
         return
     end
 end
+
+
+% Check that the user has asked for a channel that exists
+imInfo = imfinfo(path2stack);
+SI=obj.parse_si_header(imInfo(1),'Software'); % Parse the ScanImage TIFF header
+
+channelsInSIstack = SI.channelSave;
+numChannelsAvailable = length(channelsInSIstack);
+
+if ~any(SI.channelsActive == channel)
+    availChansStr = repmat('%d ', length(channelsInSIstack) );
+    fprintf(['ERROR: tileLoad is attempting to load channel %d but this does not exist. Available channels: ', availChansStr, '\n'], ...
+        channel, channelsInSIstack)
+    return
+end
+
 
 %Load the last frame and pre-allocate the rest of the stack
 XYposInd==1;
@@ -133,11 +155,14 @@ im=repmat(im,[1,1,size(positionArray,1)]);
 im(:,:,1:end-1)=0;
 
 parfor XYposInd=1:size(positionArray,1)-1
-    sectionTiff = sprintf('%s-%04d_%05d_chn%d.tif',param.sample.ID,sectionNum,XYposInd,channel);
+    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,XYposInd);
     path2stack = fullfile(sectionDir,sectionTiff);
-    
+
+    % The ScanImage stack contains multiple channels per plane 
+    planeInSIstack =  numChannelsAvailable*(planeNum-1) + find(channelsInSIstack==channel);
+
     %Load the tile and add to the stack
-    im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeNum,'outputType','int16'); %PRODUCES WEIRDLY LARGE NUMBERS. WHY??
+    im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16'); %TODO: check -- this used to produce weirdly large numbers. Maybe it doesn't any more?
 
 end
 
