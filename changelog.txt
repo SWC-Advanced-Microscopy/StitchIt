@@ -1,14 +1,15 @@
 StitchIt Change Log
 
-17/05/02
-- Add makeCompositeOfPlane.m, which creates composite RGB images for use in Fiji with Bioformats
-
-NEXT: 
+17/05/04: 
  - MAJOR: take away the option to remove channel 3 in syncAndCrunch
+ - BakingTray: moved to ScanImage multi-channels TIFFs. No longer reads split channels.
  - Fix regression that was causing average image correction to fail with BT data
  - Peeksection now stitches the first available channel by default. Not channel 2. 
  - DEVELOPER NOTE: meta-data format is now documented (help readMetaData2Stitchit)
  - DEVELOPER NOTE: image processing moved out of tileLoad functions
+
+17/05/02
+- Add makeCompositeOfPlane.m, which creates composite RGB images for use in Fiji with Bioformats
 
 17/03/12
 - MAJOR: stitchAllSubDirectories is now stitchAllChannels. please see "help stitchAllChannels"

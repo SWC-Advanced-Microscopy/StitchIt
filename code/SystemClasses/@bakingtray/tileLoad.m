@@ -81,31 +81,19 @@ load(fullfile(sectionDir, 'tilePositions.mat')); %contains variable positionArra
 
 
 %Find the index of the optical section and tile(s)
-%BT
-
 indsToKeep=1:size(positionArray,1);
 
 if coords(3)>0
-    %TODO: get this working
-    error('Can not handle coords(3)>0 right now')
     f=find(positionArray(:,2)==coords(3)); %Row in tile array
     positionArray = positionArray(f,:);
     indsToKeep=indsToKeep(f);
 end
 
 if coords(4)>0
-    %TODO: get this working
-    error('Can not handle coords(4)>0 right now')
     f=find(positionArray(:,1)==coords(4)); %Column in tile array
     positionArray = positionArray(f,:);
     indsToKeep=indsToKeep(f);
 end
-%/BT
-
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-% TODO: loads of this will be common across systems and should be abstracted away
-%       in fact, should probably use tiffstack at some point as this would work better
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
 %So now build the expected file name of the TIFF stack
@@ -147,13 +135,13 @@ end
 
 
 %Load the last frame and pre-allocate the rest of the stack
-XYposInd==1;
 im=stitchit.tools.loadTiffStack(path2stack,'frames',planeNum,'outputType','int16');
 im=repmat(im,[1,1,size(positionArray,1)]);
 im(:,:,1:end-1)=0;
 
-parfor XYposInd=1:size(positionArray,1)-1
-    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,XYposInd);
+parfor XYposInd=1:length(indsToKeep)
+
+    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,indsToKeep(XYposInd) );
     path2stack = fullfile(sectionDir,sectionTiff);
 
     % The ScanImage stack contains multiple channels per plane 
@@ -166,7 +154,7 @@ end
 
 
 expectedNumberOfTiles = param.numTiles.X*param.numTiles.Y;
-if size(im,3) ~= expectedNumberOfTiles
+if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
     fprintf('\nERROR during %s -\nExpected %d tiles from file "%s" but loaded %d tiles.\nRETURNING EMPTY ARRAY FOR SAFETY\n',...
         mfilename, expectedNumberOfTiles, path2stack, size(im,3))
     im=[];
@@ -181,15 +169,17 @@ im = rot90(im,-1);
 %---------------
 %Build index output so we are compatible with the TV version (for now)
 index = ones(length(indsToKeep),8);
+
 index(:,1) = indsToKeep;
 index(:,2) = sectionNum;
 
 %We flip the indexes around, because this is the order that the stitcher will expect
 %and it uses these values to stitch
-rowInd = positionArray(indsToKeep,2);
+
+rowInd = positionArray(:,2);
 index(:,5) = abs(rowInd-max(rowInd))+1;
 
-colInd = positionArray(indsToKeep,1);
+colInd = positionArray(:,1);
 index(:,4) = abs(colInd - max(colInd))+1;
 %---------------
 %/BT
