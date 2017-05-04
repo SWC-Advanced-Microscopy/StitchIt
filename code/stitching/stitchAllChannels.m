@@ -37,9 +37,6 @@ function stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 
 
 
-tifs=[]; %TODO: may remove this- see TODO in main loop
-
-
 %Bail out if there is no raw data directory in the current directory
 config=readStitchItINI;
 if ~exist(config.subdir.rawDataDir,'dir')

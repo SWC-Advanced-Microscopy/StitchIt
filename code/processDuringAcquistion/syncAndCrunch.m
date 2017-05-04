@@ -1,7 +1,7 @@
-function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,chanToPlot)
+function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,chanToPlot)
 % download data from server, pre-process, and send to WWW
 %
-% function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,chanToPlot)
+% function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,chanToPlot)
 %
 %
 % Purpose
@@ -16,9 +16,6 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 % illumChans - vector defining which channels will have mean images calculated.
 %              If empty or missing, all available channels are corrected. To not calculate set to zero.
 %              These chans are stitched at the end.
-% removeChan3 - zero by default. If 1, we wipe channel 3 on the server and local directories.
-%               This is an option because the TissueVision does not let us choose which channels
-%               to save.
 % chanToPlot - Which channel to send to web (by default this is the first channel in illumChans). 
 %              If zero, don't do the web plots. 
 %
@@ -30,7 +27,7 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 %
 % LDir = '/mnt/data/TissueCyte/AwesomeExperiments'
 % SDir = '/mnt/tvbuffer/Data/AwesomeExperiments/AE033'
-% syncAndCrunch(LDir,SDir,1:3,1:3,0,1)
+% syncAndCrunch(LDir,SDir,1:3,1:3,1)
 % 
 %
 % NOTE! 
@@ -43,7 +40,7 @@ function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,removeChan3,ch
 %
 % 2) Perform no comb correction but do illumination correction on
 %    all available channels:
-% syncAndCrunch(LDir,SDir,1:3,1:3,0,1)
+% syncAndCrunch(LDir,SDir,1:3,1:3,1)
 %
 %
 % Rob Campbell - Basel 2015
@@ -98,19 +95,7 @@ if ~isnumeric(illumChans)
   return
 end
 
-if nargin<5 || isempty(removeChan3)
-  removeChan3=0;
-end
-if ~isnumeric(removeChan3)
-  fprintf('ERROR: removeChan3 should be numeric (0 or 1)\n')
-  return
-end
-if removeChan3~=0 && removeChan3~=1
-  fprintf('ERROR: removeChan3 should be 0 or 1\n')
-  return
-end
-
-if nargin<6
+if nargin<5
   chanToPlot=[];
 end
 if ~isnumeric(chanToPlot) || ~isscalar(chanToPlot)
@@ -133,16 +118,11 @@ end
 
 
 
-if removeChan3
-  fprintf('Will be removing channel 3\n')
-end
-
-
 
 % The experiment name is simply the last directory in the serverDir:
 % TODO: is that really the best way of doing things? <--
 
-%If local dir contains the experiment directory at the end,  we should remove this and raise a warning
+%If local dir contains the experiment directory at the end, we should remove this and raise a warning
 [~,expName,extension] = fileparts(serverDir);
 
 [localDirMinusExtension,localTargetRoot] = fileparts(localDir);
@@ -155,22 +135,13 @@ end
 if ~isWritable(localDir)
   fprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',localDir)
 end
-if ~isWritable(serverDir)
-  fprintf('WARNING: you appear not to have permissions to write to %s. You may not be able to delete channels during acquisition.\n',serverDir)
-end
 
 
 expDir = fullfile(localDir,expName,extension); %we add extension just in case the user put a "." in the file name
 
 
 %Do an initial rsync 
-if removeChan3
-  fprintf('Removing channel 3 from server\n')
-  unix(sprintf('find %s -name ''*_03.tif'' -exec rm -f {} \\;',serverDir));
-end
-
-
-%copy text files and the like into the experiment root directory
+% copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
   fprintf('Making local raw data directory %s\n', expDir)
   mkdir(expDir)
@@ -227,7 +198,7 @@ pathToRawData=[expDir,filesep,config.subdir.rawDataDir,filesep]; %The raw data d
 lastDir='';
 
 %TODO:  We could use parfeval to keep rsync running the whole time in a loop that stops only when a 
-%       file called "FINISHED" is made in the experiment directory also remove chan 3 in this loop.
+%       file called "FINISHED" is made in the experiment directory
 
 sentPlotwarning=0; %To record if warning about plot failure was sent
 sentConfigWarning=0; %Record if we failed to read INI file
@@ -273,23 +244,6 @@ while 1
     return
   end
 
-  
-  %Remove channel 3 on server
-  if removeChan3
-    cmd=sprintf('find %s -name ''*_03.tif'' -exec rm -f {} \\;',serverDir);
-    fprintf('Removing channel 3 from server:\n%s\n\n',cmd)
-    [returnStatus,msg]=unix(cmd);
-    if returnStatus~=0 && ~sentWarning
-      fprintf('Failed to remove chan 3 from server\n')
-      %Truncate message if it's really long
-      if length(msg)>200
-        msg(201:end)=[];
-      end
-      stitchit.tools.notify([generateMessage('negative'),' chan 3 removal on server failed with error: ',msg])
-      sentWarning=1;
-    end
-  end 
-  
 
   %Pull data from TV buffer server to analysis machine
   params = readMetaData2Stitchit;
@@ -308,20 +262,7 @@ while 1
     end
   end 
 
-  %first remove chan 3 data if the user asked for this
-  if removeChan3
-    try
-      cmd=sprintf('find %s%s%s* -name ''*_03.tif'' -exec rm  -f {} \\;',...
-            expDir,filesep,config.subdir.rawDataDir);
-      fprintf('Removing local copy of channel 3:\n%s\n\n',cmd)
-      [returnStatus,msg]=unix(cmd);
-    catch
-      if returnStatus~=0 && ~sentWarning
-        stitchit.tools.notify([generateMessage('negative'),' chan 3 removal failed with error: ',msg,' Attempting to continue.'])
-        sentWarning=1;
-      end
-    end
-  end
+
 
 
   %Do not proceed until we have at least one finished section

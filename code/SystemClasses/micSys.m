@@ -7,7 +7,7 @@ classdef (Abstract) micSys
 
 
     methods (Abstract)
-        
+
         % For user documentation for each method run "help MethodName" at the command line
         % e.g. help tileLoad
 
@@ -30,7 +30,7 @@ classdef (Abstract) micSys
         sectionDirName2sectionNum(obj,sectionDirName)
 
         %Determine which channels are available
-        channelsAvailableForStitching
+        channelsAvailableForStitching(obj)
 
     end
 

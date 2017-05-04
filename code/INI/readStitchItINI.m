@@ -42,7 +42,7 @@ if nargin<1 | isempty(INIfname)
             case 'TissueCyte' 
                 T=tissuecyte;
                 M=T.readMosaicMetaData(T.getTiledAcquisitionParamFile);
-                M.System.ID = M.ScannerID; %TODO: shit, that's horrible
+                M.System.ID = M.ScannerID; %TODO: again, this should not be here. It's here because of the recursion problem. 
             otherwise %Sanity prevails 
                 M=readMetaData2Stitchit;
         end

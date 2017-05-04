@@ -18,7 +18,7 @@ end
 %Read the TissueCyte mosaic file
 rawOut=yaml.ReadYaml(fname,verbose);
 
-if isstruct(rawOut) %TODO: is this check even meaningful?
+if isstruct(rawOut)
     sucessfulRead=true;
 else 
     sucessfulRead=false;
@@ -28,11 +28,6 @@ if ~sucessfulRead
     error('Failed to read %s',fname)
 end
 out = recipe2StitchIt(rawOut,fname);
-
-%TODO:
-% Save the stitchit file to the current directory? But don't do it yet, because we need
-% to be sure that the format of the file is as we want it to be. 
-
 
 
 
@@ -52,10 +47,15 @@ out.tile =raw.Tile;
 out.voxelSize=raw.VoxelSize;
 out.numTiles = raw.NumTiles;  
 out.TileStepSize = raw.TileStepSize;
-out.TileStepSize.X = 1E3 * out.TileStepSize.X; %TODO: we need a decision on this
-out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; %TODO: we need a decision on this
+out.TileStepSize.X = 1E3 * out.TileStepSize.X; 
+out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; 
 out.System = raw.SYSTEM;
 out.Slicer = raw.SLICER;
+
+%Ensure slice thickness is in microns
+if out.mosaic.sliceThickness<1
+    out.mosaic.sliceThickness = out.mosaic.sliceThickness*1E3;
+end
 
 return
 %TODO: we need the stage locations

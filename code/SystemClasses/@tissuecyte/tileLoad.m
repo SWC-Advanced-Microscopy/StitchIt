@@ -1,4 +1,4 @@
-function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doPhaseCorrection)
+function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCorrection)
 % Load raw tile data from TissueCyte experiment
 %
 % function [im,index]=tileLoad(coords,doIlluminationCorrection,doCrop)
@@ -20,7 +20,7 @@ if nargin<4
 end
 
 if nargin<5
-    doPhaseCorrection=[];
+    doCombCorrection=[];
 end
 
 verbose=0; %Enable this for debugging. Otherwise it's best to leave it off
@@ -36,8 +36,8 @@ end
 if isempty(doCrop)
     doCrop=userConfig.tile.docrop; 
 end
-if isempty(doPhaseCorrection)
-    doPhaseCorrection=userConfig.tile.doPhaseCorrection;
+if isempty(doCombCorrection)
+    doCombCorrection=userConfig.tile.doPhaseCorrection;
 end
 
 averageSlowRows=userConfig.tile.averageSlowRows;
@@ -59,6 +59,7 @@ end
 %Load the section-specific Mosaic file (better in case we've merged runs and file names differ)
 paramFname=fullfile(sectionDir,sprintf('Mosaic_%s-%04d.txt',param.SampleID,coords(1)));
 param=obj.readMosaicMetaData(paramFname); 
+
 
 
 %Load tile index file or bail out gracefully if it doesn't exist. 
@@ -153,100 +154,17 @@ end
 %Begin processing the loaded image or image stack
 
 
-%correctPhase delay if requested to do so
-if doPhaseCorrection
-    corrStatsFname = sprintf('%s%sphaseStats_%02d.mat',sectionDir,filesep,coords(2));
-    if ~exist(corrStatsFname,'file')
-        fprintf('%s. phase stats file %s missing. \n',mfilename,corrStatsFname)
-    else
-        load(corrStatsFname);
-        phaseShifts = phaseShifts(indsToKeep);
-        im = applyPhaseDelayShifts(im,phaseShifts);
-    end
+%correct phase delay (comb artifact) if requested to do so
+if doCombCorrection
+    im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig);
 end
 
+%Do illumination correction if requested to do so
+if doIlluminationCorrection 
+    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,index,verbose);
+end
 
 %Crop if requested to do so
 if doCrop
-    cropBy=round(size(im,1) * userConfig.tile.cropProportion); 
-    if verbose
-        fprintf('Cropping images by %d pixels on each size\n',crop)
-    end
-    im  = im(cropBy+1:end-cropBy, cropBy+1:end-cropBy, :);
+    im = stitchit.tileload.cropper(im,userConfig,verbose);
 end
-
-
-%Do illumination correction if requested to do so
-
-if doIlluminationCorrection
-    avDir = [userConfig.subdir.rawDataDir,filesep,userConfig.subdir.averageDir];
-
-    if ~exist(avDir,'dir')
-        fprintf('Please create grand averages with collateAverageImages\n')
-    end
-
-    aveTemplate = coords2ave(coords,userConfig);
-    if doCrop
-         aveTemplate  = aveTemplate(cropBy+1:end-cropBy, cropBy+1:end-cropBy, :);
-    end
-
-    if isempty(aveTemplate)
-        fprintf('Illumination correction requested but not performed\n')
-        return
-    end
-
-    if verbose
-        fprintf('Doing %s illumination correction\n',userConfig.tile.illumCorType)
-    end
-
-    switch userConfig.tile.illumCorType %loaded from INI file
-        case 'split'
-            if averageSlowRows
-                aveTemplate(:,:,1) = repmat(mean(aveTemplate(:,:,1),1), [size(aveTemplate,1),1]);
-                aveTemplate(:,:,2) = repmat(mean(aveTemplate(:,:,2),1), [size(aveTemplate,1),1]);
-            end
-
-            %Divide by the template. Separate odd and even rows as needed       
-            oddRows=find(mod(index(:,5),2));
-            if ~isempty(oddRows)
-                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate(:,:,2)); 
-            end
-
-            evenRows=find(~mod(index(:,5),2)); 
-            if ~isempty(evenRows)
-                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate(:,:,1));
-            end
-        case 'pool'
-            aveTemplate = mean(aveTemplate,3);
-            if averageSlowRows
-                aveTemplate = repmat(mean(aveTemplate,1), [size(aveTemplate,1),1]);
-            end
-            imagesc(aveTemplate)
-            im=stitchit.tools.divideByImage(im,aveTemplate);
-        otherwise
-            fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
-        end
-        
-end
-
-
-
-
-
-%Calculate average filename from tile coordinates. We could simply load the
-%image for one layer and one channel, or we could try odd stuff like averaging
-%layers or channels. This may make things worse or it may make things better. 
-function aveTemplate = coords2ave(coords,userConfig)
-
-    layer=coords(2); %optical section
-    chan=coords(5);
-
-    fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer); %TODO: replace with fullfile
-    if exist(fname,'file')
-        %The OS caches, so for repeated image loads this is negligible. 
-        aveTemplate = loadAveBinFile(fname); 
-    else
-        aveTemplate=[];
-        fprintf('%s Can not find average template file %s\n',mfilename,fname)
-    end
-

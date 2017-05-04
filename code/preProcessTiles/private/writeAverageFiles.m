@@ -68,7 +68,7 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
             continue
         end
 
-        %Calculate trimmed mean for the even rows
+        %Calculate trimmed mean for the even rows (TODO: sub-function? this is duplicate code)
         defaultTrim=1;
         f=find(~mod(row,2));
         if isempty(f)

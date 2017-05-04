@@ -112,7 +112,7 @@ userConfig=readStitchItINI;
 bytesPerTile = param.tile.nRows * param.tile.nColumns * 2; %assume 16 bit images
 MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
 
-%TODO: calculate GB to be used based on number of sections
+%Calculate GB to be used based on number of sections
 nSections = length(section);
 GBrequired= nSections * MBPerPlane / 1024;
 

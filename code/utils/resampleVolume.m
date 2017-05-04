@@ -49,6 +49,7 @@ if ~exist('stitchedImages_100','dir')
 end
 
 origDataDir = sprintf('stitchedImages_100%s%d%s',filesep,channel,filesep);
+
 files=dir([origDataDir,'sec*.tif']);
 if isempty(files)
   error('No tiffs found in %s',origDataDir)
