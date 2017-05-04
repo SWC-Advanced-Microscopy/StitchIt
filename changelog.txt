@@ -1,5 +1,7 @@
 StitchIt Change Log
 
+17/05/02
+- Add makeCompositeOfPlane.m, which creates composite RGB images for use in Fiji with Bioformats
 
 NEXT: 
  - MAJOR: take away the option to remove channel 3 in syncAndCrunch

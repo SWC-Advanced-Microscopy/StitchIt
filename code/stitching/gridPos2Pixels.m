@@ -4,8 +4,8 @@ function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
 %    function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
 %
 % Purpose
-% Take an array of tile coordinates, the image size, and the overlap and 
-% convert to pixel location in the stitched image array. This function is called
+% Take an array of tile coordinates, the number of microns per pixel, and the step size
+% and convert these to pixel location in the stitched image array. This function is called
 % by stitchSection and peekSection. 
 %
 %
