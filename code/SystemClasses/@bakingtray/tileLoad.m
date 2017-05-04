@@ -82,8 +82,6 @@ load(fullfile(sectionDir, 'tilePositions.mat')); %contains variable positionArra
 
 %Find the index of the optical section and tile(s)
 %BT
-%TODO: right now we have no optical sections. Eventually we will and these will likely 
-%be accessed by file name.
 
 indsToKeep=1:size(positionArray,1);
 
