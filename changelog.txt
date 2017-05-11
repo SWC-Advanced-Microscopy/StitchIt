@@ -1,5 +1,8 @@
 StitchIt Change Log
 
+16/05/11
+ - Improve docs and bug fix in stitchAllChannels
+
 17/05/04: 
  - MAJOR: take away the option to remove channel 3 in syncAndCrunch
  - BakingTray: moved to ScanImage multi-channels TIFFs. No longer reads split channels.

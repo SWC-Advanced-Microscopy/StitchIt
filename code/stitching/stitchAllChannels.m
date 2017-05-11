@@ -1,4 +1,4 @@
-function stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
+function stitchAllChannels(chansToStitch,stitchedSize,illumChans,combChans)
 % Stitch all channels within the current sample directory
 %
 % function stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
@@ -16,18 +16,21 @@ function stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
 % stitchedSize - what size to make the final image. 100 is full size and is 
 %              the default. 50 is half size. stitchedSize may be a vector with a
 %              range of different sizes to produced. e.g. [25,50,100]
-% combChans - the channels to use for comb correction if this hasn't already been done. 
-%             by default it's the same as the channels to stitch. 
-% illumChans - the channels to use for illumination correction if this hasn't 
+% illumChans - On which channels to calculate the illumination correction if this hasn't 
 %             already been done. By default it's the same a the chansToStich. 
+% combChans - On which channels we will calculate the comb correction if this hasn't already been done. 
+%             by default this is set to zero and no comb correction is done.
 %
 %
 % Examples
-% * stitch all available channels at full resolution
+% * stitch all available channels at full resolution.
 % >> stitchAllChannels
 %
-% * stitch all available channels at 10% of their original size
+% * stitch all available channels at 10% of their original size.
 % >> stitchAllChannels([],10)
+%
+% * stitch only chans 1 and 3
+% >> stitchAllChannels([],[],[1,3])
 %
 %
 % Rob Campbell - Basel 2017
@@ -61,12 +64,12 @@ if nargin<2 || isempty(stitchedSize)
     stitchedSize=100;
 end
 
-if nargin<3 || isempty(combChans)
-    combChans=chansToStitch;
+if nargin<3 || isempty(illumChans)
+    illumChans=chansToStitch;
 end
 
-if nargin<4 || isempty(illumChans)
-    illumChans=chansToStitch;
+if nargin<4 || isempty(combChans)
+    combChans=0;
 end
 
 
@@ -84,6 +87,7 @@ if analysesPerformed.illumCor
     collateAverageImages
 end
 
-for thisChan=chansToStitch 
-    stitchSection([],thisChan,'stitchedSize',stitchedSize) %Stitch all sections from this channels
+for thisChan=1:length(chansToStitch)
+
+    stitchSection([],chansToStitch(thisChan),'stitchedSize',stitchedSize) %Stitch all sections from this channels
 end
