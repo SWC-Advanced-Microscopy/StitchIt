@@ -3,7 +3,7 @@
 
 # StitchIt and CIDRE
 
-This is a fork of the main stream poject [*StitchIt*](https://github.com/BaselLaserMouse/StitchIt). Here, we integrate CIDRE illumination correction algorithm [CIDRE](https://github.com/Fouga/cidre) into the image illumination correction pipeline. 
+This is a fork of the main stream poject [*StitchIt*](https://github.com/BaselLaserMouse/StitchIt). Here, we integrate [CIDRE](https://github.com/Fouga/cidre)  illumination correction algorithm into the image illumination correction pipeline. 
 
 # Motivation
 
