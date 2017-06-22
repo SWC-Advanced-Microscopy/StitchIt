@@ -13,13 +13,16 @@ Nonlinear illumination of an image is a common artifact of any microscope. This 
 source_dir = '/DATA/NAME'; % here you need to have rawData directory with all your data and a Mosaic.txt
 
 addpath(genpath('./StitchIt/code/')); % add path of the [*StitchIt*](https://github.com/BaselLaserMouse/StitchIt).
+
 addpath(genpath('./StitchIt_cidre/')); % add path of the [CIDRE](https://github.com/Fouga/cidre) 
 
 cd (source_dir);
 
 % maKE INI FILE
 if ~exist('stitchitConf.ini')
-    makeLocalStitchItConf
+
+	makeLocalStitchItConf
+
 end
 
 % read info from Mosaic.txt 
