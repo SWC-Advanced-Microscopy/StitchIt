@@ -35,7 +35,6 @@ end
 cidreIllumcorrection
 
 
-%-----------------------------------------------------
 % stitch all the data
 stitchAllChannels
-%-----------------------------------------------------
+
