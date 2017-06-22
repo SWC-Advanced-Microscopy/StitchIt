@@ -20,9 +20,7 @@ cd (source_dir);
 
 % maKE INI FILE
 if ~exist('stitchitConf.ini')
-
 	makeLocalStitchItConf
-
 end
 
 % read info from Mosaic.txt 
