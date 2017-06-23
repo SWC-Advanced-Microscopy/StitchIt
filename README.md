@@ -11,7 +11,7 @@ Nonlinear illumination of an image is a common artifact of any microscope. This 
 
 # Example
 ```Matlab
-source_dir = '/DATA/NAME'; % here you need to have rawData directory with all your data and a Mosaic.txt
+source_dir = '/DATA_NAME/'; % here you need to have rawData directory with all your data and a Mosaic.txt
 
 addpath(genpath('./StitchIt/code/')); % add path of the [*StitchIt*](https://github.com/BaselLaserMouse/StitchIt).
 
