@@ -7,7 +7,7 @@ This is a fork of the main stream poject [*StitchIt*](https://github.com/BaselLa
 
 # Motivation
 
-Nonlinear illumination of an image is a common artifact of any microscope. This artifact is particularly noticable in a tile acquasition system such as [Ragan et al.](http://www.nature.com/nmeth/journal/v9/n3/abs/nmeth.1854.html). To adjust image brightness of each tile, one can calculte an average image of the acquired stack. Although this technique works very well on images with wide intensiry range, on images with a weak signal more robust solution is required. 
+Nonlinear illumination of an image is a common artifact of any microscope. This artifact is particularly noticable in a tile acquasition system such as [Ragan et al.](http://www.nature.com/nmeth/journal/v9/n3/abs/nmeth.1854.html). To adjust image brightness of each tile, one can calculte an average image of the acquired stack. Although this technique works very well on images with wide intensity range, on images with a weak signal more robust solution is required. 
 
 # Example
 ```Matlab
