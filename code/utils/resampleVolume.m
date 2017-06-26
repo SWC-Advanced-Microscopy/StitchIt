@@ -85,7 +85,14 @@ if length(targetDims) ~= 2
 end
 
 %Calculate the original image size
-params=readStitchItINI;
+% Look first for a `stitchingParams.ini` in the data folder. If absent look
+% for default values
+if exist(fullfile(origDataDir, 'stitchingParams.ini'), 'file')
+    path2StitchInit = fullfile(origDataDir, 'stitchingParams.ini');
+else
+    path2StitchInit = [];
+end
+params=readStitchItINI(path2StitchInit);
 M=readMetaData2Stitchit;
 z=M.voxelSize.Z;
 
