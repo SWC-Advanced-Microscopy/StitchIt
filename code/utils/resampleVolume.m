@@ -86,7 +86,6 @@ if length(targetDims) ~= 2
 end
 
 %Calculate the original image size
-params=readStitchItINI;
 M=readMetaData2Stitchit;
 z=M.voxelSize.Z;
 
