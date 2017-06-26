@@ -4,6 +4,7 @@
 # StitchIt and CIDRE
 
 This is a fork of the main stream poject [*StitchIt*](https://github.com/BaselLaserMouse/StitchIt). Here, we integrate [CIDRE](https://github.com/Fouga/cidre)  illumination correction algorithm into the image illumination correction pipeline. 
+In odder to use the CIDRE correction you need to add [CIDRE fork](https://github.com/Fouga/cidre) to the matlab path as it is shown in the example.
 
 # Motivation
 
