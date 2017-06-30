@@ -6,7 +6,8 @@ function collateAverageImages(theseDirs)
 % PURPOSE
 % Create the grand average images that can be used for background subtraction. 
 % Over-writes any existing grand average images. Writes all available channels 
-% that have averaged data. 
+% that have averaged tiles calculated. These average tiles are located in a 
+% directory called "averages" along with the raw section tiles.
 %
 %
 % INPUTS
@@ -22,22 +23,23 @@ function collateAverageImages(theseDirs)
 %
 % Rob Campbell - Basel 2014
 
+
+% Read meta-data 
 mosaicFile=getTiledAcquisitionParamFile;
 param=readMetaData2Stitchit(mosaicFile);
-
 userConfig=readStitchItINI;
 
-grandAvDirName = [userConfig.subdir.rawDataDir,filesep,userConfig.subdir.averageDir,filesep];
+% Determine the name of the directory to which we will write data
+grandAvDirName = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir);
 
 if exist(grandAvDirName,'dir')
     fprintf('Deleting existing average directory tree\n')
     rmdir(grandAvDirName,'s')
+else
+    mkdir(grandAvDirName)
 end
 
-mkdir(grandAvDirName)
-
-
-%Find directory names
+% Find directory names
 baseName=directoryBaseName(getTiledAcquisitionParamFile);
 sectionDirs=dir([userConfig.subdir.rawDataDir,filesep,baseName,'*']);
 if isempty(sectionDirs)
@@ -52,58 +54,51 @@ end
 
 
 %Figure out how many channels there 
-rawDataDir = [userConfig.subdir.rawDataDir,filesep];
+rawDataDir = userConfig.subdir.rawDataDir;
 channels=[];
 
 for ii=1:length(sectionDirs) 
-    thisAverageDir = [rawDataDir,sectionDirs(ii).name,filesep,'averages',filesep];
+    thisAverageDir = fullfile(rawDataDir,sectionDirs(ii).name,'averages');
 
-    if ~isdir(thisAverageDir), continue, end
+    if ~isdir(thisAverageDir)
+        continue
+    end
 
     channelDirs = dir(thisAverageDir);
-    if isempty(channelDirs), continue, end
+
+    if isempty(channelDirs)
+        continue
+    end
+
     channelDirs(1:2)=[]; %these are the current and previous directory links
 
-    %Shitty algorithm, but it works. 
-    channels = [channels,cellfun(@str2num,{channelDirs.name})]; 
+    channels = [channels, cellfun(@str2num,{channelDirs.name})]; 
 end
 
 channels=unique(channels);
 
 
-
 %Go through each channel and calculate the average or median tile for each depth
 for c=1:length(channels)
-    targetDir=sprintf('%s%d%s',grandAvDirName,channels(c),filesep);
+    targetDir=fullfile(grandAvDirName, num2str(channels(c)));
     mkdir(targetDir)
 
 
-    if c==1
-        fprintf('Pre-allocating arrays for channel %d',channels(c))
-        for ii = 1:param.mosaic.numOpticalPlanes
-            avData{ii} = nan([param.tile.nRows, param.tile.nColumns,2,length(sectionDirs)]); %i.e. pixel rows x pixel cols * num tiles
-            fprintf('.')
-        end
-     else %All subsequent times we just wipe the arrays
-        fprintf('Clearing arrays for channel %d',channels(c))
-        for ii = 1:param.mosaic.numOpticalPlanes
-            avData{ii}(:,:,:,:) = nan;
-            fprintf('.')
-        end
-     end
-
-    fprintf('\n')
-
     fprintf('Loading data for channel %d ',channels(c))
     nImages = zeros(1,param.mosaic.numOpticalPlanes); %to keep track of the number of images
-    for ii=1:length(sectionDirs) 
+    for sectionInd=1:length(sectionDirs) 
 
-         thisAverageDir = fullfile(rawDataDir,sectionDirs(ii).name,'averages',num2str(channels(c)));
-         if ~isdir(thisAverageDir), continue, end
+        % We attempt to gather average images  from this directory
+        thisAverageDir = fullfile(rawDataDir,sectionDirs(sectionInd).name,'averages',num2str(channels(c)));
 
-         averageFiles = dir(fullfile(thisAverageDir,'*.bin'));
+        if ~isdir(thisAverageDir)
+            % Skip this section if no such directory exists
+            continue
+        end
 
-         for avFile = 1:length(averageFiles) 
+        averageFiles = dir(fullfile(thisAverageDir,'*.bin'));
+
+        for avFile = 1:length(averageFiles) 
             %Get the depth associated with this depth
             fname=averageFiles(avFile).name;
             tok=regexp(fname,'.*?(\d+)\.bin','tokens');
@@ -111,43 +106,70 @@ for c=1:length(channels)
 
             fname=fullfile(thisAverageDir,averageFiles(avFile).name);
             [tmp,n]=loadAveBinFile(fname);
-            avData{depth}(:,:,:,ii) = tmp;
-            nImages(avFile) = nImages(avFile)+n;
-         end
 
-         if ~mod(ii,5)
+            %Pre-allocate based on current array
+            if sectionInd==1 && avFile==1
+                if c==1
+                    avData = preallocateAveArray(size(tmp), param.mosaic.numOpticalPlanes, length(sectionDirs));
+                else
+                    % For all subsequent channels we can just wipe the existing arrays
+                    for ii = 1:param.mosaic.numOpticalPlanes
+                        avData{ii}(:,:,:,:) = nan;
+                    end
+                end
+            end
+
+            % Place data from this average into the stack 
+            avData{depth}(:,:,:,sectionInd) = tmp;
+            nImages(avFile) = nImages(avFile)+n;
+        end
+
+        if ~mod(sectionInd,5)
             fprintf('.')
          end
-     end
-     fprintf('\n')
+    end
+    fprintf('\n')
 
-     %handle missing data and calculate average
+
+
+     % Handle missing data and calculate grand average
      fprintf('Calculating final tiles')
-     for ii=1:param.mosaic.numOpticalPlanes
+     for depth=1:length(avData) % Loop over depths
 
-                tmp=squeeze(any(any(isnan(avData{ii}))));
-                tmp=tmp(1,:); %search of nans here. yuk
+        dataFromThisDepth = avData{depth};
+
+        tmp=squeeze(any(any(isnan(avData{depth}))));
+        tmp=tmp(1,:); %search of nans here. yuk
         f=find(tmp ); 
 
+
         if ~isempty(f)
-            fprintf('\n%d missing averages out of %d in depth %d\n',length(f),size(avData{ii},4),ii)
-            avData{ii}(:,:,:,f) = [];
+            fprintf('\n%d missing averages out of %d in depth %d\n', length(f), size(avData{depth},4), ii)
+            avData{depth}(:,:,:,f) = [];
         end
-        
-        if isempty(avData{ii})
+
+        if isempty(avData{depth})
             fprintf('No average images. Skipping\n')
             continue
         end
 
         % Average the mean images
         %mu = mean(avData{ii},4);
-        %mu=median(avData{ii},4);
-        mu=trimmean(avData{ii},10,'round',4);
+        %mu = median(avData{ii},4);
+        mu=trimmean(avData{depth},10,'round',4);
 
-        writeAveBinFile(sprintf('%s%02d.bin',targetDir,ii), mu(:,:,1), mu(:,:,2),nImages(ii));
+        fname = fullfile(targetDir, sprintf('%02d.bin', depth));
+        writeAveBinFile(fname, mu(:,:,1), mu(:,:,2), nImages(depth));
         fprintf('.')
      end
      fprintf('\n')
 
 end
 
+
+% internal functions
+function emptyArray = preallocateAveArray(avTileSize, numOpticalPlanes, numSections)
+    % This function is used to create an empty array into which we can place the average tiles
+    for ii = 1:numOpticalPlanes
+        emptyArray{ii} = nan([avTileSize, numSections]); %i.e. pixel rows x pixel cols * num tiles
+    end
