@@ -1,9 +1,9 @@
 <img src="https://github.com/BaselLaserMouse/StitchIt/blob/gh-pages/images/rgb_brain_example.jpg" />
 
 
-# StitchIt and CIDRE
+# StitchIt with CIDRE or BaSiC
 
-This is a fork of the main stream poject [*StitchIt*](https://github.com/BaselLaserMouse/StitchIt). Here, we integrate [CIDRE](https://github.com/Fouga/cidre)  illumination correction algorithm into the image illumination correction pipeline. 
+This is a fork of the main stream poject [*StitchIt*](https://github.com/BaselLaserMouse/StitchIt). Here, we integrate [CIDRE](https://github.com/Fouga/cidre) and [BaSiC](https://www.nature.com/articles/ncomms14836) illumination correction algorithm into the image illumination correction pipeline. 
 In odder to use the CIDRE correction you need to add [CIDRE fork](https://github.com/Fouga/cidre) to the matlab path as it is shown in the example.
 
 # Motivation
@@ -31,13 +31,13 @@ M=readMetaData2Stitchit;
 %check for and fix missing tiles if this was a TissueCyte acquisition
 if strcmp(M.System.type,'TissueCyte')
     writeBlacktile = 0;
-	missingTiles=identifyMissingTilesInDir('rawData',0,0,[],writeBlacktile);
+    missingTiles=identifyMissingTilesInDir('rawData',0,0,[],writeBlacktile);
 else
-	missingTiles = -1;
+    missingTiles = -1;
 end
 
 % correct background illumination with cidre
-cidreIllumcorrection
+alternativeIlluminationCorrection
 
 
 % stitch all the data
