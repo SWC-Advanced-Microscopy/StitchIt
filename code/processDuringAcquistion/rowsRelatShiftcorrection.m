@@ -8,18 +8,17 @@ if ~exist(avDir,'dir')
     mkdir(avDir)
 end
 
+% determine the number of available channels
 chansToStitch=channelsAvailableForStitching;
 
-% calculate shift for each tile in each section and make a txt 
+
  
 % source directory name is adjusted to the Tissue way of saving
 source = './rawData/';
 
-
-
+% calculate shift for each tile in each section and make a txt 
 ShiftCorrection(chansToStitch, source, avDir);
 
-% fprintf('Time for one chanel is %i minutes\n',t);
 
 
 

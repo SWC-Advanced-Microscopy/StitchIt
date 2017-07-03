@@ -42,9 +42,9 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
     % if finds mat files - cidre stitch, otherwise average
-    [cidre_correction,model] = check_cidreModel(coords,userConfig);
-    if cidre_correction
-        im = correct_cidre(im,model);
+    [alternative_correction,model] = check_cidreModel(coords,userConfig);
+    if alternative_correction
+        im = correct_not_average(im,model);
     else
         im = correct_average(coords,userConfig,im,verbose);
     end
@@ -113,4 +113,56 @@ function im = correct_average(coords,userConfig,im,verbose)
 
 
 
+function [alternative_correction,model] = check_cidreModel(coords,userConfig)
 
+    avDir = [userConfig.subdir.rawDataDir,filesep,userConfig.subdir.averageDir];
+%     layer=coords(2); %optical section
+    chan=coords(5);
+    optical_section = 0;
+    % find mat files
+    fname_cidre = [avDir sprintf('/cidre_chanel%i_optical_section_%i.mat',chan,optical_section)];
+    % how cidre model structure should look like
+    modelC_def.method    = 'CIDRE';
+    modelC_def.v         = [];
+    modelC_def.z         = [];
+    modelC_def.v_small   = [];
+    modelC_def.z_small   = [];
+    
+    % find mat files
+    fname_basic = [avDir sprintf('/basic_chanel_%i.mat',chan)];
+    % how BaSiC model structure should look like
+    modelB_def.method    = 'basic';
+    modelB_def.v         = [];
+    modelB_def.z         = [];
+
+    % check if the mat files exist and load the backgrounds
+    if exist(fname_cidre,'file')>0
+        load(fname_cidre);
+        names_def = fieldnames(modelC_def);
+        names = fieldnames(model);
+        tf = strcmp(names_def,names);
+        if ~isempty(find(tf==0))
+            alternative_correction = 0;
+            disp('the fields in the cidre model are not correct.')
+        else 
+            alternative_correction = 1;
+
+        end
+    elseif exist(fname_basic,'file')>0
+         load(fname_basic);
+         % get the default names
+         names_def = fieldnames(modelB_def);
+         names = fieldnames(model);
+         % compare if teh fields are simillar
+         tf = strcmp(names_def,names);
+         if ~isempty(find(tf==0))
+            alternative_correction = 0;
+            disp('the fields in the cidre model are not correct.')
+        else 
+            alternative_correction = 1;
+        end
+                 
+    else
+        % will do average tile correction
+        alternative_correction = 0;
+    end

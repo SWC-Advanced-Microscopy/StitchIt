@@ -36,12 +36,6 @@ function im = combCorrector(im,sectionDir,coords,userConfig)
     end
     
     
-    
-    
-    
-    
-    
-    
     function [TxTflag, Image_shift,stripe_size]  = check_rowsShiftTxt(coords,userConfig)
         filename_shift = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, '/Shifts_per_tile.txt');
         if exist(filename_shift)
@@ -56,6 +50,8 @@ function im = combCorrector(im,sectionDir,coords,userConfig)
             stripe_size = A(7:end,ind);
         else
             TxTflag = 0;
+            Image_shift = 0;
+            stripe_size = 0;
         end
     
     
