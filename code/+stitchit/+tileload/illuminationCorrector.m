@@ -118,9 +118,8 @@ function [alternative_correction,model] = check_cidreModel(coords,userConfig)
     avDir = [userConfig.subdir.rawDataDir,filesep,userConfig.subdir.averageDir];
 %     layer=coords(2); %optical section
     chan=coords(5);
-    optical_section = 0;
     % find mat files
-    fname_cidre = [avDir sprintf('/cidre_chanel%i_optical_section_%i.mat',chan,optical_section)];
+    fname_cidre = [avDir sprintf('/cidre_channel_%i.mat',chan)];
     % how cidre model structure should look like
     modelC_def.method    = 'CIDRE';
     modelC_def.v         = [];
@@ -146,7 +145,7 @@ function [alternative_correction,model] = check_cidreModel(coords,userConfig)
             disp('the fields in the cidre model are not correct.')
         else 
             alternative_correction = 1;
-
+            disp('Correcting with CIDRE');
         end
     elseif exist(fname_basic,'file')>0
          load(fname_basic);
@@ -157,9 +156,10 @@ function [alternative_correction,model] = check_cidreModel(coords,userConfig)
          tf = strcmp(names_def,names);
          if ~isempty(find(tf==0))
             alternative_correction = 0;
-            disp('the fields in the cidre model are not correct.')
+            disp('the fields in the BaSiC model are not correct.')
         else 
             alternative_correction = 1;
+            disp('Correcting with BaSiC');
         end
                  
     else
