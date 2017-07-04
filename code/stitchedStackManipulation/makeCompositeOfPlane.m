@@ -2,19 +2,21 @@ function makeCompositeOfPlane(expRootDir, scale, channels)
 % Produce composite images from the stitched planes. One composite per plane for Omero.
 %
 %
-% function makeComposite(stitchedImageFolder, nbrOfChnls)
+% function makeComposite(stitchedImageFolder, scale, nbrOfChnls)
 %
 %
 % Purpose
 % Convert the stitched images, located in stitchedImageFolder, to a composite image.
 % The composites images will be saved in a new folder called "Composite". The 
 % composite images can be uploaded directly to Omero. Called from a sample directory.
+% Call from sample root directory. 
 %
 % Inputs
 % stitchedImageFolder - String defining the folder where the three stitched channels
-%              separated folders are to be found. e.g. 'StitchedImages_100'
+%              separated folders are to be found. By default: 'StitchedImages_100'
 % scale - Rescaling of the composite stcak. 1 by default. e.g. if 0.5, the 
 %         composite images are half the size. 
+% channels - which channels to process. If missing handle all channels.
 % 
 %
 % Example
@@ -30,16 +32,42 @@ function makeCompositeOfPlane(expRootDir, scale, channels)
 %
 % Laurent Guerard - Basel, 2017
 
-stitchedImageFolder = [expRootDir filesep 'stitchedImages_100'];
+
+% Check input arguments
+if nargin < 1
+	stitchedImageFolder = 'stitchedImages_100';
+end
 
 if ~exist(stitchedImageFolder,'dir')
 	fprintf('ERROR: Can not find folder %s\n',stitchedImageFolder)
     return
 end
 
+if nargin < 2
+	scale=1;
+end
 
-outputFolder = [expRootDir filesep 'stitchedComposite_100']; %Here is where we will write the images
+% Choose all channels if no channels argument is defined.
+if nargin < 3
+	channels = {};
+	dirList = dir(stitchedImageFolder);
+	dirList = {dirList.name};
+	for ii = 1:length(dirList)
+		if ~isempty(str2num(dirList{ii}))
+			channels = [channels, dirList{ii}];            
+		end % if
+	end % for ii
+end % if nargin < 3
 
+
+nbrOfChnls = length(channels);
+
+fprintf('%d channels were detected\n', nbrOfChnls);
+celldisp(channels)
+
+
+% Define the output folder
+outputFolder = 'stitchedComposite_100'; %Here is where we will write the images
 
 % Wipe folder if already existing then create it
 if exist(outputFolder,'dir')
@@ -50,35 +78,7 @@ end
 mkdir(outputFolder)
 
 
-if nargin < 2
-	scale=1;
-end
 
-% Get a list of all the folders to count the number of channels (i.e. we assume that each folder contains a channel)
-% TODO: these lines do nothing. 
-%allFiles = dir(stitchedImageFolder); % <===
-%subList = [allFiles(:).isdir]; % <====
-
-% If only 1 argument, it will look through the folders which names are numbers
-% These folders should correspond to the channels
-if nargin < 3
-	channels = {};
-	dirList = dir(stitchedImageFolder);
-	dirList = {dirList.name};
-	for ii = 1:length(dirList)
-		if ~isempty(str2num(dirList{ii}))
-			channels = [channels, dirList{ii}];
-            if nargin == 1
-                scale = 1;
-            end
-		end
-	end
-end
-
-nbrOfChnls = length(channels);
-
-fprintf('%d channels were detected\n', nbrOfChnls);
-celldisp(channels)
 
 % Check if same number of images in all the folders
 nbrOfImages = zeros(1,nbrOfChnls);
