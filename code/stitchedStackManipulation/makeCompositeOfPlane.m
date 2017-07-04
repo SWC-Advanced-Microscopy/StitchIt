@@ -13,6 +13,8 @@ function makeCompositeOfPlane(expRootDir, scale, channels)
 % Inputs
 % stitchedImageFolder - String defining the folder where the three stitched channels
 %              separated folders are to be found. e.g. 'StitchedImages_100'
+% scale - Rescaling of the composite stcak. 1 by default. e.g. if 0.5, the 
+%         composite images are half the size. 
 % 
 %
 % Example
@@ -47,6 +49,10 @@ end
 
 mkdir(outputFolder)
 
+
+if nargin < 2
+	scale=1;
+end
 
 % Get a list of all the folders to count the number of channels (i.e. we assume that each folder contains a channel)
 % TODO: these lines do nothing. 
