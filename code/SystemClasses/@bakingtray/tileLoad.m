@@ -7,11 +7,7 @@ function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCo
 
 %COMMON
 %Handle input arguments
-
-
 if length(coords)~=5
-    % coords - a vector of length 5 4 with the fields:
-    %     [physical section, optical section, yID, xID,channel]
     error('Coords should have a length of 5. Instead it has a length of %d', length(coords))
 end
 
@@ -81,36 +77,48 @@ load(fullfile(sectionDir, 'tilePositions.mat')); %contains variable positionArra
 
 
 %Find the index of the optical section and tile(s)
+%BT
+%TODO: right now we have no optical sections. Eventually we will and these will likely 
+%be accessed by file name.
+
 indsToKeep=1:size(positionArray,1);
 
 if coords(3)>0
+    %TODO: get this working
+    error('Can not handle coords(3)>0 right now')
     f=find(positionArray(:,2)==coords(3)); %Row in tile array
     positionArray = positionArray(f,:);
     indsToKeep=indsToKeep(f);
 end
 
 if coords(4)>0
+    %TODO: get this working
+    error('Can not handle coords(4)>0 right now')
     f=find(positionArray(:,1)==coords(4)); %Column in tile array
     positionArray = positionArray(f,:);
     indsToKeep=indsToKeep(f);
 end
+%/BT
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+% TODO: loads of this will be common across systems and should be abstracted away
+%       in fact, should probably use tiffstack at some point as this would work better
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
 %So now build the expected file name of the TIFF stack
 sectionNum = coords(1);
-planeNum = coords(2); %Optical plane
+planeNum = coords(2);
 channel = coords(5);
 
 %TODO: we're just loading the full stack right now
 im=[];
 
-
 %Check that all requested data exist
 for XYposInd=1:size(positionArray,1)
-    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,XYposInd);
+    sectionTiff = sprintf('%s-%04d_%05d_chn%d.tif',param.sample.ID,sectionNum,XYposInd,channel);
     path2stack = fullfile(sectionDir,sectionTiff);
-    if ~exist(path2stack,'file') %TODO: bad [why? -- RAAC 02/05/2017]
-        fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);
+    if ~exist(path2stack,'file') %TODO: bad 
+        fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);     
         im=[];
         index=[];
         positionArray=[];
@@ -118,43 +126,24 @@ for XYposInd=1:size(positionArray,1)
     end
 end
 
-
-% Check that the user has asked for a channel that exists
-imInfo = imfinfo(path2stack);
-SI=obj.parse_si_header(imInfo(1),'Software'); % Parse the ScanImage TIFF header
-
-channelsInSIstack = SI.channelSave;
-numChannelsAvailable = length(channelsInSIstack);
-
-if ~any(SI.channelsActive == channel)
-    availChansStr = repmat('%d ', length(channelsInSIstack) );
-    fprintf(['ERROR: tileLoad is attempting to load channel %d but this does not exist. Available channels: ', availChansStr, '\n'], ...
-        channel, channelsInSIstack)
-    return
-end
-
-
 %Load the last frame and pre-allocate the rest of the stack
+XYposInd==1;
 im=stitchit.tools.loadTiffStack(path2stack,'frames',planeNum,'outputType','int16');
 im=repmat(im,[1,1,size(positionArray,1)]);
 im(:,:,1:end-1)=0;
 
-parfor XYposInd=1:length(indsToKeep)
-
-    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,indsToKeep(XYposInd) );
+parfor XYposInd=1:size(positionArray,1)-1
+    sectionTiff = sprintf('%s-%04d_%05d_chn%d.tif',param.sample.ID,sectionNum,XYposInd,channel);
     path2stack = fullfile(sectionDir,sectionTiff);
-
-    % The ScanImage stack contains multiple channels per plane 
-    planeInSIstack =  numChannelsAvailable*(planeNum-1) + find(channelsInSIstack==channel);
-
+    
     %Load the tile and add to the stack
-    im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16'); %TODO: check -- this used to produce weirdly large numbers. Maybe it doesn't any more?
+    im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeNum,'outputType','int16'); %PRODUCES WEIRDLY LARGE NUMBERS. WHY??
 
 end
 
 
 expectedNumberOfTiles = param.numTiles.X*param.numTiles.Y;
-if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
+if size(im,3) ~= expectedNumberOfTiles
     fprintf('\nERROR during %s -\nExpected %d tiles from file "%s" but loaded %d tiles.\nRETURNING EMPTY ARRAY FOR SAFETY\n',...
         mfilename, expectedNumberOfTiles, path2stack, size(im,3))
     im=[];
@@ -162,6 +151,27 @@ if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
     return
 end
 
+%Load the tile stats data and pull out the empty tile threshold for this sample
+tileStatsName = fullfile(sectionDir, 'tileStats.mat');
+if exist(tileStatsName)
+    load(tileStatsName); %contains variable tileStats
+    emptyTileThresh = tileStats.emptyTileThresh(channel,planeNum);
+    %so the empty tiles are:
+    emptyTileIndexes = find(tileStats.mu{channel,planeNum}<=emptyTileThresh);
+    if isempty(emptyTileIndexes)
+        fprintf('%s failed to find empty tiles for %s channel %d plane %d. All have means of over %0.4f\n',...
+            mfilename, sectionDir, channel, planeNum, emptyTileThresh)
+    end
+else
+    emptyTileIndexes=[];
+end
+
+% The TIFFs we pull out of ScanImage will likely have negative numbers 
+% in as we're trying to maximise the dynamic range. This will get 
+% the numbers going from 0 to 2^12-1, but we maybe need a way determining
+% for sure if this is needed. TODO: put into INI file?
+% TODO: We should pull the DAQ range from the card and store it or the following may fail
+im = im + 2^11-1; 
 im = rot90(im,-1); 
 
 
@@ -169,17 +179,15 @@ im = rot90(im,-1);
 %---------------
 %Build index output so we are compatible with the TV version (for now)
 index = ones(length(indsToKeep),8);
-
 index(:,1) = indsToKeep;
 index(:,2) = sectionNum;
 
 %We flip the indexes around, because this is the order that the stitcher will expect
 %and it uses these values to stitch
-
-rowInd = positionArray(:,2);
+rowInd = positionArray(indsToKeep,2);
 index(:,5) = abs(rowInd-max(rowInd))+1;
 
-colInd = positionArray(:,1);
+colInd = positionArray(indsToKeep,1);
 index(:,4) = abs(colInd - max(colInd))+1;
 %---------------
 %/BT
@@ -189,15 +197,42 @@ index(:,4) = abs(colInd - max(colInd))+1;
 %--------------------------------------------------------------------
 %Begin processing the loaded image or image stack
 
+%COMMON
+
 %correct phase delay (comb artifact) if requested to do so
 if doCombCorrection
     im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig);
 end
 
 
+%-----------------------
+% BT SPECIFIC
+%Remove the background (mean of the empty tiles)
+if ~isempty(emptyTileIndexes) %zero very low values
+    emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
+    offsetValue=mean(emptyTiles(:));
+    im = im-offsetValue;
+    im(im<0)=0;
+else
+    offsetValue=0;
+    fprintf('%s found no empty tiles\n',mfilename)
+end
+%-----------------------
+
+
+
 %Do illumination correction if requested to do so
 if doIlluminationCorrection 
-    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,index,verbose);
+    im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,offsetValue,verbose);
+end
+
+%FOLLOWING IS BT-SPECIFIC
+% Again, remove the very low values after subtraction
+% TODO: this won't do anything if the offset value is very far from zero
+if ~isempty(emptyTileIndexes)
+    emptyTiles=im(1:10:end,1:10:end,emptyTileIndexes);
+    offsetValue=mean(emptyTiles(:));
+    im(im<offsetValue)=0;
 end
 
 

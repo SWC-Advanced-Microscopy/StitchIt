@@ -82,10 +82,10 @@ end
 
 %Loop through and stitch all requested channels
 generateTileIndex; %Ensure the tile index is present
-analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
-if analysesPerformed.illumCor
-    collateAverageImages
-end
+% analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
+% if analysesPerformed.illumCor
+%     collateAverageImages
+% end
 
 for thisChan=1:length(chansToStitch)
 
