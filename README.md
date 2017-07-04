@@ -16,7 +16,7 @@ source_dir = '/DATA_NAME/'; % here you need to have rawData directory with all y
 
 addpath(genpath('FULL_PATH/StitchIt/code/')); % add path of the StitchIt(https://github.com/BaselLaserMouse/StitchIt).
 
-addpath(genpath('FULL_PATH/StitchIt_cidre/')); % add path of the CIDRE(https://github.com/Fouga/cidre) 
+addpath(genpath('FULL_PATH/cidre/')); % add path of the CIDRE(https://github.com/Fouga/cidre) 
 
 cd (source_dir);
 
