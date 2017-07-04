@@ -1,4 +1,4 @@
-function makeCompositeOfPlane(expRootDir, channels)
+function makeCompositeOfPlane(expRootDir, scale, channels)
 % Produce composite images from the stitched planes. One composite per plane for Omero.
 %
 %
@@ -55,13 +55,16 @@ mkdir(outputFolder)
 
 % If only 1 argument, it will look through the folders which names are numbers
 % These folders should correspond to the channels
-if nargin == 1
+if nargin < 3
 	channels = {};
 	dirList = dir(stitchedImageFolder);
 	dirList = {dirList.name};
 	for ii = 1:length(dirList)
 		if ~isempty(str2num(dirList{ii}))
 			channels = [channels, dirList{ii}];
+            if nargin == 1
+                scale = 1;
+            end
 		end
 	end
 end
@@ -108,12 +111,19 @@ for ii = 1:nbrOfImages(1)
         if jj == 1
             info = imfinfo(fullfile(stitchedImageFolder, channels{jj}, listImages{1}(ii).name));
             bitDepth = info.BitDepth;
+            %sampleFormat = info.SampleFormat
         end
     end
+    
+    %fprintf('%d',bitDepth);
     
     %Write tiff files.
     %/!\ 2 16bit planes images will be seen as 32bit images, readable in Fiji only with Bioformats.
     out = cat(3,A{:});
+    
+    %Rescale the images
+    out = imresize(out,scale);
+    
     t = Tiff(fullfile(outputFolder, listImages{1}(ii).name),'w');
     t.setTag('ImageLength',size(out,1));
     t.setTag('ImageWidth', size(out,2));
@@ -125,9 +135,10 @@ for ii = 1:nbrOfImages(1)
     t.setTag('Compression', Tiff.Compression.None);
     t.setTag('PlanarConfiguration', Tiff.PlanarConfiguration.Chunky);
     t.setTag('Software', 'MATLAB');
-    t.setTag('SampleFormat',Tiff.SampleFormat.Int);
+    t.setTag('SampleFormat',Tiff.SampleFormat.UInt);
+    %fprintf('%d',Tiff.SampleFormat.IEEEFP);
     %imwrite(out, fullfile(outputFolder, listImages{1}(ii).name));
-    t.write(out),
+    t.write(out);
     t.close();
 
 end
