@@ -44,9 +44,6 @@ if isempty(doCombCorrection)
     doCombCorrection=userConfig.tile.doPhaseCorrection;
 end
 
-averageSlowRows=userConfig.tile.averageSlowRows;
-
-
 
 %Exit gracefully if data directory is missing 
 param = readMetaData2Stitchit;

@@ -59,11 +59,6 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
                 fprintf('*** ERROR in tileLoad.illuminationCorrector: split illumination requested but tile index not provided. Not correcting\n')
             end
 
-            if userConfig.tile.averageSlowRows
-                aveTemplate(:,:,1) = repmat(mean(aveTemplate(:,:,1),1), [size(aveTemplate,1),1]);
-                aveTemplate(:,:,2) = repmat(mean(aveTemplate(:,:,2),1), [size(aveTemplate,1),1]);
-            end
-
             %Divide by the template. Separate odd and even rows as needed       
             oddRows=find(mod(index(:,5),2));
             if ~isempty(oddRows)
