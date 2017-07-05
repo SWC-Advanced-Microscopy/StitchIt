@@ -120,6 +120,8 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
         avData.oddN = oddN;
         avData.poolN = [];
         avData.correctionType = correctionType;
+        avData.channel = thisChan;
+        avData.layer = thisLayer;
         avData.details.trimQuantity = trimQuantity;
         avData.details.lowVals = lowVals;
 
