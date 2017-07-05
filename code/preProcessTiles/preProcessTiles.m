@@ -264,7 +264,7 @@ for thisDir = 1:length(sectionDirectories)
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
             fprintf('Skipping illumination corrrection\n')
         else
-            writeAverageFiles(imStack, tileIndex, sectionDirName, illumChans,tileStats.emptyTileThresh)
+            calcAverageMatFiles(imStack, tileIndex, sectionDirName, illumChans, tileStats.emptyTileThresh)
             analysesPerformed.illumCor=1;
         end
     end
