@@ -9,6 +9,9 @@ function collateAverageImages(theseDirs)
 % that have averaged tiles calculated. These average tiles are located in a 
 % directory called "averages" along with the raw section tiles.
 %
+% This function handles both .bin files and the newer "bruteAverageTrimmean"
+% .mat files. 
+%
 %
 % INPUTS
 % theseDirs - an optional vector of indexes telling the function which directories
@@ -32,63 +35,54 @@ userConfig=readStitchItINI;
 % Determine the name of the directory to which we will write data
 grandAvDirName = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir);
 
+
 if exist(grandAvDirName,'dir')
-    fprintf('Deleting existing average directory tree\n')
-    rmdir(grandAvDirName,'s')
+    if length(dir(grandAvDirName))>2
+        fprintf('Deleting existing average data in directory %s\n', grandAvDirName)
+        rmdir(grandAvDirName,'s')
+    end
 else
     mkdir(grandAvDirName)
 end
 
-% Find directory names
+
+% Find the section directory names
 baseName=directoryBaseName(getTiledAcquisitionParamFile);
 sectionDirs=dir([userConfig.subdir.rawDataDir,filesep,baseName,'*']);
+
+%Bail out if no section directories were found
 if isempty(sectionDirs)
-    fprintf('Unable to find raw data directories\n')
+    fprintf('ERROR: %s is uUnable to find raw data directories. Quitting.\n', mfilename)
+    return
 end
 
-
+% Choose a sub-set of these if the user asked for it 
+% NOTE: This is error-prone (see help text of this function)
 if nargin>0 & ~isempty(theseDirs)
     sectionDirs=sectionDirs(theseDirs);
 end
 
 
-
-%Figure out how many channels there 
+%Figure out how many unique channels have average data calculated
 rawDataDir = userConfig.subdir.rawDataDir;
-channels=[];
-
-for ii=1:length(sectionDirs) 
-    thisAverageDir = fullfile(rawDataDir,sectionDirs(ii).name,'averages');
-
-    if ~isdir(thisAverageDir)
-        continue
-    end
-
-    channelDirs = dir(thisAverageDir);
-
-    if isempty(channelDirs)
-        continue
-    end
-
-    channelDirs(1:2)=[]; %these are the current and previous directory links
-
-    channels = [channels, cellfun(@str2num,{channelDirs.name})]; 
-end
-
-channels=unique(channels);
+channels = findUniqueChannels(rawDataDir,sectionDirs);
 
 
-%Go through each channel and calculate the average or median tile for each depth
+
+% Go through each channel and calculate the average or median tile for each depth
+%
 for c=1:length(channels)
+
+    % Make the directory that will house average data for this channel
     targetDir=fullfile(grandAvDirName, num2str(channels(c)));
     mkdir(targetDir)
 
 
-    fprintf('Loading data for channel %d ',channels(c))
+    fprintf('Loading average data for channel %d ',channels(c))
     nImages = zeros(1,param.mosaic.numOpticalPlanes); %to keep track of the number of images
     for sectionInd=1:length(sectionDirs) 
 
-        % We attempt to gather average images  from this directory
+        % We attempt to gather average images from this directory
         thisAverageDir = fullfile(rawDataDir,sectionDirs(sectionInd).name,'averages',num2str(channels(c)));
 
         if ~isdir(thisAverageDir)
@@ -96,80 +90,153 @@ for c=1:length(channels)
             continue
         end
 
-        averageFiles = dir(fullfile(thisAverageDir,'*.bin'));
+        % Get the average files. Look for brute-force .mat files and if this fails find .bin files
+        % TODO: this is ultimately going to be a legacy step but for now we keep it (July, 2017)
+        averageFiles = findAverageFilesInAverageChannelDir(thisAverageDir);
+        if isempty(averageFiles)
+            continue
+        end
 
-        for avFile = 1:length(averageFiles) 
-            %Get the depth associated with this depth
-            fname=averageFiles(avFile).name;
-            tok=regexp(fname,'.*?(\d+)\.bin','tokens');
-            depth=str2num(tok{1}{1});
+        for depth = 1:length(averageFiles) % Loop over depths (one average file was made per depth)
 
-            fname=fullfile(thisAverageDir,averageFiles(avFile).name);
-            [tmp,n]=loadAveBinFile(fname);
+            fname=fullfile(thisAverageDir,averageFiles(depth).name);
+            tmp=loadAveBinFile(fname); % Will also handle .mat files This function is here for legacy purposes (July, 2017) TODO
 
-            %Pre-allocate based on current array
-            if sectionInd==1 && avFile==1
-                if c==1
-                    avData = preallocateAveArray(size(tmp), param.mosaic.numOpticalPlanes, length(sectionDirs));
+
+            if sectionInd==1
+                if depth==1
+                    % If this is the first section and first file created a new grand average structure.
+                    grandAverageStructure = preallocateGrandAverageStruct(tmp, length(sectionDirs));
                 else
-                    % For all subsequent channels we can just wipe the existing arrays
-                    for ii = 1:param.mosaic.numOpticalPlanes
-                        avData{ii}(:,:,:,:) = nan;
-                    end
+                    % Otherwise extend it as each new depth appears
+                    grandAverageStructure(end+1) = preallocateGrandAverageStruct(tmp, length(sectionDirs));
                 end
             end
 
-            % Place data from this average into the stack 
-            avData{depth}(:,:,:,sectionInd) = tmp;
-            nImages(avFile) = nImages(avFile)+n;
+            % Place data from this section average into the structure
+            grandAverageStructure(end).evenRows(:,:,sectionInd) = tmp.evenRows;
+            grandAverageStructure(end).oddRows(:,:,sectionInd) = tmp.oddRows;
+            grandAverageStructure(end).evenN(sectionInd) = tmp.evenN;
+            grandAverageStructure(end).oddN(sectionInd) = tmp.oddN;
+
         end
 
         if ~mod(sectionInd,5)
             fprintf('.')
-         end
+        end
     end
     fprintf('\n')
 
 
 
-     % Handle missing data and calculate grand average
-     fprintf('Calculating final tiles')
-     for depth=1:length(avData) % Loop over depths
+    % Handle missing data and calculate grand average
+    fprintf('Calculating final tiles')
+    for depth=1:length(grandAverageStructure) % Loop over depths again
 
-        dataFromThisDepth = avData{depth};
+        %look for nans
 
-        tmp=squeeze(any(any(isnan(avData{depth}))));
-        tmp=tmp(1,:); %search of nans here. yuk
-        f=find(tmp ); 
+        avData = grandAverageStructure(depth);
 
+        fEven = squeeze( any(any(isnan(avData.evenRows))) );
+        fOdd = squeeze( any(any(isnan(avData.oddRows))) );
+
+        fEven = find(fEven);
+        fOdd = find(fOdd);
+        f = unique([fEven;fOdd]); % all sections with missing data in any rows
 
         if ~isempty(f)
-            fprintf('\n%d missing averages out of %d in depth %d\n', length(f), size(avData{depth},4), ii)
-            avData{depth}(:,:,:,f) = [];
+            fprintf('\n%d missing averages out of %d section directories for depth %d\n', length(f), length(sectionDirs), avData.layer)
+            %Remove these data
+            avData.evenRows(:,:,f)=[];
+            avData.oddRows(:,:,f)=[];
+            avData.evenN(f)=[];
+            avData.oddN(f)=[];
         end
 
-        if isempty(avData{depth})
-            fprintf('No average images. Skipping\n')
+        if isempty(avData.evenRows)
+            fprintf('No average images in depth %d. Skipping\n', avData.layer)
             continue
         end
-
         % Average the mean images
-        %mu = mean(avData{ii},4);
-        %mu = median(avData{ii},4);
-        mu=trimmean(avData{depth},10,'round',4);
+        avData.evenRows=trimmean(avData.evenRows,10,'round',3);
+        avData.oddRows=trimmean(avData.oddRows,10,'round',3);
+        avData.evenN=sum(avData.evenN);
+        avData.oddN=sum(avData.oddN);
 
-        fname = fullfile(targetDir, sprintf('%02d.bin', depth));
-        writeAveBinFile(fname, mu(:,:,1), mu(:,:,2), nImages(depth));
+        %And the grand average
+        avData.pooledRows = (avData.evenRows + avData.oddRows)/2;
+        avData.poolN = avData.evenN + avData.oddN;
+
+
+        fname = sprintf('%02d_%s.mat',avData.layer, avData.correctionType);
+        fullPath = fullfile(targetDir, fname);
+        save(fullPath,'avData')
         fprintf('.')
-     end
-     fprintf('\n')
+    end
+    fprintf('\n')
 
 end
 
 
-% internal functions
-function emptyArray = preallocateAveArray(avTileSize, numOpticalPlanes, numSections)
-    % This function is used to create an empty array into which we can place the average tiles
-    for ii = 1:numOpticalPlanes
-        emptyArray{ii} = nan([avTileSize, numSections]); %i.e. pixel rows x pixel cols * num tiles
+
+% ------------------------------------------------------------------------------------------------------------
+% Internal functions
+function templateStructure = preallocateGrandAverageStruct(templateStructure, numSections)
+    % This function preallocates an empty structure into which we can place the average tiles
+
+    % First clear the structure by populating everything wth nans
+    templateStructure.evenRows(:) = nan;
+    templateStructure.oddRows(:) = nan;
+    templateStructure.pooledRows = []; %Because we'll calculate this at the end
+    templateStructure.evenN = nan;
+    templateStructure.oddN = nan;
+    templateStructure.poolN = nan;
+
+    %Now expand these for the number of sections
+    templateStructure.evenRows = repmat(templateStructure.evenRows,[1,1,numSections]);
+    templateStructure.oddRows = repmat(templateStructure.oddRows,[1,1,numSections]);
+    templateStructure.evenN = repmat(templateStructure.evenN,1,numSections);
+    templateStructure.oddN = repmat(templateStructure.oddN,1,numSections);
+
+
+
+function channels = findUniqueChannels(rawDataDir,sectionDirs)
+    % Determines how many unique channels have average data calculated
+    channels=[];
+
+    for ii=1:length(sectionDirs) 
+        thisAverageDir = fullfile(rawDataDir,sectionDirs(ii).name,'averages');
+
+        if ~isdir(thisAverageDir)
+            continue
+        end
+
+        channelDirs = dir(thisAverageDir);
+
+        if isempty(channelDirs)
+            continue
+        end
+
+        channelDirs(1:2)=[]; %these are the current and previous directory links
+
+        channels = [channels, cellfun(@str2num,{channelDirs.name})]; 
     end
+
+    channels=unique(channels); % These are the unique channels
+
+
+function averageFiles = findAverageFilesInAverageChannelDir(thisAverageDir)
+    % Get the average files. Look for brute-force .mat files and if this fails find .bin files
+    % TODO: this is ultimately going to be a legacy step but for now we
+    averageFiles = dir(fullfile(thisAverageDir,'*_bruteAverageTrimmean.mat'));
+    if ~isempty(averageFiles)
+        return
+    end
+
+    averageFiles = dir(fullfile(thisAverageDir,'*.bin'));
+    if isempty(averageFiles)
+        averageFiles=[];
+        fprintf('NO AVERAGE FILES FOUND\n')
+    end
+
+

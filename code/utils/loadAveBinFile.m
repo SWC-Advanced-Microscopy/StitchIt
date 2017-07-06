@@ -13,9 +13,11 @@ function data=loadAveBinFile(fName)
 % [imagesInAverage,pixelRows,pixelColumns,DATA_FROM_EVEN_TILE_ROWS,DATA_FROM_EVEN_TILE_ROWS]
 % all numbers are single precision. 
 %
+% NOTE: if called on a .mat file, then this function just loads it and returns it. 
 %
 % Inputs
-% fName - a string defining the name of the average bin file to load
+% fName - a string defining the name of the average bin file to load. Can also
+%        be a .mat file, in which case it just loads it and returns it.
 %
 %
 % Outputs
@@ -41,6 +43,13 @@ function data=loadAveBinFile(fName)
 
 if ~exist(fName,'file')
     error('Can not find %s',fName)
+end
+
+[~,~,ext] = fileparts(fName);
+if strmatch(ext,'.mat')
+    load(fName);
+    data=avData; % Will crash if this wasn't an average image structure
+    return
 end
 
 fid = fopen(fName,'r');
