@@ -5,8 +5,9 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     %
     % Purpose
     % There are multiple tileLoad functions for different imaging systems
-    % but all perform illumination correction the same way using this function. 
-    % This function is called by tileLoad.
+    % but all perform illumination correction via this function. Different illumination
+    % correction system are possible and this function selects between them and implements
+    % them as appropriate. This function is called by tileLoad.
     %
     % Inputs
     % im - the image stack to correct
@@ -35,15 +36,21 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
 
-    avDir = [userConfig.subdir.rawDataDir,filesep,userConfig.subdir.averageDir];
-
+    % Do not proceed if the grand average directory does not exist
+    avDir = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir);
     if ~exist(avDir,'dir')
-        fprintf('Please create grand averages with collateAverageImages\n')
+        fprintf([' Can not proceed with illumination correction. Found no grand average images in .%s%s\n',...
+            ' Please create grand averages with collateAverageImages.\n'],...
+            filesep,avDir)
+        return
     end
 
-    aveTemplate = coords2ave(coords,userConfig);
 
-    if isempty(aveTemplate)
+    % For now we just load the brute-force average template 
+    % TOOD: handle other template types, such as CIDRE
+    aveTemplate = loadBruteForceMeanAveFile(coords,userConfig);
+
+    if isempty(aveTemplate) || ~isstruct(aveTemplate)
         fprintf('Illumination correction requested but not performed\n')
         return
     end
@@ -62,19 +69,15 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
             %Divide by the template. Separate odd and even rows as needed       
             oddRows=find(mod(index(:,5),2));
             if ~isempty(oddRows)
-                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate(:,:,2)); 
+                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows); 
             end
 
             evenRows=find(~mod(index(:,5),2)); 
             if ~isempty(evenRows)
-                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate(:,:,1));
+                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows);
             end
         case 'pool'
-            aveTemplate = mean(aveTemplate,3);
-            if userConfig.subdir.averageDir
-                aveTemplate = repmat(mean(aveTemplate,1), [size(aveTemplate,1),1]);
-            end
-            im=stitchit.tools.divideByImage(im,aveTemplate);
+            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows);
         otherwise
             fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
     end
@@ -84,18 +87,26 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
 
 
-%Calculate average filename from tile coordinates. We could simply load the
-%image for one layer and one channel, or we could try odd stuff like averaging
-%layers or channels. This may make things worse or it may make things better. 
-function aveTemplate = coords2ave(coords,userConfig)
 
+function avData = loadBruteForceMeanAveFile(coords,userConfig)
+    % Determine the average filename (correct channel and optical plane/layer) from tile coordinates.
+
+
+    
     layer=coords(2); %optical section
     chan=coords(5);
 
-    fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer); %TODO: replace with fullfile
+    %If we find a .bin file. Prompt the user to re-run collate average images to make the new-style files. 
+    fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, num2str(chan), sprintf('%02d.bin',layer));
+    if exist(fname)
+        fprintf('Found an old-style .bin file. Plase re-run collateAverageImages\n')
+        aveTemplate=[];
+    end
+
+    fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, num2str(chan), sprintf('%02d_bruteAverageTrimmean.mat',layer));
+
     if exist(fname,'file')
-        %The OS caches, so for repeated image loads this is negligible. 
-        aveTemplate = loadAveBinFile(fname); 
+        load(fname) % Will produce the avData variable
     else
         aveTemplate=[];
         fprintf('%s Can not find average template file %s\n',mfilename,fname)
