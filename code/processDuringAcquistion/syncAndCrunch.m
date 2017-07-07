@@ -107,7 +107,6 @@ end
 
 
 
-
 %Report if StitchIt is not up to date
 logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
 try 
@@ -116,8 +115,7 @@ catch
   stitchit.tools.logger(lasterror,logFileName)
   fprintf('Failed to check if StitchIt is up to date. Error written in %s\n',logFileName)
 end
-
-
+fprintf('\n\n')
 
 
 % The experiment name is simply the last directory in the serverDir:
@@ -138,6 +136,7 @@ if ~isWritable(localDir)
 end
 
 
+% expDir is the path to the local directory where we will be copying data
 expDir = fullfile(localDir,expName,extension); %we add extension just in case the user put a "." in the file name
 
 
@@ -149,25 +148,41 @@ if ~exist(expDir,'dir')
 end
 
 
-% Copy meta-data files and so forth but no experimentd data yet.
+% Copy meta-data files and so forth but no experiment data yet.
 % We do this to ensure we have the meta-data file present
-unix(sprintf('rsync -rv --exclude="/*/" %s%s %s', serverDir,filesep,expDir));
+fprintf('Copying meta-data files from %s to %s\n', serverDir, expDir)
+unix(sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir)); %copies everything not a directory
 
 cd(expDir) %The directory where we are writing the experimental data
 
 %Initial INI file read
 config=readStitchItINI;
 
+% TODO: the following line shold not be needed. We comment it out for now and delete soon (July 2017)
+% unix(sprintf('rsync %s %s%s*.* %s',config.syncAndCrunch.rsyncFlag, serverDir,filesep,expDir));
+
+% Only create the local "rawData" folder if it does not exist on the server. The TissueCyte will not make it
+% but BakingTray does make it. 
+if exist(fullfile(serverDir,config.subdir.rawDataDir))
+  rawDataDir = expDir;
+else
+  rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
+end
+
+fprintf('Getting first batch of data from server and copying to %s\n',rawDataDir)
 
 
-unix(sprintf('rsync %s %s%s*.* %s',config.syncAndCrunch.rsyncFlag, serverDir,filesep,expDir));
+cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
+fprintf('Running:\n%s\n',cmd)
+unix(cmd);
+
 
 % Now figure out which channels are available for illumination correction if the default (all available)
 % is being used
 if isempty(illumChans)
   illumChans = channelsAvailableForStitching;
   if isempty(illumChans)
-    fprintf('ERROR: can not find any channels to work with.')
+    fprintf('ERROR: can not find any channels to work with.\n')
     return
   end
 end
@@ -175,14 +190,6 @@ if isempty(chanToPlot)
   chanToPlot=illumChans(1);
 end
 
-
-rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
-fprintf('Getting first batch of data from server and copying to %s\n',rawDataDir)
-
-
-cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
-fprintf('Running:\n%s\n',cmd)
-unix(cmd);
 
 if finished
   %If already finished when we start then we don't send Slack messages at the end. 
@@ -192,7 +199,8 @@ else
 end
 
 
-pathToRawData=[expDir,filesep,config.subdir.rawDataDir,filesep]; %The raw data directories are kept here
+% The raw data (section) directories are kept here
+pathToRawData = fullfile(expDir,config.subdir.rawDataDir);
 
 %Now enter a loop in which we alternate between pulling in data from the server and analysing
 %those data
@@ -250,7 +258,7 @@ while 1
   params = readMetaData2Stitchit;
   numSections = params.mosaic.numSections;
   %Get the number of acquired directories so far
-  numDirsAcquired = length(returnDataDirs(rawDataDir));
+  numDirsAcquired = length(returnDataDirs(pathToRawData));
 
   fprintf('Getting files for section %d/%d from server\n', numDirsAcquired, numSections)
   try
@@ -267,7 +275,7 @@ while 1
 
 
   %Do not proceed until we have at least one finished section
-  dataDirs=returnDataDirs(rawDataDir);
+  dataDirs=returnDataDirs(pathToRawData);
 
   if length(dataDirs)<=1
     fprintf('Waiting. No finished sections.')
@@ -288,7 +296,7 @@ while 1
   else
     thisDir=sectionDir;
     %TODO: this is wrong - it's the previously completed directory 
-    tifsInDir = dir([pathToRawData,thisDir,filesep,'*.tif']); %tiffs in current dir
+    tifsInDir = dir(fullfile(pathToRawData,thisDir,'*.tif')); %tiffs in current dir
     fprintf('Now %d tifs in current section directory: %s\n',length(tifsInDir), thisDir)
   end
 
