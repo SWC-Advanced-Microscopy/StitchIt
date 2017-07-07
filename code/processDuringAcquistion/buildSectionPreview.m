@@ -6,7 +6,7 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % INPUTS
 % sectionToPlot - If empty plot the last completed section as per the trigger file
 %                 sectionToPlot can also be a directory index to plot
-% channel - the channel to plot. By default the first available channel. 
+% channel - the channel to plot. By default (or if empty) the first available channel. 
 %
 %
 % NOTES
@@ -25,7 +25,7 @@ else
     sectionToPlot = sprintf('%s%04d',baseName,sectionToPlot);
 end
 
-if nargin<2
+if nargin<2 || isempty(channel)
     chans=channelsAvailableForStitching;
     if isempty(chans)
         fprintf('%s finds no channels available for plotting\n',mfilename)

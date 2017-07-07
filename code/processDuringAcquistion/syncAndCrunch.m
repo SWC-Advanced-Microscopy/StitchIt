@@ -98,8 +98,9 @@ end
 if nargin<5
   chanToPlot=[];
 end
-if ~isnumeric(chanToPlot) || ~isscalar(chanToPlot)
-  fprintf('ERROR: chanToPlot should be a numeric scalar\n')
+
+if ~isempty(chanToPlot) && (~isnumeric(chanToPlot) || ~isscalar(chanToPlot))
+  fprintf('ERROR: chanToPlot should be empty or a numeric scalar\n')
   return
 end
 
