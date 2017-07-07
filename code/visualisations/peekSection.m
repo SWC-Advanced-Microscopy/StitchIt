@@ -70,7 +70,8 @@ if ~iscell(section)
         section=zPlane2section(section);
     end
 
-    if exist([userConfig.subdir.rawDataDir,filesep,'averageDir']) %Only illum correction if the directory is there. 
+    % Only illum correction if the directory is there. 
+    if exist(fullfile(userConfig.subdir.rawDataDir,'averageDir'),'dir') 
         doIlumCor=1;
     else
         doIlumCor=0;
@@ -108,17 +109,16 @@ tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
 
 
 if resize<1
-    im = imresize(im,resize);   
+    im = imresize(im,resize);
 end
 
 
 %-----------------------------------------------------------------------
 %Begin stitching
 if verbose, tic, end
-%Flip arrays and stitch backwards. This reduces photo-bleaching artifacts
-%*if the data haven't been intensity-corrected*. Because the TissueCyet 
-%over-scan, reverse stitching won't help you if you don't pre-process the
-%tiles. 
+
+% Flip arrays and stitch backwards. This reduces photo-bleaching artifacts
+% if the data haven't been intensity-corrected.
 im=flip(im,3);
 tileIndex=flipud(tileIndex);
 

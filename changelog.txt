@@ -1,7 +1,15 @@
 StitchIt Change Log
 
-16/05/11
- - Improve docs and bug fix in stitchAllChannels
+
+17/07/XX
+- Average tiles saved as a structure.
+- syncAndCrunch works with BakingTray where sections are saved directly to a "rawData" directory.
+- Remove "averageSlowRows" option from INI file. 
+- Ability to stitch and average rectangular frames from BakingTray. 
+
+
+17/05/11
+ - Improve docs and bug fix in stitchAllChannels.
 
 17/05/04: 
  - MAJOR: take away the option to remove channel 3 in syncAndCrunch

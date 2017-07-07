@@ -99,7 +99,7 @@ function avData = loadBruteForceMeanAveFile(coords,userConfig)
     %If we find a .bin file. Prompt the user to re-run collate average images to make the new-style files. 
     fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, num2str(chan), sprintf('%02d.bin',layer));
     if exist(fname)
-        fprintf('Found an old-style .bin file. Plase re-run collateAverageImages\n')
+        fprintf('\n ===> ERROR: Found an old-style .bin file. Plase re-run collateAverageImages <===\n\n')
         aveTemplate=[];
     end
 

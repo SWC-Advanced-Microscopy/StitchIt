@@ -1,5 +1,5 @@
 function varargout = stitcher(imStack,tileCoords,fusionWeight,verbose)
-% Stitch one tilescanned plane from one channel
+% Stitch one tile-scanned plane from one channel
 %
 % function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight,verbose)
 %
