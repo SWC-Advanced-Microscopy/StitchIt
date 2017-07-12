@@ -102,22 +102,16 @@ for c=1:length(channels)
             fname=fullfile(thisAverageDir,averageFiles(depth).name);
             tmp=loadAveBinFile(fname); % Will also handle .mat files This function is here for legacy purposes (July, 2017) TODO
 
-
             if sectionInd==1
-                if depth==1
-                    % If this is the first section and first file created a new grand average structure.
-                    grandAverageStructure = preallocateGrandAverageStruct(tmp, length(sectionDirs));
-                else
-                    % Otherwise extend it as each new depth appears
-                    grandAverageStructure(end+1) = preallocateGrandAverageStruct(tmp, length(sectionDirs));
-                end
+                % If this is the first section and first file created a new grand average structure.
+                grandAverageStructure(depth) = preallocateGrandAverageStruct(tmp, length(sectionDirs));
             end
 
             % Place data from this section average into the structure
-            grandAverageStructure(end).evenRows(:,:,sectionInd) = tmp.evenRows;
-            grandAverageStructure(end).oddRows(:,:,sectionInd) = tmp.oddRows;
-            grandAverageStructure(end).evenN(sectionInd) = tmp.evenN;
-            grandAverageStructure(end).oddN(sectionInd) = tmp.oddN;
+            grandAverageStructure(depth).evenRows(:,:,sectionInd) = tmp.evenRows;
+            grandAverageStructure(depth).oddRows(:,:,sectionInd) = tmp.oddRows;
+            grandAverageStructure(depth).evenN(sectionInd) = tmp.evenN;
+            grandAverageStructure(depth).oddN(sectionInd) = tmp.oddN;
 
         end
 
