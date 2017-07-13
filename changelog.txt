@@ -1,7 +1,7 @@
 StitchIt Change Log
 
 
-17/07/XX
+17/07/13
 - Average tiles saved as a structure.
 - syncAndCrunch works with BakingTray where sections are saved directly to a "rawData" directory.
 - Remove "averageSlowRows" option from INI file. 
