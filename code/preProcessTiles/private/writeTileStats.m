@@ -16,15 +16,15 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
     % statsFile - string defining where to save the data. 
 
 
-    fprintf('Creating stats file: %s\n',statsFile)              
+    fprintf('Creating stats file: %s\n',statsFile)
 
     tileStats.dirName=thisDirName;
 
     for thisChan = 1:size(imStack,1) % Channels
         for thisLayer = 1:size(imStack,2) % Optical sections
-            
+
             if isempty(imStack{thisChan,thisLayer}), continue, end
-            
+
             tileStats.tileIndex{thisChan,thisLayer}=tileIndex{thisChan,thisLayer}(:,1);
 
             thisStack = imStack{thisChan,thisLayer};
@@ -34,10 +34,11 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
             % Create a threshold that should capture most of the empty tiles.
             % This will allow us to exclude most of them without having to resort
             % to fixed thresholds
+            % TODO: should likely be using a mixter of Gaussians approach here
             mu = sort(mu);
             bottomFivePercent = mu(1:round(length(mu)*0.05));
             if std(bottomFivePercent)>0.5
-                fprintf('%s - Empty tile threshold not trustworthy, setting it to the mean of dimmest tile\n',mfilename)
+                fprintf('%s - Empty tile threshold not trustworthy, setting it to the mean of dimmest tile.\n',mfilename)
                 emptyTileThresh=mu(1);
             else
                 STDvals=zeros(size(mu));
@@ -51,6 +52,13 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
 
             tileStats.emptyTileThresh(thisChan,thisLayer)=emptyTileThresh;
 
+            %Store a histogram for each tile
+            tileStats.histogram{thisChan,thisLayer} = cell(1,size(thisStack,3));
+            for thisTile = 1:size(thisStack,3)
+                tmp = single(thisStack(:,:,thisTile));
+                [n,x] = hist(tmp(1:10:end), 1000); %every 10th for speed, even though it means we'll miss the extreme values. 
+                tileStats.histogram{thisChan,thisLayer}{thisTile} = [n;x];
+            end
         end
     end
     save(statsFile,'tileStats')

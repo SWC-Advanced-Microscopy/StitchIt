@@ -40,9 +40,6 @@ if isempty(doCombCorrection)
     doCombCorrection=userConfig.tile.doPhaseCorrection;
 end
 
-averageSlowRows=userConfig.tile.averageSlowRows;
-
-
 
 %Exit gracefully if data directory is missing 
 param = obj.readMosaicMetaData(getTiledAcquisitionParamFile);

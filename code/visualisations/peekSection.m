@@ -70,7 +70,8 @@ if ~iscell(section)
         section=zPlane2section(section);
     end
 
-    if exist([userConfig.subdir.rawDataDir,filesep,'averageDir']) %Only illum correction if the directory is there. 
+    % Only illum correction if the directory is there. 
+    if exist(fullfile(userConfig.subdir.rawDataDir,'averageDir'),'dir') 
         doIlumCor=1;
     else
         doIlumCor=0;
@@ -107,70 +108,39 @@ end
 tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
 
 
-if resize<1
-    im = imresize(im,resize);   
-end
-
 
 %-----------------------------------------------------------------------
 %Begin stitching
 if verbose, tic, end
-%Flip arrays and stitch backwards. This reduces photo-bleaching artifacts
-%*if the data haven't been intensity-corrected*. Because the TissueCyet 
-%over-scan, reverse stitching won't help you if you don't pre-process the
-%tiles. 
-im=flip(im,3);
-tileIndex=flipud(tileIndex);
+
+% Flip arrays and stitch backwards. This reduces photo-bleaching artifacts
+% if the data haven't been intensity-corrected.
+%tileIndex=flipud(tileIndex);
 
 
-%Now we can pre-allocate our image
+pixelPositions=ceil(gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]));
+stitchedImage = stitcher(im,pixelPositions);
 
-pixelPositions=ceil(gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]) * resize);
-tileSize=size(im,1);
-
-stitchedImage = ones(max(pixelPositions)+tileSize, 'uint16');
-allocatedSize=size(stitchedImage);
-
-%Super-simple stitcher
-for ii=1:size(im,3)
-    xPos = [pixelPositions(ii,2), pixelPositions(ii,2)+tileSize-1];
-    yPos = [pixelPositions(ii,1), pixelPositions(ii,1)+tileSize-1];
-
-    stitchedImage(yPos(1):yPos(2),xPos(1):xPos(2))=im(:,:,ii);
+if resize<1
+    stitchedImage = imresize(stitchedImage,resize);
 end
-
 
 stitchedImage = medfilt2(stitchedImage);
 if nargout==0 %Adjust the image only if we'll be displaying locally
     if verbose
         fprintf('; ')
     end
-    fprintf('adjusting image intensity\n')
+    fprintf('adjusting image intensity')
 
     stitchedImage =imadjust(stitchedImage);
 end
 
 
-%Flip sections if needed. 
-st=userConfig.stitching;
-if st.flipud
-    stitchedImage=flipud(stitchedImage);
-end
-if st.fliplr
-    stitchedImage=fliplr(stitchedImage);
-end
 
 
 if verbose
     timeIt=toc;
     fprintf('; stitching in %0.1f ms\n',timeIt*1E3)
-end
-
-
-%If the matrix has grown, we have a pre-allocation issue
-if any(size(stitchedImage)-allocatedSize)
-    fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n'...
-             'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedImage))
 end
 
 

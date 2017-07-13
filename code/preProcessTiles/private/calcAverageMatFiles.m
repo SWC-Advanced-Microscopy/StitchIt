@@ -1,11 +1,22 @@
-function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
+function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
-    % function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
+    % function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
     %
-    % Low value is an array the same size as imStack. 
+    % Purpose
+    % Calculates average tile for a section directory and saves as a structure in a .mat file.
+    % One file per optical section. This function is called by preProcessTiles
+    %
+    % Inputs
+    % imStack - image stack
+    % tileIndex - matrix defining the the locations of the tiles in the array
+    % thisDirName - 
+    % illumChans - 
+    % lowValue - an array the same size as imStack. 
+    %
     % In both cases, rows are channels and columns are optical sections
     %
     %
+
     fprintf('Building and saving average images in %s\n',thisDirName)
 
     %We calculate all the possible combinations of channels and layers. 
@@ -13,14 +24,15 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
     chans = repmat(illumChans(:),1,size(imStack,2));
     layers = repmat(1:size(imStack,2), length(illumChans), 1);
     combinations = [chans(:),layers(:)];
+    correctionType = 'bruteAverageTrimmean'; %The name of this correction type
 
     for ii=1:size(combinations,1) 
         thisChan=combinations(ii,1);
         thisLayer=combinations(ii,2);
-
+        fprintf('  Doing channel %d, layer %d/%d\n', thisChan, thisLayer,max(combinations(:,2)) )
         if thisChan==0, continue, end %Necessary?
 
-        aveFname = fullfile(thisDirName,'averages',sprintf('%d%s%02d.bin',thisChan,filesep,thisLayer));
+        aveFname = fullfile(thisDirName,'averages',sprintf('%d%s%02d_%s.mat',thisChan,filesep,thisLayer,correctionType));
 
         %Create new directories as needed
         aveDirName = fullfile(thisDirName,'averages',sprintf('%d', thisChan));
@@ -47,7 +59,7 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
         %Fail gracefully if tile index is not complete
         if isempty(tileIndex{thisChan,thisLayer})
-            fprintf(' **** WARNING **** Encountered missing data in %s chan: %d layer: %d. SKIPPING\n',...
+            fprintf(' **** WARNING **** Encountered missing data in %s chan: %d layer: %d. SKIPPING\n', ...
                 thisDirName, thisChan, thisLayer)
             continue
         end
@@ -56,7 +68,7 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
         propRemoved=(length(lowVals)/length(row));
         if propRemoved > 0.85
-            fprintf('%s: removed %d%% of tiles from illumination correction. SKIPPING.\n',...
+            fprintf('%s: removed %d%% of tiles from illumination correction. SKIPPING.\n', ...
                 mfilename, round(propRemoved*100))
             continue
         end
@@ -77,12 +89,13 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
         trimQuantity=round((2/length(f))*100); %Defines the degree of trimming 
         if trimQuantity>=100 | trimQuantity<=0 | isnan(trimQuantity)
-            fprintf('ERROR: even data trimQuantity is %d but should be between 0 and 100. Setting to %d\n',...
+            fprintf('ERROR: even data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
                 trimQuantity,defaultTrim);
             trimQuantity=defaultTrim;
         end
 
         evenData = trimmean(thisStack(:,:,f),trimQuantity ,3);
+        evenN = length(f);
 
         %Calculate trimmed mean for the odd rows
         f=find(mod(row,2));
@@ -91,15 +104,27 @@ function writeAverageFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
         end
         trimQuantity=(2/length(f))*100; %Defines the degree of trimming 
         if trimQuantity>100 | trimQuantity<0
-            fprintf('ERROR: odd data trimQuantity is %d but should be between 0 and 100. Setting to %d\n',...
+            fprintf('ERROR: odd data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
                 trimQuantity,defaultTrim);
             trimQuantity=defaultTrim;
         end
         oddData = trimmean(thisStack(:,:,f),trimQuantity,3);
+        oddN = length(f);
 
-        %ISSUE: "f" may be slightly different for odd and even rows depending on which
-        %tiles had low values. Likely not important, TBH. Fixing this means changing
-        %the file format, which is a pain. 
-        writeAveBinFile(aveFname,evenData,oddData,length(f)); 
+
+        % Build average tile structure and save it
+        avData.evenRows = single(evenData);
+        avData.oddRows = single(oddData);
+        avData.pooledRows = [];
+        avData.evenN = evenN;
+        avData.oddN = oddN;
+        avData.poolN = [];
+        avData.correctionType = correctionType;
+        avData.channel = thisChan;
+        avData.layer = thisLayer;
+        avData.details.trimQuantity = trimQuantity;
+        avData.details.lowVals = lowVals;
+
+        save(aveFname,'avData')
 
     end

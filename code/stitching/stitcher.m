@@ -1,13 +1,15 @@
 function varargout = stitcher(imStack,tileCoords,fusionWeight,verbose)
-% Stitch one tilescanned plane from one channel
+% Stitch one tile-scanned plane from one channel
 %
 % function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight,verbose)
 %
+%
 % Purpose
-% This is the workhorse function that performs the stitching. %
+% This is the workhorse function that performs the stitching. 
 % All transformations, such as background subtraction, should already have 
 % been applied to the tile data fed to this function. Stitched "backwards",
 % which can reduce bleaching artifacts at tile overlap regions. 
+%
 %
 % Inputs
 % imStack - the image stack
@@ -15,6 +17,7 @@ function varargout = stitcher(imStack,tileCoords,fusionWeight,verbose)
 % fusionWeight - a number between 0 and 1 indicating how the overlapping regions are averaged. 
 %                0 means overlap with no blending. 1 means complete transparency in overlapping region.
 %                if -1 we do **chessboard stitching**
+%
 % 
 % Outputs
 % stitchedPlane - the stitched image plane
@@ -72,6 +75,7 @@ else
 end
 
 allocatedSize=size(stitchedPlane);
+
 
 
 %Lay down the tiles
@@ -147,7 +151,7 @@ stitchedPlane = stitchedPlane(1:maxY,1:maxX,:);
 
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)
-    fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n'...
+    fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n', ...
              'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedPlane))
 end
 
