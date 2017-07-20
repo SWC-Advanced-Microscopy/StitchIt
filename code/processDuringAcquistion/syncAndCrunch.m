@@ -381,7 +381,7 @@ while 1
 
 
   %Wait until the last section is completed before quitting
-  if length(indexPresent)==numSections && indexPresent(end) %Will fail if final section is missing a tile
+  if length(indexPresent)==(numSections+params.mosaic.sectionStartNum-1) && indexPresent(end) %Will fail if final section is missing a tile
       fprintf('\n** All sections have been acquired. Beginning to stitch **\n')
     unix('touch FINISHED');
     if ~all(indexPresent)
