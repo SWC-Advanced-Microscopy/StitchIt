@@ -1,18 +1,22 @@
-function makeCompositeOfPlane(expRootDir, channels)
+function makeCompositeOfPlane(expRootDir, scale, channels)
 % Produce composite images from the stitched planes. One composite per plane for Omero.
 %
 %
-% function makeComposite(stitchedImageFolder, nbrOfChnls)
+% function makeComposite(stitchedImageFolder, scale, nbrOfChnls)
 %
 %
 % Purpose
 % Convert the stitched images, located in stitchedImageFolder, to a composite image.
 % The composites images will be saved in a new folder called "Composite". The 
 % composite images can be uploaded directly to Omero. Called from a sample directory.
+% Call from sample root directory. 
 %
 % Inputs
 % stitchedImageFolder - String defining the folder where the three stitched channels
-%              separated folders are to be found. e.g. 'StitchedImages_100'
+%              separated folders are to be found. By default: 'StitchedImages_100'
+% scale - Rescaling of the composite stcak. 1 by default. e.g. if 0.5, the 
+%         composite images are half the size. 
+% channels - which channels to process. If missing handle all channels.
 % 
 %
 % Example
@@ -28,16 +32,42 @@ function makeCompositeOfPlane(expRootDir, channels)
 %
 % Laurent Guerard - Basel, 2017
 
-stitchedImageFolder = [expRootDir filesep 'stitchedImages_100'];
+
+% Check input arguments
+if nargin < 1
+	stitchedImageFolder = 'stitchedImages_100';
+end
 
 if ~exist(stitchedImageFolder,'dir')
 	fprintf('ERROR: Can not find folder %s\n',stitchedImageFolder)
     return
 end
 
+if nargin < 2
+	scale=1;
+end
 
-outputFolder = [expRootDir filesep 'stitchedComposite_100']; %Here is where we will write the images
+% Choose all channels if no channels argument is defined.
+if nargin < 3
+	channels = {};
+	dirList = dir(stitchedImageFolder);
+	dirList = {dirList.name};
+	for ii = 1:length(dirList)
+		if ~isempty(str2num(dirList{ii}))
+			channels = [channels, dirList{ii}];            
+		end % if
+	end % for ii
+end % if nargin < 3
 
+
+nbrOfChnls = length(channels);
+
+fprintf('%d channels were detected\n', nbrOfChnls);
+celldisp(channels)
+
+
+% Define the output folder
+outputFolder = 'stitchedComposite_100'; %Here is where we will write the images
 
 % Wipe folder if already existing then create it
 if exist(outputFolder,'dir')
@@ -48,28 +78,7 @@ end
 mkdir(outputFolder)
 
 
-% Get a list of all the folders to count the number of channels (i.e. we assume that each folder contains a channel)
-% TODO: these lines do nothing. 
-%allFiles = dir(stitchedImageFolder); % <===
-%subList = [allFiles(:).isdir]; % <====
 
-% If only 1 argument, it will look through the folders which names are numbers
-% These folders should correspond to the channels
-if nargin == 1
-	channels = {};
-	dirList = dir(stitchedImageFolder);
-	dirList = {dirList.name};
-	for ii = 1:length(dirList)
-		if ~isempty(str2num(dirList{ii}))
-			channels = [channels, dirList{ii}];
-		end
-	end
-end
-
-nbrOfChnls = length(channels);
-
-fprintf('%d channels were detected\n', nbrOfChnls);
-celldisp(channels)
 
 % Check if same number of images in all the folders
 nbrOfImages = zeros(1,nbrOfChnls);
@@ -108,12 +117,19 @@ for ii = 1:nbrOfImages(1)
         if jj == 1
             info = imfinfo(fullfile(stitchedImageFolder, channels{jj}, listImages{1}(ii).name));
             bitDepth = info.BitDepth;
+            %sampleFormat = info.SampleFormat
         end
     end
+    
+    %fprintf('%d',bitDepth);
     
     %Write tiff files.
     %/!\ 2 16bit planes images will be seen as 32bit images, readable in Fiji only with Bioformats.
     out = cat(3,A{:});
+    
+    %Rescale the images
+    out = imresize(out,scale);
+    
     t = Tiff(fullfile(outputFolder, listImages{1}(ii).name),'w');
     t.setTag('ImageLength',size(out,1));
     t.setTag('ImageWidth', size(out,2));
@@ -125,9 +141,10 @@ for ii = 1:nbrOfImages(1)
     t.setTag('Compression', Tiff.Compression.None);
     t.setTag('PlanarConfiguration', Tiff.PlanarConfiguration.Chunky);
     t.setTag('Software', 'MATLAB');
-    t.setTag('SampleFormat',Tiff.SampleFormat.Int);
+    t.setTag('SampleFormat',Tiff.SampleFormat.UInt);
+    %fprintf('%d',Tiff.SampleFormat.IEEEFP);
     %imwrite(out, fullfile(outputFolder, listImages{1}(ii).name));
-    t.write(out),
+    t.write(out);
     t.close();
 
 end
