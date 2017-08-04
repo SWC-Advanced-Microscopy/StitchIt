@@ -16,7 +16,7 @@ if nargin<3
 end
 
 if nargin<4
-    doCrop=[];  
+    doCrop=[];
 end
 
 if nargin<5

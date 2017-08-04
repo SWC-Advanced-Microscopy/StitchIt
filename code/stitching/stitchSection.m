@@ -230,7 +230,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
         naivePos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]);
         naiveMaxPos=max(naivePos)+tileSize;
         naiveWidth=naiveMaxPos(1);
-        naiveHeight=naiveMaxPos(2);   
+        naiveHeight=naiveMaxPos(2);
     else %just use the naive positions
         pixelPos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]); 
     end %if doStageCoords

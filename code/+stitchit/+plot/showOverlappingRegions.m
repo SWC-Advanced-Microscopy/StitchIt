@@ -1,7 +1,7 @@
 function showOverlappingRegions(coords) 
 %Given a single tile, load adjacent tiles and plot overlapping regions next to each other
 %
-% function showOverlappingRegions(coords) 
+% function  stitchit.plot.showOverlappingRegions(coords) 
 %
 % INPUTS
 % coords = [physical section, optical section, YID, XID, channel]
