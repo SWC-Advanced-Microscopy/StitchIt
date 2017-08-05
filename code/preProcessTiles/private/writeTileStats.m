@@ -42,7 +42,7 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
             % This is useful for some imaging systems only. For ScanImage it could be helpful
             % but for systems that discard this offset it won't mean anything. So we don't 
             % calculate this for systems where it won't help
-            switch M.type
+            switch M.System.type
             case 'bakingtray'
                 proportionOfDimmestFramesToUse=0.1;
                 nDimmestFrames = floor(length(sortedInds)*proportionOfDimmestFramesToUse);
