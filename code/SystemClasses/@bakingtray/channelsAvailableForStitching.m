@@ -13,7 +13,7 @@ if isempty(sectionDirs)
 end
 
 pathToTiff = fullfile(config.subdir.rawDataDir,sectionDirs(1).name);
-tifs=dir(fullfile(pathToTiff,'*.tif'))
+tifs=dir(fullfile(pathToTiff,'*.tif'));
 
 imINFO=imfinfo(fullfile(pathToTiff,tifs(1).name));
 SI=obj.parse_si_header(imINFO(1),'Software');
