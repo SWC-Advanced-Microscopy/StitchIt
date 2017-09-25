@@ -128,7 +128,7 @@ function indexPresent=isIndexFileInDirectory(obj,dirName,userConfig)
 %       present. With TV data, a missing index file indicates that not all data were acquired. 
 %       So we need to decide how to proceed in this regard for other data sets. 
 
-%Skip if the *tileStats* file has already been written
+%Skip if the *tileIndex* file has already been written
 tileIndexFname = fullfile(userConfig.subdir.rawDataDir,dirName,'tileIndex');
 if exist(tileIndexFname,'file');
     indexPresent = 1;

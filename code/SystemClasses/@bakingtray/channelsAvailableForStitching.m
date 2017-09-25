@@ -1,5 +1,5 @@
 function availableChans=channelsAvailableForStitching(obj)
-% For user documentation run "help tileLoad" at the command line
+% For user documentation run "help channelsAvailableForStitching" at the command line
 
 
 config=readStitchItINI;
@@ -11,9 +11,11 @@ if isempty(sectionDirs)
     fprintf('ERROR: No BakingTray data directories found. Quitting.\n')
     return
 end
-tifs=dir(fullfile(config.subdir.rawDataDir,sectionDirs(1).name,'*.tif'));
 
-imINFO=imfinfo(fullfile(tifs(1).folder,tifs(1).name));
+pathToTiff = fullfile(config.subdir.rawDataDir,sectionDirs(1).name);
+tifs=dir(fullfile(pathToTiff,'*.tif'));
+
+imINFO=imfinfo(fullfile(pathToTiff,tifs(1).name));
 SI=obj.parse_si_header(imINFO(1),'Software');
 availableChans=SI.channelSave;
 

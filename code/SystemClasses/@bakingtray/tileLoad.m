@@ -192,6 +192,23 @@ if doCombCorrection
 end
 
 
+
+% If requested and possible, subtract the calculated offset from the tiles. This
+% is useful in the event that a drifting offset is creating problems. 
+% TODO: in the longer term this can be used to deal with offset amplifiers for
+% a wider dynamic range. Not tested yet.
+doOffsetCorrection=0;
+if doOffsetCorrection
+    tileStatsFname = fullfile(sectionDir,'tileStats.mat');
+    if exist(tileStatsFname,'file')
+        load(tileStatsFname)
+        offsetMu = mean(tileStats.offsetMean(channel,:)); %since all depths will have the same underlying value
+        im = im - cast(offsetMu,class(im));
+    else
+        fprintf('bakingtray.tileLoad attempted to perform an offset correction but can not find file %s\n', tileStatsFname);
+    end
+end
+
 %Do illumination correction if requested to do so
 if doIlluminationCorrection 
     im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,index,verbose);

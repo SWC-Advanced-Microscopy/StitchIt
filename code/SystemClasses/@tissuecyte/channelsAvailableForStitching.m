@@ -1,5 +1,5 @@
 function availableChans=channelsAvailableForStitching(varargin)
-% For user documentation run "help tileLoad" at the command line
+% For user documentation run "help channelsAvailableForStitching" at the command line
 
 config=readStitchItINI;
 

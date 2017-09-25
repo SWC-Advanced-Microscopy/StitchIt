@@ -13,12 +13,17 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
     %           columns are optical sections.
     % tileIndex - A cell array of tileIndex matrices.
     % thisDirName - a string defining the directory that contain these data
-    % statsFile - string defining where to save the data. 
+    % statsFile - string defining where to save the data.
+    %
+    % 
+    % Rob Campbell - Basel
 
 
     fprintf('Creating stats file: %s\n',statsFile)
 
     tileStats.dirName=thisDirName;
+    
+    M=readMetaData2Stitchit;
 
     for thisChan = 1:size(imStack,1) % Channels
         for thisLayer = 1:size(imStack,2) % Optical sections
@@ -31,14 +36,45 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
             mu = squeeze(mean(mean(thisStack)));
             tileStats.mu{thisChan,thisLayer} = mu;
 
+            [mu,sortedInds] = sort(mu);
+
+            % Find the offset value using a mixture of Gaussians based on the dimmest tiles
+            % This is useful for some imaging systems only. For ScanImage it could be helpful
+            % but for systems that discard this offset it won't mean anything. So we don't 
+            % calculate this for systems where it won't help
+            switch M.System.type
+            case 'bakingtray'
+                proportionOfDimmestFramesToUse=0.1;
+                nDimmestFrames = floor(length(sortedInds)*proportionOfDimmestFramesToUse);
+
+                if nDimmestFrames==0;
+                    nDimmestFrames=1;
+                end
+
+                dimFrames=thisStack(:,:,sortedInds(1:nDimmestFrames));
+                options = statset('MaxIter', 1000);
+                Gm=fitgmdist(single(dimFrames(1:100:end)'),2, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
+                if Gm.Converged
+                    [~,maxPropInd]=max(Gm.ComponentProportion);
+                    tileStats.offsetMean(thisChan,thisLayer) = Gm.mu(maxPropInd);
+                else
+                    tileStats.offsetMean(thisChan,thisLayer) = nan;
+                end
+            otherwise
+                tileStats.offsetMean(thisChan,thisLayer) = nan;
+            end
+
+
             % Create a threshold that should capture most of the empty tiles.
             % This will allow us to exclude most of them without having to resort
-            % to fixed thresholds
-            % TODO: should likely be using a mixter of Gaussians approach here
-            mu = sort(mu);
+            % to fixed thresholds.
+            % TODO: Possibly we can use the model fit from above to help with this, 
+            %       but I'm not sure how.
+
             bottomFivePercent = mu(1:round(length(mu)*0.05));
-            if std(bottomFivePercent)>0.5
-                fprintf('%s - Empty tile threshold not trustworthy, setting it to the mean of dimmest tile.\n',mfilename)
+            if std(bottomFivePercent)>0.6
+                fprintf('%s - Empty tile threshold not trustworthy (STD=%0.2f), setting it to the mean of dimmest tile.\n',...
+                    mfilename, std(bottomFivePercent))
                 emptyTileThresh=mu(1);
             else
                 STDvals=zeros(size(mu));
