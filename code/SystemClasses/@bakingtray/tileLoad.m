@@ -197,7 +197,7 @@ end
 % is useful in the event that a drifting offset is creating problems. 
 % TODO: in the longer term this can be used to deal with offset amplifiers for
 % a wider dynamic range. Not tested yet.
-doOffsetCorrection=0;
+doOffsetCorrection=1;
 if doOffsetCorrection
     tileStatsFname = fullfile(sectionDir,'tileStats.mat');
     if exist(tileStatsFname,'file')

@@ -1,6 +1,12 @@
 StitchIt Change Log
 
-17/09/21
+
+
+26/09/21
+- MAJOR: Enable offset correction in bakingtray.tileLoad. This seems necessary for Femto amps as they drift. 
+
+
+21/09/21
 - Bugfix to illumination corrector: error was generated if average file could not be found. 
 
 
