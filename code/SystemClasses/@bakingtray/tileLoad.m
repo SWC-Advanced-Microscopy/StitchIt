@@ -195,10 +195,8 @@ end
 
 % If requested and possible, subtract the calculated offset from the tiles. This
 % is useful in the event that a drifting offset is creating problems. 
-% TODO: in the longer term this can be used to deal with offset amplifiers for
-% a wider dynamic range. Not tested yet.
-doOffsetCorrection=1;
-if doOffsetCorrection
+% Can be used to deal with offset amplifiers for a wider dynamic range.
+if userConfig.tile.doOffsetSubtraction
     tileStatsFname = fullfile(sectionDir,'tileStats.mat');
     if exist(tileStatsFname,'file')
         load(tileStatsFname)
