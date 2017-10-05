@@ -1,30 +1,13 @@
-function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCorrection)
+function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCorrection,doSubtractOffset,verbose)
 % Load raw tile data from TissueCyte experiment
 %
-% function [im,index]=tileLoad(coords,doIlluminationCorrection,doCrop)
+% Input arguments are parsed by the tileLoad function stub and are supplied
+% as parameter/value pairs. For more infor and user documentation run 
+% "help tileLoad" at the command line or look in source code of that file.
 %
-% For user documentation run "help tileLoad" at the command line
+% This function works without the need for generateTileIndex
 
-
-%Handle input arguments
-if length(coords)~=5
-    error('Coords should have a length of 5. Instead it has a length of %d', length(coords))
-end
-
-if nargin<3
-    doIlluminationCorrection=[];
-end
-
-if nargin<4
-    doCrop=[];
-end
-
-if nargin<5
-    doCombCorrection=[];
-end
-
-verbose=0; %Enable this for debugging. Otherwise it's best to leave it off
-
+%COMMON
 
 %Load the INI file and extract default values from it
 userConfig=readStitchItINI;

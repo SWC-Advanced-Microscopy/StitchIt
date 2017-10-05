@@ -211,7 +211,10 @@ for thisDir = 1:length(sectionDirectories)
             fprintf('Loading section %03d, layer %02d, chan %d\n',sectionNumber,thisLayer,thisChan)
             %Load the raw tiles for this layer without cropping, illumination correction, or phase correction
             try 
-                [thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan],0,0,0); 
+                [thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan], ...
+                    'doIlluminationCorrection', false, ...
+                    'doCrop', false, ...
+                    'doCombCorrection')
             catch
                 fprintf('%s. Could not find images to load for channel %d. Is this channel missing?\n',mfilename, thisChan)
                 analysesPerformed=[];

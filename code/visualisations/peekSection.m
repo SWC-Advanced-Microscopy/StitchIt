@@ -81,7 +81,7 @@ if ~iscell(section)
         fprintf('Loading tiles from section %d/%d channel %d\n',section,channel)
     end
 
-    [im,tileIndex]=tileLoad([section,0,0,channel],doIlumCor); 
+    [im,tileIndex]=tileLoad([section,0,0,channel],'doIlluminationCorrection', doIlumCor);
 
 
     if isempty(im) 

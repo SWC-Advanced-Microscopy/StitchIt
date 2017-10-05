@@ -12,7 +12,7 @@ classdef (Abstract) micSys
         % e.g. help tileLoad
 
         % Load raw tile data 
-        tileLoad(obj,coords,doIlluminationCorrection,doCrop,doPhaseCorrection)
+        tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCorrection,doSubtractOffset,verbose)
 
         %Get the parameter file from the acquisition system
         getTiledAcquisitionParamFile(obj)
