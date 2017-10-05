@@ -28,12 +28,17 @@ function [im,index]=tileLoad(coords,varargin)
 %                     By default do what is specified in the INI file.
 % verbsose - false by default. If true, debug information is printed to screen.  
 %
-% doSubtractOffset - Apply offset correction to raw images. If false don't apply. If true apply.
-%                    Otherwise do what is in INI file.
-%                    If the offset correction is used to calculate the average tiles then it is 
+% doSubtractOffset - Apply offset correction to raw images. If false don't apply. If true apply 
+%                    (if possible to apply). Otherwise do what is in INI file.
+%                    If the offset correction was used to calculate the average tiles then it is 
 %                    integrated into these averages. So you might get odd results if you choose
 %                    disable the offset correction and use average tiles that include it. Under
 %                    these circumstances you might want to re-generate the average images. 
+%                    Equally, if the offset was not calculated then it's not incorporated into the 
+%                    average and the offset value will be forced to be zero. So the doSubtractOffset
+%                    value will have no effect in this case. 
+%
+%
 %
 % OUTPUTS
 % im - The image or image stack at 16 bit unsigned integers.

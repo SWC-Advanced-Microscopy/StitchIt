@@ -22,7 +22,7 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
     fprintf('Creating stats file: %s\n',statsFile)
 
     tileStats.dirName=thisDirName;
-    
+    userConfig=readStitchItINI;
     M=readMetaData2Stitchit;
 
     for thisChan = 1:size(imStack,1) % Channels
@@ -43,7 +43,7 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
             % but for systems that discard this offset it won't mean anything. So we don't 
             % calculate this for systems where it won't help
             switch M.System.type
-            case 'bakingtray'
+            case 'bakingtray' && userConfig.tile.doOffsetSubtraction
                 proportionOfDimmestFramesToUse=0.1;
                 nDimmestFrames = floor(length(sortedInds)*proportionOfDimmestFramesToUse);
 
@@ -58,10 +58,10 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
                     [~,maxPropInd]=max(Gm.ComponentProportion);
                     tileStats.offsetMean(thisChan,thisLayer) = Gm.mu(maxPropInd);
                 else
-                    tileStats.offsetMean(thisChan,thisLayer) = nan;
+                    tileStats.offsetMean(thisChan,thisLayer) = 0;
                 end
             otherwise
-                tileStats.offsetMean(thisChan,thisLayer) = nan;
+                tileStats.offsetMean(thisChan,thisLayer) = 0;
             end
 
 
