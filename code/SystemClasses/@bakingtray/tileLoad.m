@@ -124,7 +124,7 @@ channelsInSIstack = SI.channelSave;
 numChannelsAvailable = length(channelsInSIstack);
 
 if ~any(SI.channelsActive == channel)
-    availChansStr = repmat('%d ', length(channelsInSIstack) );
+    availChansStr = repmat('%d ', [1, length(channelsInSIstack)] );
     fprintf(['ERROR: tileLoad is attempting to load channel %d but this does not exist. Available channels: ', availChansStr, '\n'], ...
         channel, channelsInSIstack)
     return
