@@ -176,7 +176,7 @@ for thisDir = 1:length(sectionDirectories)
 
     %Skip if everything has been done and the user asked to loop through all directories.
     sectionDirName=fullfile(userConfig.subdir.rawDataDir,sectionDirectories(thisDir).name);
-    statsFile=fullfile(sectionDirName,'tileStats');
+    statsFile=fullfile(sectionDirName,'tileStats.mat');
     combFile=fullfile(sectionDirName,'phaseStats_01.mat');
     aveDir=fullfile(sectionDirName,'averages');
 
@@ -235,7 +235,7 @@ for thisDir = 1:length(sectionDirectories)
 
     %-----------------------------------------------------------------
     %Write tile statistics to a file. 
-    if exist(statsFile,'file') & length(sectionsToProcess)==1 & sectionsToProcess==0 %Skip if sectionsToProcess is zero and file exists
+    if exist(statsFile,'file') && length(sectionsToProcess)==1 && sectionsToProcess==0 %Skip if sectionsToProcess is zero and file exists
         fprintf('%s stats file already exists\n',sectionDirectories(thisDir).name)
     else
         % Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
