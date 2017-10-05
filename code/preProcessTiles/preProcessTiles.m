@@ -214,10 +214,11 @@ for thisDir = 1:length(sectionDirectories)
                 [thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan], ...
                     'doIlluminationCorrection', false, ...
                     'doCrop', false, ...
-                    'doCombCorrection', ...
-                    'doSubtractOffset', false)
-            catch
-                fprintf('%s. Could not find images to load for channel %d. Is this channel missing?\n',mfilename, thisChan)
+                    'doCombCorrection', false, ...
+                    'doSubtractOffset', false);
+            catch ME
+                fprintf('%s - Could not load images for channel %d. Is this channel missing?\n',mfilename, thisChan)
+                fprintf('Failed with error message: %s\n', ME.message)
                 analysesPerformed=[];
                 break
             end
@@ -243,8 +244,9 @@ for thisDir = 1:length(sectionDirectories)
         fprintf('%s stats file already exists\n',sectionDirectories(thisDir).name)
     else
         % Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
-        % the backround tiles. 
-        tileStats=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
+        % the backround tiles. If the offset subtraction was requested in the INI file (for non TV data) then we 
+        % will apply this to the image stack. This is why we request the stack to be returned. 
+        [tileStats,imStack]=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
     end
 
     %TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present

@@ -72,9 +72,9 @@ IN.CaseSensitive = false;
 
 valChk = @(x) islogical(x) || x==0 || x==1 || isempty(x);
 IN.addParamValue('doIlluminationCorrection', [], valChk);
-IN.addParamValue('doCrop', [], @(x) islogical(x) || x==0 || x==1 || isempty(x));
-IN.addParamValue('doCombCorrection', [], @(x) islogical(x) || x==0 || x==1 || isempty(x));
-IN.addParamValue('doSubtractOffset', [], @(x) islogical(x) || x==0 || x==1 || isempty(x));
+IN.addParamValue('doCrop', [], valChk);
+IN.addParamValue('doCombCorrection', [], valChk);
+IN.addParamValue('doSubtractOffset', [], valChk);
 IN.addParamValue('verbose', false, @(x) islogical(x) || x==0 || x==1 );
 
 IN.parse(varargin{:});

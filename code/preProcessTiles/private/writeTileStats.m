@@ -1,22 +1,27 @@
-function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
+function [tileStats,imStack]=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
     % Writes a tile stats MAT file to each directory
     %
-    % function writeTileStats(imStack,tileIndex,thisDirName,statsFile)
+    % function [tileStats,imStack]=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
     %
     % Purpose
     % The tile stats file contains a bunch of useful statistics that other 
     % functions can later use to work out things like the intensity of the
     % background tiles, etc. 
     %
-    % Input
+    % Inputs
     % imStack - A cell array of image stacks. The rows are channels and the
     %           columns are optical sections.
     % tileIndex - A cell array of tileIndex matrices.
     % thisDirName - a string defining the directory that contain these data
     % statsFile - string defining where to save the data.
     %
+    %
+    % Outputs
+    % tileStats - tile statistics data structure
+    % imStack - cell array of image stacks after offset correction (nothing 
+    %           is changed if no offset correction was requested)
     % 
-    % Rob Campbell - Basel
+    % Rob Campbell - Basel 2017
 
 
     fprintf('Creating stats file: %s\n',statsFile)
@@ -42,27 +47,31 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
             % This is useful for some imaging systems only. For ScanImage it could be helpful
             % but for systems that discard this offset it won't mean anything. So we don't 
             % calculate this for systems where it won't help
-            switch M.System.type
-            case 'bakingtray' && userConfig.tile.doOffsetSubtraction
-                proportionOfDimmestFramesToUse=0.1;
-                nDimmestFrames = floor(length(sortedInds)*proportionOfDimmestFramesToUse);
+            tileStats.offsetMean(thisChan,thisLayer) = 0; % by default set to zero then over-write if the user asked for an offset
+            if userConfig.tile.doOffsetSubtraction
+                switch M.System.type
+                case 'bakingtray'
+                    proportionOfDimmestFramesToUse=0.1;
+                    nDimmestFrames = floor(length(sortedInds)*proportionOfDimmestFramesToUse);
 
-                if nDimmestFrames==0;
-                    nDimmestFrames=1;
-                end
+                    if nDimmestFrames==0;
+                        nDimmestFrames=1;
+                    end
 
-                dimFrames=thisStack(:,:,sortedInds(1:nDimmestFrames));
-                options = statset('MaxIter', 1000);
-                Gm=fitgmdist(single(dimFrames(1:100:end)'),2, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
-                if Gm.Converged
-                    [~,maxPropInd]=max(Gm.ComponentProportion);
-                    tileStats.offsetMean(thisChan,thisLayer) = Gm.mu(maxPropInd);
-                else
-                    tileStats.offsetMean(thisChan,thisLayer) = 0;
-                end
-            otherwise
-                tileStats.offsetMean(thisChan,thisLayer) = 0;
-            end
+                    dimFrames=thisStack(:,:,sortedInds(1:nDimmestFrames));
+                    options = statset('MaxIter', 1000);
+                    Gm=fitgmdist(single(dimFrames(1:100:end)'),2, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
+                    if Gm.Converged
+                        [~,maxPropInd]=max(Gm.ComponentProportion);
+                        tileStats.offsetMean(thisChan,thisLayer) = Gm.mu(maxPropInd);
+                    else
+                        % It's already filled with a zero
+                    end
+                end % switch
+            end %if userConfig.tile.doOffsetSubtraction
+
+
+
 
 
             % Create a threshold that should capture most of the empty tiles.
@@ -98,3 +107,19 @@ function tileStats=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
         end
     end
     save(statsFile,'tileStats')
+
+    % Apply the tile offset. (It will be zero if it was not calculated)
+    if userConfig.tile.doOffsetSubtraction
+        switch M.System.type
+        case 'bakingtray' 
+            for thisChan = 1:size(imStack,1) % Channels
+                offsetMu = mean(tileStats.offsetMean(thisChan,:)); %since all depths will have the same underlying value
+                offsetMu = cast(offsetMu,class(imStack{1,1}));
+
+                for thisLayer = 1:size(imStack,2) % Optical sections
+                    imStack{thisChan,thisLayer} = imStack{thisChan,thisLayer} - offsetMu;
+                end
+
+            end
+        end
+    end
