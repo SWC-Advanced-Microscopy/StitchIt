@@ -1,6 +1,6 @@
-function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
+function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,emptyTileThreshold)
 
-    % function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
+    % function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,emptyTileThreshold)
     %
     % Purpose
     % Calculates average tile for a section directory and saves as a structure in a .mat file.
@@ -11,7 +11,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
     % tileIndex - matrix defining the the locations of the tiles in the array
     % thisDirName - 
     % illumChans - 
-    % lowValue - an array the same size as imStack. 
+    % emptyTileThreshold - an array the same size as imStack. 
     %
     % In both cases, rows are channels and columns are optical sections
     %
@@ -52,18 +52,19 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
             continue
         end
 
-        % We will get rid of *really* dim tiles by removing tiles with a mean lower then lowValue
+        % We will get rid of *really* dim tiles by removing tiles with a mean lower than emptyTileThreshold
         % The following ensures that we choose reasonable numbers based on the amp offsets
         mu = squeeze(mean(mean(thisStack)));
-        lowVals = find(mu<lowValue(thisChan,thisLayer));
+        lowVals = find(mu<emptyTileThreshold(thisChan,thisLayer));
 
         %Fail gracefully if tile index is not complete
         if isempty(tileIndex{thisChan,thisLayer})
-            fprintf(' **** WARNING **** Encountered missing data in %s chan: %d layer: %d. SKIPPING\n', ...
+            fprintf(' **** WARNING **** Function "calcAverageMatFiles" encountered missing data in %s chan: %d layer: %d. SKIPPING\n', ...
                 thisDirName, thisChan, thisLayer)
             continue
         end
-        %If we have got rid of over 90% of the tiles then don't calculate an average. Likely something is wrong
+
+        %If we have got rid of most of the tiles then don't calculate an average because likely something is wrong.
         row=tileIndex{thisChan,thisLayer}(:,5);
 
         propRemoved=(length(lowVals)/length(row));
@@ -76,7 +77,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
         row(lowVals)=[];
         thisStack(:,:,lowVals)=[];
         if size(thisStack,3)<2
-            fprintf('** WARNING stack size for generating average images is %d. SKIPPING THIS SECTION\n',size(thisStack,3))
+            fprintf('** WARNING: stack size for generating average images is %d. SKIPPING THIS SECTION\n',size(thisStack,3))
             continue
         end
 
@@ -89,7 +90,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
 
         trimQuantity=round((2/length(f))*100); %Defines the degree of trimming 
         if trimQuantity>=100 | trimQuantity<=0 | isnan(trimQuantity)
-            fprintf('ERROR: even data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
+            fprintf('WARNING: even data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
                 trimQuantity,defaultTrim);
             trimQuantity=defaultTrim;
         end
@@ -104,7 +105,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,lowValue)
         end
         trimQuantity=(2/length(f))*100; %Defines the degree of trimming 
         if trimQuantity>100 | trimQuantity<0
-            fprintf('ERROR: odd data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
+            fprintf('WARNING: odd data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
                 trimQuantity,defaultTrim);
             trimQuantity=defaultTrim;
         end

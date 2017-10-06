@@ -19,7 +19,7 @@ function [tileStats,imStack]=writeTileStats(imStack,tileIndex,thisDirName,statsF
     % Outputs
     % tileStats - tile statistics data structure
     % imStack - cell array of image stacks after offset correction (nothing 
-    %           is changed if no offset correction was requested)
+    %           is changed if no offset correction was requested).
     % 
     % Rob Campbell - Basel 2017
 
