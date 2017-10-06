@@ -73,6 +73,12 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
             fprintf('%s: removed %d%% of tiles from illumination correction. SKIPPING.\n', ...
                 mfilename, round(propRemoved*100))
             continue
+        elseif all(mod(row,2))
+            fprintf('Only uneven rows left for illumination correction. SKIPPING.\n')
+            continue
+        elseif all(~mod(row,2))
+            fprintf('Only even rows left for illumination correction. SKIPPING.\n')
+            continue
         end
 
         row(lowVals)=[];
