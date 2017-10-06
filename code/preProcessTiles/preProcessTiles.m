@@ -247,7 +247,7 @@ for thisDir = 1:length(sectionDirectories)
         % Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
         % the backround tiles. If the offset subtraction was requested in the INI file (for non TV data) then we 
         % will apply this to the image stack. This is why we request the stack to be returned. 
-        [tileStats,imStack]=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
+        [tileStats,~]=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
     end
 
     %TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present
@@ -271,7 +271,7 @@ for thisDir = 1:length(sectionDirectories)
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
             fprintf('Skipping illumination corrrection\n')
         else
-            calcAverageMatFiles(imStack, tileIndex, sectionDirName, illumChans, tileStats.emptyTileThresh)
+            calcAverageMatFiles(imStack, tileIndex, sectionDirName, illumChans, tileStats)
             analysesPerformed.illumCor=1;
         end
     end

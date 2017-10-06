@@ -1,17 +1,18 @@
-function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,emptyTileThreshold)
+function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
 
-    % function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,emptyTileThreshold)
+    % function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
     %
     % Purpose
     % Calculates average tile for a section directory and saves as a structure in a .mat file.
     % One file per optical section. This function is called by preProcessTiles
     %
     % Inputs
-    % imStack - image stack
+    % imStack - raw image stack (without any optional offset subtraction)
     % tileIndex - matrix defining the the locations of the tiles in the array
     % thisDirName - 
     % illumChans - 
-    % emptyTileThreshold - an array the same size as imStack. 
+    % tileStats - The tileStats structure produced by writeTileStats. It should contain
+    %             fields the same size as imStack. 
     %
     % In both cases, rows are channels and columns are optical sections
     %
@@ -52,10 +53,10 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,emptyTileT
             continue
         end
 
-        % We will get rid of *really* dim tiles by removing tiles with a mean lower than emptyTileThreshold
+        % We will get rid of *really* dim tiles by removing tiles with a mean lower than tileStats.emptyTileThresh
         % The following ensures that we choose reasonable numbers based on the amp offsets
         mu = squeeze(mean(mean(thisStack)));
-        lowVals = find(mu<emptyTileThreshold(thisChan,thisLayer));
+        lowVals = find(mu<tileStats.emptyTileThresh(thisChan,thisLayer));
 
         %Fail gracefully if tile index is not complete
         if isempty(tileIndex{thisChan,thisLayer})
@@ -75,43 +76,32 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,emptyTileT
         end
 
         row(lowVals)=[];
-        thisStack(:,:,lowVals)=[];
+        thisStack(:,:,lowVals)=[]; % <--- Tiles with low values deleted here
+
+        % Apply the tile offset. (It will be zero if it was not calculated)
+        offsetMu = mean(tileStats.offsetMean(thisChan,:)); %since all depths will have the same underlying value
+        thisStack = thisStack - cast(offsetMu,class(thisStack));
+
+
+
         if size(thisStack,3)<2
             fprintf('** WARNING: stack size for generating average images is %d. SKIPPING THIS SECTION\n',size(thisStack,3))
             continue
         end
 
         %Calculate trimmed mean for the even rows (TODO: sub-function? this is duplicate code)
-        defaultTrim=1;
         f=find(~mod(row,2));
         if isempty(f)
             error('Operation f=find(~mod(row,2)) has returned empty. Something is very wrong!')
         end
-
-        trimQuantity=round((2/length(f))*100); %Defines the degree of trimming 
-        if trimQuantity>=100 | trimQuantity<=0 | isnan(trimQuantity)
-            fprintf('WARNING: even data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
-                trimQuantity,defaultTrim);
-            trimQuantity=defaultTrim;
-        end
-
-        evenData = trimmean(thisStack(:,:,f),trimQuantity ,3);
-        evenN = length(f);
+        [evenData,evenN,evenTrimQuantity] = runTrimMeanOnStack(thisStack,f);
 
         %Calculate trimmed mean for the odd rows
         f=find(mod(row,2));
         if isempty(f)
             error('Operation f=find(~mod(row,2)) has returned empty. Something is very wrong!')
         end
-        trimQuantity=(2/length(f))*100; %Defines the degree of trimming 
-        if trimQuantity>100 | trimQuantity<0
-            fprintf('WARNING: odd data trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
-                trimQuantity,defaultTrim);
-            trimQuantity=defaultTrim;
-        end
-        oddData = trimmean(thisStack(:,:,f),trimQuantity,3);
-        oddN = length(f);
-
+        [oddData,oddN,oddTrimQuantity] = runTrimMeanOnStack(thisStack,f);
 
         % Build average tile structure and save it
         avData.evenRows = single(evenData);
@@ -123,9 +113,26 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,emptyTileT
         avData.correctionType = correctionType;
         avData.channel = thisChan;
         avData.layer = thisLayer;
-        avData.details.trimQuantity = trimQuantity;
+        avData.details.evenTrimQuantity = evenTrimQuantity;
+        avData.details.oddTrimQuantity = oddTrimQuantity;
         avData.details.lowVals = lowVals;
 
         save(aveFname,'avData')
 
     end
+
+
+    % Internal functions follow
+    function [averageImage,numImages,trimQuantity] = runTrimMeanOnStack(thisImStack,framesToKeep)
+        defaultTrim=1;
+
+
+        trimQuantity=round((2/length(framesToKeep))*100); %Defines the degree of trimming 
+        if trimQuantity>=100 | trimQuantity<=0 | isnan(trimQuantity)
+            fprintf('WARNING: trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
+                trimQuantity,defaultTrim);
+            trimQuantity=defaultTrim;
+        end
+
+        averageImage = trimmean(thisImStack(:,:,framesToKeep),trimQuantity ,3);
+        numImages = length(framesToKeep);
