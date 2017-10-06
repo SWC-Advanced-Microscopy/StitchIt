@@ -108,18 +108,18 @@ function [tileStats,imStack]=writeTileStats(imStack,tileIndex,thisDirName,statsF
     end
     save(statsFile,'tileStats')
 
+    % If a second output (the offset-corrected image stack) is requested, then create this, 
+    % otherwise just return.
+    if nargout<2
+        return
+    end
+
     % Apply the tile offset. (It will be zero if it was not calculated)
-    if userConfig.tile.doOffsetSubtraction
-        switch M.System.type
-        case 'bakingtray' 
-            for thisChan = 1:size(imStack,1) % Channels
-                offsetMu = mean(tileStats.offsetMean(thisChan,:)); %since all depths will have the same underlying value
-                offsetMu = cast(offsetMu,class(imStack{1,1}));
+    for thisChan = 1:size(imStack,1) % Channels
+        offsetMu = mean(tileStats.offsetMean(thisChan,:)); %since all depths will have the same underlying value
+        offsetMu = cast(offsetMu,class(imStack{1,1}));
 
-                for thisLayer = 1:size(imStack,2) % Optical sections
-                    imStack{thisChan,thisLayer} = imStack{thisChan,thisLayer} - offsetMu;
-                end
-
-            end
+        for thisLayer = 1:size(imStack,2) % Optical sections
+            imStack{thisChan,thisLayer} = imStack{thisChan,thisLayer} - offsetMu;
         end
     end
