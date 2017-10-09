@@ -50,11 +50,20 @@ end
 baseName=directoryBaseName(getTiledAcquisitionParamFile);
 sectionDirs=dir([userConfig.subdir.rawDataDir,filesep,baseName,'*']);
 
-%Bail out if no section directories were found
+% Bail out if no section directories were found
 if isempty(sectionDirs)
-    fprintf('ERROR: %s is uUnable to find raw data directories. Quitting.\n', mfilename)
+    fprintf('ERROR: %s is unable to find raw data directories. Quitting.\n', mfilename)
     return
 end
+
+% Bail out if no StitchIt pre-processing directories exist
+sectionStatsDirName=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir);
+if ~exist(sectionStatsDirName,'dir')
+    fprintf('ERROR: %s is unable to find the processed data directory %s. Quitting.\n', ...
+        mfilename, sectionStatsDirName)
+    return
+end
+
 
 % Choose a sub-set of these if the user asked for it 
 % NOTE: This is error-prone (see help text of this function)
@@ -64,8 +73,7 @@ end
 
 
 %Figure out how many unique channels have average data calculated
-rawDataDir = userConfig.subdir.rawDataDir;
-channels = findUniqueChannels(rawDataDir,sectionDirs);
+channels = findUniqueChannels(sectionStatsDirName,sectionDirs);
 
 
 
@@ -82,8 +90,8 @@ for c=1:length(channels)
     nImages = zeros(1,param.mosaic.numOpticalPlanes); %to keep track of the number of images
     for sectionInd=1:length(sectionDirs) 
 
-        % We attempt to gather average images from this directory
-        thisAverageDir = fullfile(rawDataDir,sectionDirs(sectionInd).name,'averages',num2str(channels(c)));
+        % We attempt to gather average images from this processed data directory
+        thisAverageDir = fullfile(sectionStatsDirName, sectionDirs(sectionInd).name,'averages',num2str(channels(c)));
 
         if ~isdir(thisAverageDir)
             % Skip this section if no such directory exists
@@ -194,12 +202,12 @@ function templateStructure = preallocateGrandAverageStruct(templateStructure, nu
 
 
 
-function channels = findUniqueChannels(rawDataDir,sectionDirs)
+function channels = findUniqueChannels(sectionStatsDirName,sectionDirs)
     % Determines how many unique channels have average data calculated
     channels=[];
 
     for ii=1:length(sectionDirs) 
-        thisAverageDir = fullfile(rawDataDir,sectionDirs(ii).name,'averages');
+        thisAverageDir = fullfile(sectionStatsDirName,sectionDirs(ii).name,'averages');
 
         if ~isdir(thisAverageDir)
             continue

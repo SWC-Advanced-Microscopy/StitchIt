@@ -9,7 +9,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
     % Inputs
     % imStack - raw image stack (without any optional offset subtraction)
     % tileIndex - matrix defining the the locations of the tiles in the array
-    % thisDirName - 
+    % thisDirName - Where we will save the average data
     % illumChans - 
     % tileStats - The tileStats structure produced by writeTileStats. It should contain
     %             fields the same size as imStack. 
@@ -60,7 +60,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
 
         %Fail gracefully if tile index is not complete
         if isempty(tileIndex{thisChan,thisLayer})
-            fprintf(' **** WARNING **** Function "calcAverageMatFiles" encountered missing data in %s chan: %d layer: %d. SKIPPING\n', ...
+            fprintf(' **** WARNING **** Function "calcAverageMatFiles" encountered missing data working on %s chan: %d layer: %d. SKIPPING\n', ...
                 thisDirName, thisChan, thisLayer)
             continue
         end

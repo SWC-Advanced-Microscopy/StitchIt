@@ -127,12 +127,19 @@ lowValueThreshold = userConfig.analyse.lowValueThreshold; %TODO: we are no longe
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 %Find the raw directories we will descend into. 
 paramFile=getTiledAcquisitionParamFile;
-param=readMetaData2Stitchit(paramFile); 
+param=readMetaData2Stitchit(paramFile);
 baseName=directoryBaseName(paramFile);
 
 if ~exist(userConfig.subdir.rawDataDir,'dir')
     error('%s can not find raw data directory: .%s%s',mfilename,filesep,userConfig.subdir.rawDataDir)
 end
+
+%Create the directory into which we will save stitchit's parameters
+stitchitParameterDir = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir);
+if ~exist(stitchitParameterDir,'dir')
+    mkdir(stitchitParameterDir)
+end
+
 
 
 if length(sectionsToProcess)==1 && sectionsToProcess<=0     %Attempt to process all directories
@@ -172,13 +179,22 @@ for thisDir = 1:length(sectionDirectories)
         continue %Is only executed if user defined specific directories to process
     end
 
+    % StitchIt will produce various statistics for stitching to proceed and will place these
+    % in this directory: 
+    sectionStatsDirName=fullfile(userConfig.subdir.rawDataDir, ...
+        userConfig.subdir.preProcessDir, ...
+        sectionDirectories(thisDir).name);
+
+    if ~exist(sectionStatsDirName)
+        mkdir(sectionStatsDirName)
+    end
 
 
     %Skip if everything has been done and the user asked to loop through all directories.
-    sectionDirName=fullfile(userConfig.subdir.rawDataDir,sectionDirectories(thisDir).name);
-    statsFile=fullfile(sectionDirName,'tileStats.mat');
-    combFile=fullfile(sectionDirName,'phaseStats_01.mat');
-    aveDir=fullfile(sectionDirName,'averages');
+    statsFile=fullfile(sectionStatsDirName,'tileStats.mat');
+    combFile=fullfile(sectionStatsDirName,'phaseStats_01.mat');
+    aveDir=fullfile(sectionStatsDirName,'averages');
+
 
     %We skip if everything exists in the directory or if the non-existing files weren't ask for
     if ( exist(statsFile,'file') || exist([statsFile,'.mat'],'file') ) && ...
@@ -247,7 +263,7 @@ for thisDir = 1:length(sectionDirectories)
         % Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
         % the backround tiles. If the offset subtraction was requested in the INI file (for non TV data) then we 
         % will apply this to the image stack. This is why we request the stack to be returned. 
-        [tileStats,~]=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
+        [tileStats,~]=writeTileStats(imStack, tileIndex, sectionStatsDirName, statsFile);
     end
 
     %TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present
@@ -258,7 +274,7 @@ for thisDir = 1:length(sectionDirectories)
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
             fprintf('%s exists. Skipping this comb corrrection\n',combFile)
         else    
-            writeCombCorCoefs(imStack, sectionDirName, combCorChans)
+            writeCombCorCoefs(imStack, sectionStatsDirName, combCorChans)
             analysesPerformed.combCor=1;
         end
     end
@@ -271,7 +287,7 @@ for thisDir = 1:length(sectionDirectories)
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
             fprintf('Skipping illumination corrrection\n')
         else
-            calcAverageMatFiles(imStack, tileIndex, sectionDirName, illumChans, tileStats)
+            calcAverageMatFiles(imStack, tileIndex, sectionStatsDirName, illumChans, tileStats)
             analysesPerformed.illumCor=1;
         end
     end

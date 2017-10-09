@@ -12,7 +12,7 @@ function [tileStats,imStack]=writeTileStats(imStack,tileIndex,thisDirName,statsF
     % imStack - A cell array of image stacks. The rows are channels and the
     %           columns are optical sections.
     % tileIndex - A cell array of tileIndex matrices.
-    % thisDirName - a string defining the directory that contain these data
+    % thisDirName - a string defining the directory to which we will save the data
     % statsFile - string defining where to save the data.
     %
     %
