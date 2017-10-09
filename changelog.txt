@@ -1,10 +1,11 @@
 StitchIt Change Log
 
 
-17/05/10
+17/10/06
 - MAJOR: Offset subtraction is now set via the INI file. You will see warnings on screen until you add 
          this setting to your INI file.
 - Improvements in the way the offset correction is performed.
+- Remove calcAverageBinFiles since we now only calculate the newer .mat files
 
 
 17/09/21
