@@ -9,9 +9,6 @@ function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCo
 % 
 % This function works without the need for generateTileIndex
 
-%TODO: abstract the error checking?
-
-%COMMON
 
 %Load the INI file and extract default values from it
 userConfig=readStitchItINI;
@@ -38,14 +35,14 @@ param = readMetaData2Stitchit;
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
 
 if ~exist(sectionDir,'dir')
-    fprintf('%s: No directory: %s. Skipping.\n',...
-        mfilename,sprintf('%s',sectionDir))
+    fprintf('%s: No directory: %s. Skipping.\n', mfilename,sprintf('%s',sectionDir))
     im=[];
     positionArray=[];
     index=[];
     return
 end
-%/COMMON
+
+
 
 
 

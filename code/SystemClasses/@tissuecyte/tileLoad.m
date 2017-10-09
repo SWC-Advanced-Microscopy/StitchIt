@@ -7,7 +7,6 @@ function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCo
 %
 % This function works without the need for generateTileIndex
 
-%COMMON
 
 %Load the INI file and extract default values from it
 userConfig=readStitchItINI;
@@ -29,8 +28,7 @@ param = obj.readMosaicMetaData(getTiledAcquisitionParamFile);
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.SampleID,coords(1)));
 
 if ~exist(sectionDir,'dir')
-    fprintf('%s: No directory: %s. Skipping.\n',...
-        mfilename,sprintf('%s',sectionDir))
+    fprintf('%s: No directory: %s. Skipping.\n', mfilename,sprintf('%s',sectionDir))
     im=[];
     index=[];
     return
@@ -39,6 +37,7 @@ end
 %Load the section-specific Mosaic file (better in case we've merged runs and file names differ)
 paramFname=fullfile(sectionDir,sprintf('Mosaic_%s-%04d.txt',param.SampleID,coords(1)));
 param=obj.readMosaicMetaData(paramFname); 
+
 
 
 
