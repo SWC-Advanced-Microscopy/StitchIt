@@ -1,5 +1,10 @@
 StitchIt Change Log
 
+17/10/10
+- MAJOR: coefficients needed to stitch images (with the exception of the tileIndex) are now kept 
+         in rawData/stitchitPreProcessingFiles/. You will need to update your INI file by copying
+         the relevant bit from the default INI file.
+
 
 17/10/06
 - MAJOR: Offset subtraction is now set via the INI file. You will see warnings on screen until you add 
