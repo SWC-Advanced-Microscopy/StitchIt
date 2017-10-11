@@ -14,6 +14,7 @@ function TILESTATS = loadAllTileStatsFiles
 %
 % Rob Campbell - Basel 2016
 
+error('Not Implemented. TileStats has been updated. Is this function ever used?')
 
 %Load ini file variables
 userConfig=readStitchItINI;

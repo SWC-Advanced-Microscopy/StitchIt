@@ -56,7 +56,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
         % We will get rid of *really* dim tiles by removing tiles with a mean lower than tileStats.emptyTileThresh
         % The following ensures that we choose reasonable numbers based on the amp offsets
         mu = squeeze(mean(mean(thisStack)));
-        lowVals = find(mu<tileStats.emptyTileThresh(thisChan,thisLayer));
+        lowVals = find(mu<tileStats{thisChan}.emptyTileThresh(thisLayer));
 
         %Fail gracefully if tile index is not complete
         if isempty(tileIndex{thisChan,thisLayer})
@@ -85,7 +85,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
         thisStack(:,:,lowVals)=[]; % <--- Tiles with low values deleted here
 
         % Apply the tile offset. (It will be zero if it was not calculated)
-        offsetMu = mean(tileStats.offsetMean(thisChan,:)); %since all depths will have the same underlying value
+        offsetMu = mean(tileStats{thisChan}.offsetMean(:)); %since all depths will have the same underlying value
         thisStack = thisStack - cast(offsetMu,class(thisStack));
 
 
