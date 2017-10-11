@@ -33,6 +33,8 @@ end
 %Exit gracefully if data directory is missing 
 param = readMetaData2Stitchit;
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
+sectionProcessDir=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
+    sprintf('%s-%04d',param.sample.ID,coords(1)));
 
 if ~exist(sectionDir,'dir')
     fprintf('%s: No directory: %s. Skipping.\n', mfilename,sprintf('%s',sectionDir))
@@ -182,10 +184,10 @@ end
 % is useful in the event that a drifting offset is creating problems. 
 % Can be used to deal with offset amplifiers for a wider dynamic range.
 if doSubtractOffset
-    tileStatsFname = fullfile(sectionDir,'tileStats.mat');
+    tileStatsFname = fullfile(sectionProcessDir, sprintf('tileStats_ch%.0f.mat', channel));
     if exist(tileStatsFname,'file')
         load(tileStatsFname)
-        offsetMu = mean(tileStats.offsetMean(channel,:)); %since all depths will have the same underlying value
+        offsetMu = mean(tileStats.offsetMean(:)); %since all depths will have the same underlying value
         im = im - cast(offsetMu,class(im));
     else
         fprintf('bakingtray.tileLoad attempted to perform an offset correction but can not find file %s\n', tileStatsFname);
