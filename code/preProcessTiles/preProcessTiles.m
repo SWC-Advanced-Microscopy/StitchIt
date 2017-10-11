@@ -211,9 +211,14 @@ for thisDir = 1:length(sectionDirectories)
             fprintf('Loading section %03d, layer %02d, chan %d\n',sectionNumber,thisLayer,thisChan)
             %Load the raw tiles for this layer without cropping, illumination correction, or phase correction
             try 
-                [thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan],0,0,0); 
-            catch
-                fprintf('%s. Could not find images to load for channel %d. Is this channel missing?\n',mfilename, thisChan)
+                [thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan], ...
+                    'doIlluminationCorrection', false, ...
+                    'doCrop', false, ...
+                    'doCombCorrection', false, ...
+                    'doSubtractOffset', false);
+            catch ME
+                fprintf('%s - Could not load images for channel %d. Is this channel missing?\n',mfilename, thisChan)
+                fprintf('Failed with error message: %s\n', ME.message)
                 analysesPerformed=[];
                 break
             end
@@ -237,10 +242,12 @@ for thisDir = 1:length(sectionDirectories)
     %Write tile statistics to a file. 
     if exist(statsFile,'file') && length(sectionsToProcess)==1 && sectionsToProcess==0 %Skip if sectionsToProcess is zero and file exists
         fprintf('%s stats file already exists\n',sectionDirectories(thisDir).name)
+        load(statsFile);
     else
         % Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
-        % the backround tiles. 
-        tileStats=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
+        % the backround tiles. If the offset subtraction was requested in the INI file (for non TV data) then we 
+        % will apply this to the image stack. This is why we request the stack to be returned. 
+        [tileStats,~]=writeTileStats(imStack, tileIndex, sectionDirName, statsFile);
     end
 
     %TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present
@@ -264,7 +271,7 @@ for thisDir = 1:length(sectionDirectories)
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
             fprintf('Skipping illumination corrrection\n')
         else
-            calcAverageMatFiles(imStack, tileIndex, sectionDirName, illumChans, tileStats.emptyTileThresh)
+            calcAverageMatFiles(imStack, tileIndex, sectionDirName, illumChans, tileStats)
             analysesPerformed.illumCor=1;
         end
     end

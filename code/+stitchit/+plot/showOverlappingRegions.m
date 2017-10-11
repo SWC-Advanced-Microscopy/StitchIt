@@ -20,7 +20,7 @@ S=[0.55,0.55];
 
 %CENTRAL TILE
 axes('position',[0.25,0.25,S]);
-centralTile = tileLoad(coords,illum,crop);
+centralTile = tileLoad(coords,'doIlluminationCorrection',illum,'doCrop',crop);
 showTile(centralTile)
 
 
@@ -28,7 +28,7 @@ showTile(centralTile)
 axes('position',[0.25,0.81,S]);
 tCoords=coords;
 tCoords(3)=coords(3)-1;
-top = tileLoad(tCoords,illum,crop);
+top = tileLoad(tCoords,'doIlluminationCorrection',illum,'doCrop',crop);
 showTile(top)
 
 
@@ -37,7 +37,7 @@ showTile(top)
 axes('position',[0.25,-0.31,S]);
 tCoords=coords;
 tCoords(3)=coords(3)+1;
-bottom = tileLoad(tCoords,illum,crop);
+bottom = tileLoad(tCoords,'doIlluminationCorrection',illum,'doCrop',crop);
 showTile(bottom)
 
 
@@ -45,14 +45,14 @@ showTile(bottom)
 axes('position',[-0.16, 0.25,S]);
 tCoords=coords;
 tCoords(4)=coords(4)-1;
-left = tileLoad(tCoords,illum,crop);
+left = tileLoad(tCoords,'doIlluminationCorrection',illum,'doCrop',crop);
 showTile(left)
 
 
 axes('position',[0.66,0.25,S]);
 tCoords=coords;
 tCoords(4)=coords(4)+1;
-right = tileLoad(tCoords,illum,crop);
+right = tileLoad(tCoords,'doIlluminationCorrection',illum,'doCrop',crop);
 showTile(right)
 
 

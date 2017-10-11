@@ -1,34 +1,17 @@
-function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCorrection)
-% For user documentation run "help tileLoad" at the command line
+function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCorrection,doSubtractOffset,verbose)
+% Load raw tile data from a bakingtray experiment
+%
+% 
+% Input arguments are parsed by the tileLoad function stub and are supplied
+% as parameter/value pairs. For more infor and user documentation run 
+% "help tileLoad" at the command line or look in source code of that file.
+% 
 % 
 % This function works without the need for generateTileIndex
 
 %TODO: abstract the error checking?
 
 %COMMON
-%Handle input arguments
-
-
-if length(coords)~=5
-    % coords - a vector of length 5 4 with the fields:
-    %     [physical section, optical section, yID, xID,channel]
-    error('Coords should have a length of 5. Instead it has a length of %d', length(coords))
-end
-
-if nargin<3
-    doIlluminationCorrection=[];
-end
-
-if nargin<4
-    doCrop=[];  
-end
-
-if nargin<5
-    doCombCorrection=[];
-end
-
-verbose=0; %Enable this for debugging. Otherwise it's best to leave it off
-
 
 %Load the INI file and extract default values from it
 userConfig=readStitchItINI;
@@ -40,8 +23,13 @@ end
 if isempty(doCrop)
     doCrop=userConfig.tile.docrop; 
 end
+
 if isempty(doCombCorrection)
     doCombCorrection=userConfig.tile.doPhaseCorrection;
+end
+
+if isempty(doSubtractOffset)
+    doSubtractOffset=userConfig.tile.doOffsetSubtraction;
 end
 
 
@@ -195,10 +183,8 @@ end
 
 % If requested and possible, subtract the calculated offset from the tiles. This
 % is useful in the event that a drifting offset is creating problems. 
-% TODO: in the longer term this can be used to deal with offset amplifiers for
-% a wider dynamic range. Not tested yet.
-doOffsetCorrection=1;
-if doOffsetCorrection
+% Can be used to deal with offset amplifiers for a wider dynamic range.
+if doSubtractOffset
     tileStatsFname = fullfile(sectionDir,'tileStats.mat');
     if exist(tileStatsFname,'file')
         load(tileStatsFname)
