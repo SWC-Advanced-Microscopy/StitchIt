@@ -455,4 +455,9 @@ function [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, para
             tileIndex{thisChan,thisLayer}=thisTileIndex;
         end
     end
+    if chansToLoad & all(cellfun(@isempty,imStack))
+        fprintf('%s couldn''t load any image data from directory %s. SKIPPING\n',...
+        mfilename, sectionDirectory)
+    	loadError=1;
+    end
 end
