@@ -33,7 +33,8 @@ end
 %Exit gracefully if data directory is missing 
 param = readMetaData2Stitchit;
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
-sectionProcessDir=fullfile(userConfig.subdir.preProcessDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
+sectionProcessDir=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
+    sprintf('%s-%04d',param.sample.ID,coords(1)));
 
 if ~exist(sectionDir,'dir')
     fprintf('%s: No directory: %s. Skipping.\n', mfilename,sprintf('%s',sectionDir))
