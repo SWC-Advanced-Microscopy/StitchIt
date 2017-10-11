@@ -1,4 +1,4 @@
-function TILESTATS = loadAllTileStatsFiles
+function TILESTATS = loadAllTileStatsFiles(chan)
 
 % Loads all tile stats files .mat files
 %
@@ -7,6 +7,8 @@ function TILESTATS = loadAllTileStatsFiles
 % Purpose
 % Load all tileStats.mat files in the raw data directory and return as a structure
 % 
+% Inputs
+% chan - channel to load. Default 2
 %
 % Outputs
 % tileStats - vector all tileStats structures
@@ -14,7 +16,9 @@ function TILESTATS = loadAllTileStatsFiles
 %
 % Rob Campbell - Basel 2016
 
-error('Not Implemented. TileStats has been updated. Is this function ever used?')
+if ~exist('chan', 'var') || isempty(chan)
+    chan = 2;
+end
 
 %Load ini file variables
 userConfig=readStitchItINI;
@@ -36,7 +40,8 @@ fprintf('Loading tileStats.')
 for ii=1:length(D)
     if mod(ii,5)==0, fprintf('.'), end
 
-    fname = fullfile(userConfig.subdir.rawDataDir,D(ii).name,'tileStats.mat');
+    fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
+        D(ii).name,sprintf('tileStats_ch%.0f.mat', chan));
     if ~exist(fname,'file') %Skip this directory if no tileStats.mat file is present and increment counter
         numMissingFiles=numMissingFiles+1;
         continue
