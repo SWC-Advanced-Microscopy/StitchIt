@@ -120,6 +120,7 @@ function [tileStats,imStack]=writeTileStats(imStack,tileIndex,thisDirName,statsF
         offsetMu = cast(offsetMu,class(imStack{1,1}));
 
         for thisLayer = 1:size(imStack,2) % Optical sections
+            if isempty(imStack{thisChan,thisLayer}), continue, end %Skip empty channels
             imStack{thisChan,thisLayer} = imStack{thisChan,thisLayer} - offsetMu;
         end
     end
