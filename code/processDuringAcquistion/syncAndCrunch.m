@@ -111,8 +111,8 @@ end
 logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
 try 
   stitchit.updateChecker.checkIfUpToDate;
-catch
-  stitchit.tools.logger(lasterror,logFileName)
+catch ME
+  stitchit.tools.logger(ME,logFileName)
   fprintf('Failed to check if StitchIt is up to date. Error written in %s\n',logFileName)
 end
 fprintf('\n\n')
@@ -163,7 +163,7 @@ config=readStitchItINI;
 
 % Only create the local "rawData" folder if it does not exist on the server. The TissueCyte will not make it
 % but BakingTray does make it. 
-if exist(fullfile(serverDir,config.subdir.rawDataDir))
+if exist(fullfile(serverDir,config.subdir.rawDataDir),'dir')
   rawDataDir = expDir;
 else
   rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
@@ -231,16 +231,14 @@ while 1
   %read tvMat config file
   try
     config=readStitchItINI;
-  catch
+  catch ME
     if ~sentConfigWarning %Do not re-send using notify
-      L=lasterror;
-      stitchit.tools.notify(sprintf('%s Failed to read INI file with error %s', generateMessage('negative'), L.message))
+      stitchit.tools.notify(sprintf('%s Failed to read INI file with error %s', generateMessage('negative'), ME.message))
       sentConfigWarning=1;
     else
-      L=lasterror;
-      fprintf('Failed to read INI file with error %s\n', L.message)
+      fprintf('Failed to read INI file with error %s\n', ME.message)
     end
-    stitchit.tools.logger(L,logFileName)
+    stitchit.tools.logger(ME,logFileName)
   end %try/catch
 
 
@@ -262,8 +260,8 @@ while 1
 
   fprintf('Getting files for section %d/%d from server\n', numDirsAcquired, numSections)
   try
-    [returnStatus,msg]=unix(sprintf('rsync %s %s%s*.* %s', config.syncAndCrunch.rsyncFlag, serverDir,filesep, expDir)); %files with extensions copied to experiment dir
-    [returnStatus,msg]=unix(sprintf('rsync %s %s%s %s', config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir));
+    [returnStatus,~]=unix(sprintf('rsync %s %s%s*.* %s', config.syncAndCrunch.rsyncFlag, serverDir,filesep, expDir)); %files with extensions copied to experiment dir
+    [returnStatus,~]=unix(sprintf('rsync %s %s%s %s', config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir));
   catch
     if returnStatus~=0 && ~sentWarning
       stitchit.tools.notify([generateMessage('negative'),' rsync failed in ',localDir,' Attempting to continue'])
@@ -320,11 +318,10 @@ while 1
     if numCompleted>0
       fprintf('Adding tile index files to %d raw data directories\n',numCompleted)
     end
-  catch
-    L=lasterror;
+  catch ME
     stitchit.tools.notify(sprintf('%s Failed to generateTileIndex with:\n%s\n',...
-      generateMessage('negative'), L.message))
-    stitchit.tools.logger(L,logFileName)
+      generateMessage('negative'), ME.message))
+    stitchit.tools.logger(ME,logFileName)
   end %try/catch
 
   fprintf('\nCRUNCHING newly found completed data directories\n')
@@ -346,16 +343,15 @@ while 1
 
   if analysesPerformed.illumCor
     try
-      collateAverageImages %GENERATE GRAND-AVERAGE IMAGES (but these keep getting over-written)
-    catch
-      L=lasterror;
+      collateAverageImages %GENERATE GRAND-AVERAGE IMAGES (although these keep getting over-written)
+    catch ME
       if ~sentCollateWarning %So we don't send a flood of messages
-        stitchit.tools.notify([generateMessage('negative'),' Failed to collate average images. ',L.message])
+        stitchit.tools.notify([generateMessage('negative'),' Failed to collate average images. ',ME.message])
         sentCollateWarning=1;
       else
-        fprintf(['Failed to collate. ',L.message]) 
+        fprintf(['Failed to collate. ',ME.message]) 
       end
-      stitchit.tools.logger(L,logFileName)
+      stitchit.tools.logger(ME,logFileName)
     end %try/catch
   end
 
@@ -366,15 +362,14 @@ while 1
     fprintf('Building images and sending to web\n') 
       try 
         buildSectionPreview([],chanToPlot); %plot last completed section as per the trigger file
-      catch
-        L=lasterror;
+      catch ME
         if ~sentPlotwarning %So we don't send a flood of messages
-          stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',L.message])
+          stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',ME.message])
           sentPlotwarning=1;
         else
-          fprintf(['Failed to plot image. ',L.message])
+          fprintf(['Failed to plot image. ', ME.message])
         end 
-        stitchit.tools.logger(L,logFileName)
+        stitchit.tools.logger(ME,logFileName)
       end %try/catch
   end
 
@@ -425,11 +420,10 @@ try
   stitchit.tools.warnLowDiskSpace(localDir,90)
   eval(postAcqFun) %Run the post-acquisition function
   success=true;
-catch
+catch ME
   if ~expAlreadyFinished
-    L=lasterror;
-    stitchit.tools.notify([generateMessage('negative'),' Stitching failed. ',L.message])
-    stitchit.tools.logger(L,logFileName)
+    stitchit.tools.notify([generateMessage('negative'),' Stitching failed. ',ME.message])
+    stitchit.tools.logger(ME,logFileName)
   end
   success=false;
 end

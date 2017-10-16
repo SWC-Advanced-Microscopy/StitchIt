@@ -1,4 +1,10 @@
 function writeCombCorCoefs(imStack,thisDirName,combCorChans)
+    % Inputs
+    % imStack - A cell array of image stacks. The rows are channels and the
+    %           columns are optical sections.
+    % thisDirName - a string defining the directory where we will save these data
+    
+
 
     %fprintf('Calculating phase correction\n')
     userConfig=readStitchItINI;

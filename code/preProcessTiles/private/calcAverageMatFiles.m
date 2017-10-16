@@ -9,7 +9,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
     % Inputs
     % imStack - raw image stack (without any optional offset subtraction)
     % tileIndex - matrix defining the the locations of the tiles in the array
-    % thisDirName - 
+    % thisDirName - Where we will save the average data
     % illumChans - 
     % tileStats - The tileStats structure produced by writeTileStats. It should contain
     %             fields the same size as imStack. 
@@ -42,8 +42,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
             mkdir(aveDirName)
         end
 
-        if exist(aveFname), delete(aveFname), end
-        imSize = size(imStack{thisChan,thisLayer},1);
+        if exist(aveFname,'file'), delete(aveFname), end
 
         thisStack = imStack{thisChan,thisLayer};
 
@@ -56,11 +55,11 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
         % We will get rid of *really* dim tiles by removing tiles with a mean lower than tileStats.emptyTileThresh
         % The following ensures that we choose reasonable numbers based on the amp offsets
         mu = squeeze(mean(mean(thisStack)));
-        lowVals = find(mu<tileStats.emptyTileThresh(thisChan,thisLayer));
+        lowVals = find(mu<tileStats{thisChan}.emptyTileThresh(thisLayer));
 
         %Fail gracefully if tile index is not complete
         if isempty(tileIndex{thisChan,thisLayer})
-            fprintf(' **** WARNING **** Function "calcAverageMatFiles" encountered missing data in %s chan: %d layer: %d. SKIPPING\n', ...
+            fprintf(' **** WARNING **** Function "calcAverageMatFiles" encountered missing data working on %s chan: %d layer: %d. SKIPPING\n', ...
                 thisDirName, thisChan, thisLayer)
             continue
         end
@@ -85,7 +84,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
         thisStack(:,:,lowVals)=[]; % <--- Tiles with low values deleted here
 
         % Apply the tile offset. (It will be zero if it was not calculated)
-        offsetMu = mean(tileStats.offsetMean(thisChan,:)); %since all depths will have the same underlying value
+        offsetMu = mean(tileStats{thisChan}.offsetMean(:)); %since all depths will have the same underlying value
         thisStack = thisStack - cast(offsetMu,class(thisStack));
 
 
@@ -134,7 +133,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
 
 
         trimQuantity=round((2/length(framesToKeep))*100); %Defines the degree of trimming 
-        if trimQuantity>=100 | trimQuantity<=0 | isnan(trimQuantity)
+        if trimQuantity>=100 || trimQuantity<=0 || isnan(trimQuantity)
             fprintf('WARNING: trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
                 trimQuantity,defaultTrim);
             trimQuantity=defaultTrim;

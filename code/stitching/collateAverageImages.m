@@ -1,4 +1,4 @@
-function grandAverageStructure=collateAverageImages(theseDirs)
+function varargout=collateAverageImages(theseDirs)
 % Loop through data directories and use saved average files to create grand average images
 %
 % function collateAverageImages(theseDirs)
@@ -28,8 +28,6 @@ function grandAverageStructure=collateAverageImages(theseDirs)
 
 
 % Read meta-data 
-mosaicFile=getTiledAcquisitionParamFile;
-param=readMetaData2Stitchit(mosaicFile);
 userConfig=readStitchItINI;
 
 % Determine the name of the directory to which we will write data
@@ -50,22 +48,30 @@ end
 baseName=directoryBaseName(getTiledAcquisitionParamFile);
 sectionDirs=dir([userConfig.subdir.rawDataDir,filesep,baseName,'*']);
 
-%Bail out if no section directories were found
+% Bail out if no section directories were found
 if isempty(sectionDirs)
-    fprintf('ERROR: %s is uUnable to find raw data directories. Quitting.\n', mfilename)
+    fprintf('ERROR: %s is unable to find raw data directories. Quitting.\n', mfilename)
     return
 end
 
+% Bail out if no StitchIt pre-processing directories exist
+sectionStatsDirName=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir);
+if ~exist(sectionStatsDirName,'dir')
+    fprintf('ERROR: %s is unable to find the processed data directory %s. Quitting.\n', ...
+        mfilename, sectionStatsDirName)
+    return
+end
+
+
 % Choose a sub-set of these if the user asked for it 
 % NOTE: This is error-prone (see help text of this function)
-if nargin>0 & ~isempty(theseDirs)
+if nargin>0 && ~isempty(theseDirs)
     sectionDirs=sectionDirs(theseDirs);
 end
 
 
 %Figure out how many unique channels have average data calculated
-rawDataDir = userConfig.subdir.rawDataDir;
-channels = findUniqueChannels(rawDataDir,sectionDirs);
+channels = findUniqueChannels(sectionStatsDirName,sectionDirs);
 
 
 
@@ -79,13 +85,12 @@ for c=1:length(channels)
 
 
     fprintf('Loading average data for channel %d ',channels(c))
-    nImages = zeros(1,param.mosaic.numOpticalPlanes); %to keep track of the number of images
 
     donePreallocation=false;
     for sectionInd=1:length(sectionDirs) 
 
-        % We attempt to gather average images from this directory
-        thisAverageDir = fullfile(rawDataDir,sectionDirs(sectionInd).name,'averages',num2str(channels(c)));
+        % We attempt to gather average images from this processed data directory
+        thisAverageDir = fullfile(sectionStatsDirName, sectionDirs(sectionInd).name,'averages',num2str(channels(c)));
 
         if ~isdir(thisAverageDir)
             % Skip this section if no such directory exists
@@ -96,7 +101,7 @@ for c=1:length(channels)
         % TODO: this is ultimately going to be a legacy step but for now we keep it (July, 2017)
         averageFiles = findAverageFilesInAverageChannelDir(thisAverageDir);
         if isempty(averageFiles)
-            continue    
+            continue
         end
 
         for depth = 1:length(averageFiles) % Loop over depths (one average file was made per depth)
@@ -129,9 +134,7 @@ for c=1:length(channels)
     % Handle missing data and calculate grand average
     fprintf('Calculating final tiles')
     for depth=1:length(grandAverageStructure) % Loop over depths again
-
-        %look for nans
-
+       
         avData = grandAverageStructure(depth);
 
         fEven = squeeze( any(any(isnan(avData.evenRows))) );
@@ -166,13 +169,17 @@ for c=1:length(channels)
 
         fname = sprintf('%02d_%s.mat',avData.layer, avData.correctionType);
         fullPath = fullfile(targetDir, fname);
-        save(fullPath,'avData')
+        save(fullPath,'avData');
         fprintf('.')
     end
     fprintf('\n')
 
 end
 
+
+if nargout>0
+    varargout{1}=grandAverageStructure;
+end
 
 
 % ------------------------------------------------------------------------------------------------------------
@@ -196,12 +203,12 @@ function templateStructure = preallocateGrandAverageStruct(templateStructure, nu
 
 
 
-function channels = findUniqueChannels(rawDataDir,sectionDirs)
+function channels = findUniqueChannels(sectionStatsDirName,sectionDirs)
     % Determines how many unique channels have average data calculated
     channels=[];
 
     for ii=1:length(sectionDirs) 
-        thisAverageDir = fullfile(rawDataDir,sectionDirs(ii).name,'averages');
+        thisAverageDir = fullfile(sectionStatsDirName,sectionDirs(ii).name,'averages');
 
         if ~isdir(thisAverageDir)
             continue
