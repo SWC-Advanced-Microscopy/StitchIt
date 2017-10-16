@@ -65,10 +65,14 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 % preProcessTiles([1,1;90,5],0,1)
 %
 % Two
+% Process phsyical sections 10 to 20:
+% preProcessTiles(1:20,0,1:4)
+%
+% Three
 % Process all illumination correction data not already done for channel 1.
 % preProcessTiles([],0,1)
 %
-% Three
+% Four
 % re-precess everything for channel 1 illumination correction.
 % preProcessTiles(-1,0,1)
 %
