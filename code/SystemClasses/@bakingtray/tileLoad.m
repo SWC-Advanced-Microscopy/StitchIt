@@ -9,9 +9,6 @@ function [im,index]=tileLoad(obj,coords,doIlluminationCorrection,doCrop,doCombCo
 % 
 % This function works without the need for generateTileIndex
 
-%TODO: abstract the error checking?
-
-%COMMON
 
 %Load the INI file and extract default values from it
 userConfig=readStitchItINI;
@@ -36,16 +33,18 @@ end
 %Exit gracefully if data directory is missing 
 param = readMetaData2Stitchit;
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
+sectionProcessDir=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
+    sprintf('%s-%04d',param.sample.ID,coords(1)));
 
 if ~exist(sectionDir,'dir')
-    fprintf('%s: No directory: %s. Skipping.\n',...
-        mfilename,sprintf('%s',sectionDir))
+    fprintf('%s: No directory: %s. Skipping.\n', mfilename,sprintf('%s',sectionDir))
     im=[];
     positionArray=[];
     index=[];
     return
 end
-%/COMMON
+
+
 
 
 
@@ -86,9 +85,8 @@ sectionNum = coords(1);
 planeNum = coords(2); %Optical plane
 channel = coords(5);
 
-%TODO: we're just loading the full stack right now
 im=[];
-
+index=[];
 
 %Check that all requested data exist
 for XYposInd=1:size(positionArray,1)
@@ -96,8 +94,6 @@ for XYposInd=1:size(positionArray,1)
     path2stack = fullfile(sectionDir,sectionTiff);
     if ~exist(path2stack,'file') %TODO: bad [why? -- RAAC 02/05/2017]
         fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);
-        im=[];
-        index=[];
         positionArray=[];
         return
     end
@@ -185,10 +181,10 @@ end
 % is useful in the event that a drifting offset is creating problems. 
 % Can be used to deal with offset amplifiers for a wider dynamic range.
 if doSubtractOffset
-    tileStatsFname = fullfile(sectionDir,'tileStats.mat');
+    tileStatsFname = fullfile(sectionProcessDir, sprintf('tileStats_ch%.0f.mat', channel));
     if exist(tileStatsFname,'file')
         load(tileStatsFname)
-        offsetMu = mean(tileStats.offsetMean(channel,:)); %since all depths will have the same underlying value
+        offsetMu = mean(tileStats.offsetMean(:)); %since all depths will have the same underlying value
         im = im - cast(offsetMu,class(im));
     else
         fprintf('bakingtray.tileLoad attempted to perform an offset correction but can not find file %s\n', tileStatsFname);

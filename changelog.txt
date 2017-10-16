@@ -1,5 +1,17 @@
 StitchIt Change Log
 
+17/10/16
+- MAJOR: stitching-related parameters (including average images) are now stored in a separate location 
+         to the raw data. So data sets processed prior to this date will need preprocessing again. 
+         Suggest you first delete existing average images, as they take up a lot of space. 
+- Bugfix to cope with a situation where the user starts acquiring data from an extra channel mid-way
+  through the acquisition. 
+
+17/10/10
+- MAJOR: coefficients needed to stitch images (with the exception of the tileIndex) are now kept 
+         in rawData/stitchitPreProcessingFiles/. You will need to update your INI file by copying
+         the relevant bit from the default INI file.
+
 
 17/10/06
 - MAJOR: Offset subtraction is now set via the INI file. You will see warnings on screen until you add 
