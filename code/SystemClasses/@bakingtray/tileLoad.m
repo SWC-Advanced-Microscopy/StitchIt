@@ -85,9 +85,8 @@ sectionNum = coords(1);
 planeNum = coords(2); %Optical plane
 channel = coords(5);
 
-%TODO: we're just loading the full stack right now
 im=[];
-
+index=[];
 
 %Check that all requested data exist
 for XYposInd=1:size(positionArray,1)
@@ -95,8 +94,6 @@ for XYposInd=1:size(positionArray,1)
     path2stack = fullfile(sectionDir,sectionTiff);
     if ~exist(path2stack,'file') %TODO: bad [why? -- RAAC 02/05/2017]
         fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);
-        im=[];
-        index=[];
         positionArray=[];
         return
     end
