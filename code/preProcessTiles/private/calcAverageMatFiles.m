@@ -42,8 +42,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
             mkdir(aveDirName)
         end
 
-        if exist(aveFname), delete(aveFname), end
-        imSize = size(imStack{thisChan,thisLayer},1);
+        if exist(aveFname,'file'), delete(aveFname), end
 
         thisStack = imStack{thisChan,thisLayer};
 
@@ -134,7 +133,7 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
 
 
         trimQuantity=round((2/length(framesToKeep))*100); %Defines the degree of trimming 
-        if trimQuantity>=100 | trimQuantity<=0 | isnan(trimQuantity)
+        if trimQuantity>=100 || trimQuantity<=0 || isnan(trimQuantity)
             fprintf('WARNING: trimQuantity is %d but should be between 0 and 100. Setting to %d\n', ...
                 trimQuantity,defaultTrim);
             trimQuantity=defaultTrim;

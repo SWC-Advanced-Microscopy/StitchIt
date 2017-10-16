@@ -1,4 +1,4 @@
-function grandAverageStructure=collateAverageImages(theseDirs)
+function varargout=collateAverageImages(theseDirs)
 % Loop through data directories and use saved average files to create grand average images
 %
 % function collateAverageImages(theseDirs)
@@ -28,8 +28,6 @@ function grandAverageStructure=collateAverageImages(theseDirs)
 
 
 % Read meta-data 
-mosaicFile=getTiledAcquisitionParamFile;
-param=readMetaData2Stitchit(mosaicFile);
 userConfig=readStitchItINI;
 
 % Determine the name of the directory to which we will write data
@@ -67,7 +65,7 @@ end
 
 % Choose a sub-set of these if the user asked for it 
 % NOTE: This is error-prone (see help text of this function)
-if nargin>0 & ~isempty(theseDirs)
+if nargin>0 && ~isempty(theseDirs)
     sectionDirs=sectionDirs(theseDirs);
 end
 
@@ -87,7 +85,6 @@ for c=1:length(channels)
 
 
     fprintf('Loading average data for channel %d ',channels(c))
-    nImages = zeros(1,param.mosaic.numOpticalPlanes); %to keep track of the number of images
 
     donePreallocation=false;
     for sectionInd=1:length(sectionDirs) 
@@ -104,7 +101,7 @@ for c=1:length(channels)
         % TODO: this is ultimately going to be a legacy step but for now we keep it (July, 2017)
         averageFiles = findAverageFilesInAverageChannelDir(thisAverageDir);
         if isempty(averageFiles)
-            continue    
+            continue
         end
 
         for depth = 1:length(averageFiles) % Loop over depths (one average file was made per depth)
@@ -137,9 +134,7 @@ for c=1:length(channels)
     % Handle missing data and calculate grand average
     fprintf('Calculating final tiles')
     for depth=1:length(grandAverageStructure) % Loop over depths again
-
-        %look for nans
-
+       
         avData = grandAverageStructure(depth);
 
         fEven = squeeze( any(any(isnan(avData.evenRows))) );
@@ -174,13 +169,17 @@ for c=1:length(channels)
 
         fname = sprintf('%02d_%s.mat',avData.layer, avData.correctionType);
         fullPath = fullfile(targetDir, fname);
-        save(fullPath,'avData')
+        save(fullPath,'avData');
         fprintf('.')
     end
     fprintf('\n')
 
 end
 
+
+if nargout>0
+    varargout{1}=grandAverageStructure;
+end
 
 
 % ------------------------------------------------------------------------------------------------------------
