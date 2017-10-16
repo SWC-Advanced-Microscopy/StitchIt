@@ -119,10 +119,10 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
 
     % Apply the tile offset. (It will be zero if it was not calculated)
 
+
     offsetMu = mean(tileStats.offsetMean(1,:)); %since all depths will have the same underlying value
     offsetMu = cast(offsetMu,class(imStack{1,1}));
 
     for thisLayer = 1:size(imStack,2) % Optical sections
         imStack{1,thisLayer} = imStack{1,thisLayer} - offsetMu;
     end
-    
