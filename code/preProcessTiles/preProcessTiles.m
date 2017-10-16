@@ -226,7 +226,7 @@ for thisDir = 1:length(sectionDirectories)
     [imStack, tileIndex, loadError] = load_imstack([], [], param, sectionDirectories(thisDir).name, chanToStats, MAXCHANS);
     if loadError
         if verbose
-                fprintf('Error loading the data %s. Skipping.\n', sectionDirectories(thisDir).name)
+                fprintf('Error loading the data in directory %s. Skipping.\n', sectionDirectories(thisDir).name)
         end
         continue
     end
@@ -450,6 +450,9 @@ function [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, para
                 fprintf('Failed with error message: %s\n', ME.message)
                 loadError=1;
                 break
+            end
+            if isempty(thisImStack)
+                loadError=1;
             end
             imStack{thisChan,thisLayer}=thisImStack;
             tileIndex{thisChan,thisLayer}=thisTileIndex;
