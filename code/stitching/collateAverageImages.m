@@ -1,4 +1,4 @@
-function collateAverageImages(theseDirs)
+function grandAverageStructure=collateAverageImages(theseDirs)
 % Loop through data directories and use saved average files to create grand average images
 %
 % function collateAverageImages(theseDirs)
@@ -80,6 +80,8 @@ for c=1:length(channels)
 
     fprintf('Loading average data for channel %d ',channels(c))
     nImages = zeros(1,param.mosaic.numOpticalPlanes); %to keep track of the number of images
+
+    donePreallocation=false;
     for sectionInd=1:length(sectionDirs) 
 
         % We attempt to gather average images from this directory
@@ -94,7 +96,7 @@ for c=1:length(channels)
         % TODO: this is ultimately going to be a legacy step but for now we keep it (July, 2017)
         averageFiles = findAverageFilesInAverageChannelDir(thisAverageDir);
         if isempty(averageFiles)
-            continue
+            continue    
         end
 
         for depth = 1:length(averageFiles) % Loop over depths (one average file was made per depth)
@@ -102,9 +104,12 @@ for c=1:length(channels)
             fname=fullfile(thisAverageDir,averageFiles(depth).name);
             tmp=loadAveBinFile(fname); % Will also handle .mat files This function is here for legacy purposes (July, 2017) TODO
 
-            if sectionInd==1
-                % If this is the first section and first file created a new grand average structure.
+            if ~donePreallocation
+                % If the grand average structure has not yet been made (i.e. likely this is the first sections) then make a skeleton
                 grandAverageStructure(depth) = preallocateGrandAverageStruct(tmp, length(sectionDirs));
+                if depth==length(averageFiles)
+                    donePreallocation=true;
+                end
             end
 
             % Place data from this section average into the structure
@@ -120,8 +125,6 @@ for c=1:length(channels)
         end
     end
     fprintf('\n')
-
-
 
     % Handle missing data and calculate grand average
     fprintf('Calculating final tiles')
@@ -160,7 +163,6 @@ for c=1:length(channels)
         %And the grand average
         avData.pooledRows = (avData.evenRows + avData.oddRows)/2;
         avData.poolN = avData.evenN + avData.oddN;
-
 
         fname = sprintf('%02d_%s.mat',avData.layer, avData.correctionType);
         fullPath = fullfile(targetDir, fname);
