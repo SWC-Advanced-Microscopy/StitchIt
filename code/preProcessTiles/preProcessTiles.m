@@ -178,235 +178,129 @@ chansToLoad = unique([illumChans,combCorChans]);
 % remove 0. The value for 'no channel' in combCorChans or illumChans
 chansToLoad = chansToLoad(chansToLoad~=0);
 
-%Loop through sections with a regular for loop and conduct
-%analyses in parallel
 
-for thisDir = 1:length(sectionDirectories)
-
-    if isempty(sectionDirectories(thisDir).name)
-        continue %Is only executed if user defined specific directories to process
-    end
-
-    % StitchIt will produce various statistics for stitching to proceed and will place these
-    % in this directory: 
-    sectionStatsDirName=fullfile(userConfig.subdir.rawDataDir, ...
-        userConfig.subdir.preProcessDir, ...
-        sectionDirectories(thisDir).name);
-
-    if ~exist(sectionStatsDirName)
-        mkdir(sectionStatsDirName)
-    end
-
-    % First create the needed tileStats
-    % This step will write tile statistics to disk. This can later be used 
-    % to quickly calculate things like the intensity of the backround 
-    % tiles. If the offset subtraction was requested in the INI file (for 
-    % non TV data) then we will apply this to the image stack. This is why 
-    % we request the stack to be returned. 
-    
-    % Find what is written on disk and what need to be done
-    if sectionsToProcess < 0 % if sectionsToProcess is -1, regenerate everything
-        chanToStats = chansToLoad;
-        statsToLoad = [];
-    else
-        chanToStats = [];
-        statsToLoad = [];
-        for iC = 1:numel(chansToLoad)
-            chan = chansToLoad(iC);
-            statsFile = fullfile(sectionStatsDirName, sprintf('tileStats_ch%.0f.mat', chan));
-            if ~exist(statsFile, 'file')
-                chanToStats(end+1) = chan;
-            else
-                statsToLoad(end+1) = chan;
-            end
+% Loop first through channels then through sections
+for iChan = 1:numel(chansToLoad)
+    chan = chansToLoad(iChan);
+    %Loop through sections with a regular for loop and conduct
+    %analyses in parallel
+    for thisDir = 1:length(sectionDirectories)
+        imStack = []; tileIndex = [];
+        tileStatsAllChan = cell([MAXCHANS,1]);
+        if isempty(sectionDirectories(thisDir).name)
+            continue %Is only executed if user defined specific directories to process
         end
-    end
-    
-    % load data needed for tileStat creation
-    [imStack, tileIndex, loadError] = load_imstack([], [], param, sectionDirectories(thisDir).name, chanToStats, MAXCHANS);
-    if loadError
-        if verbose
-                fprintf('Error loading the data %s. Skipping.\n', sectionDirectories(thisDir).name)
+        % StitchIt will produce various statistics for stitching to proceed and will place these
+        % in this directory: 
+        sectionStatsDirName=fullfile(userConfig.subdir.rawDataDir, ...
+            userConfig.subdir.preProcessDir, ...
+            sectionDirectories(thisDir).name);
+
+        if ~exist(sectionStatsDirName)
+            mkdir(sectionStatsDirName)
         end
-        continue
-    end
-    
-    % write statsFile for chans where it's needed
-    tileStatsAllChan = cell([MAXCHANS, 1]);
-    for chan = chanToStats
+
+        % First create the needed tileStats
+        % This step will write tile statistics to disk. This can later be used 
+        % to quickly calculate things like the intensity of the backround 
+        % tiles. If the offset subtraction was requested in the INI file (for 
+        % non TV data) then we will apply this to the image stack. This is why 
+        % we request the stack to be returned. 
+
+        % Find what is written on disk and what need to be done
         statsFile = fullfile(sectionStatsDirName, sprintf('tileStats_ch%.0f.mat', chan));
-        [tileStats,~] = writeTileStats(imStack(chan,:), tileIndex(chan,:), sectionStatsDirName, statsFile);
-        tileStatsAllChan(chan) = {tileStats};
-    end
-    for chan = statsToLoad
-        statsFile = fullfile(sectionStatsDirName, sprintf('tileStats_ch%.0f.mat', chan));
-        onDisk = load(statsFile);
-        tileStatsAllChan(chan) = {onDisk.tileStats};
-    end
-    
-    if combCorChans
-        % check if it's already done
-        combFile=fullfile(sectionStatsDirName,'phaseStats_01.mat');
-        if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
-            fprintf('%s exists. Skipping this comb correction\n',combFile)
-        else    
-            % load channel if needed
-            notLoaded = arrayfun(@(x) isempty(imStack{x,1}), combCorChans);
-            [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, param, ...
-                sectionDirectories(thisDir).name, combCorChans(notLoaded), MAXCHANS);
-            if loadError
-                if verbose
-                    fprintf('Error loading the data %s. Skipping.\n', sectionDirectories(thisDir).name)
-                end
-                continue
-            end
-            % perform comb cor
-            writeCombCorCoefs(imStack, sectionStatsDirName, combCorChans)
-            analysesPerformed.combCor=1;
-        end
-    end
-
-    %Do illumination correction if the user asked for it
-    %Handle existing average files: wipe if necessary or load them in order to add to them. 
-    if illumChans
-        aveDir=fullfile(sectionStatsDirName,'averages');
-        chanDirs=arrayfun(@(x) fullfile(aveDir, num2str(x)), illumChans, 'un', 0);
-        if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir') && ...
-                all(cellfun(@exist, chanDirs))
-            fprintf('Skipping illumination correction\n')
+        if ~exist(statsFile, 'file') || sectionsToProcess < 0
+            % need to create state file
+            bWriteStats = true;
         else
-            % load channel if needed
-            notLoaded = arrayfun(@(x) isempty(imStack{x,1}), illumChans);
-            [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, param, ...
-                sectionDirectories(thisDir).name, illumChans(notLoaded), MAXCHANS);
-            if loadError
+            % need to load and check that it's full
+            statsFile = fullfile(sectionStatsDirName, sprintf('tileStats_ch%.0f.mat', chan));
+            onDisk = load(statsFile);
+            tileStatsAllChan{chan} = onDisk.tileStats;
+            if true
+                bWriteStats = false;
+            else % TODO check that tileStats is full
+                bWriteStats = true;
+            end
+        end
+        
+        if bWriteStats
+            % I did not manage to load the whole tileStats. Create it
+            
+            % first load the data in an empty imStack
+            [imStack, tileIndex, loadError] = load_imstack([], [], param, ...
+            sectionDirectories(thisDir).name, chan, MAXCHANS);
+            if loadError || all(cellfun(@isempty, imStack(chan,:)))
                 if verbose
-                    fprintf('Error loading the data %s. Skipping.\n', sectionDirectories(thisDir).name)
+                    fprintf('Error loading the data for chan %.0f section %s. Skipping.\n', ...
+                        chan, sectionDirectories(thisDir).name)
                 end
                 continue
+            elseif any(cellfun(@isempty, imStack(chan,:))) && verbose
+                fprintf('I haven''t loaded all the sections for chan %.0f section %s.\n', ...
+                        chan, sectionDirectories(thisDir).name) 
+                fprintf('I will generate a partial tileStats.\n')
+                fprintf('You will have to overwrite it if you want to process new images in that folder\n')
             end
-            % perform illum cor
-            calcAverageMatFiles(imStack, tileIndex, sectionStatsDirName, illumChans, tileStatsAllChan)
-            analysesPerformed.illumCor=1;
+            
+            % Write tileStats
+            [tileStats,~] = writeTileStats(imStack(chan,:), tileIndex(chan,:), ...
+                sectionStatsDirName, statsFile);
+            tileStatsAllChan{chan} = tileStats;
+        end
+        if ismember(chan, combCorChans)
+            % that is not used anymore. Should we just raise an error?
+            % check if it's already done
+            combFile=fullfile(sectionStatsDirName,'phaseStats_01.mat');
+            if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
+                fprintf('%s exists. Skipping this comb correction\n',combFile)
+            else    
+                % load channel if needed
+                if all(cellfun(@isempty, imStack(chan,:)))
+                    [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, param, ...
+                        sectionDirectories(thisDir).name, combCorChans(notLoaded), MAXCHANS);
+                    if loadError || all(cellfun(@isempty, imStack(chan,:)))
+                        if verbose
+                            fprintf('Error loading the data %s. Skipping.\n', sectionDirectories(thisDir).name)
+                        end
+                        continue
+                    end
+                end
+                % perform comb cor
+                writeCombCorCoefs(imStack, sectionStatsDirName, combCorChans)
+                analysesPerformed.combCor=1;
+            end
+        end
+
+        if ismember(chan, illumChans)
+            %Do illumination correction if the user asked for it
+            %Handle existing average files: wipe if necessary or load them in order to add to them. 
+
+            aveDir=fullfile(sectionStatsDirName,'averages');
+            chanDir=fullfile(aveDir, num2str(chan));
+            if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir') && ...
+                    exist(chanDir)
+                fprintf('Skipping illumination correction\n')
+                % TODO check inside chanDir
+            else
+                % load channel if needed
+                if all(cellfun(@isempty, imStack(chan,:)))
+                    [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, param, ...
+                        sectionDirectories(thisDir).name, chan, MAXCHANS);
+                    if loadError || all(cellfun(@isempty, imStack(chan,:)))
+                        if verbose
+                            fprintf('Error loading the data %s. Skipping.\n', sectionDirectories(thisDir).name)
+                        end
+                        continue
+                    end
+                end
+                % perform illum cor
+                calcAverageMatFiles(imStack, tileIndex, sectionStatsDirName, chan, tileStatsAllChan)
+                analysesPerformed.illumCor=1;
+            end
         end
     end
-    
-
-%     %Skip if everything has been done and the user asked to loop through all directories.
-%     
-%     
-%    
-%     if ~exist(combFile,'file') && any(ismember(combCorChans, chansToLoad))
-%         % combFile doesn't exist but at least one channel is in
-%         % combCorChans. I need to do something
-%         somethingToDo = true;
-%     elseif ~exist(aveDir,'file') &&  any(ismember(illumChans, chansToLoad))
-%         % aveDir doesn't exist but at least one channel is in
-%         % combCorChans. I need to do somethin
-%         somethingToDo = true;
-%         % TODO check for subdirectory
-% 
-%     end
-%     % other stuff that were checked but I don't need
-% %         if ( exist(statsFile,'file') || exist([statsFile,'.mat'],'file') ) && ...
-% %          &&...
-% %           && ...
-% %         length(sectionsToProcess)==1 && ...
-% %         sectionsToProcess==0     
-% %         end
-%     
-%     if ( exist(statsFile,'file') || exist([statsFile,'.mat'],'file') ) && ...
-%         (exist(combFile,'file') || (length(combCorChans)==1 && combCorChans==0)) &&...
-%         (exist(aveDir,'file')   || (length(illumChans)==1   && illumChans==0))   && ...
-%         length(sectionsToProcess)==1 && ...
-%         sectionsToProcess==0 
-%         if verbose
-%                 fprintf('Nothing to do in %s. Skipping.\n', sectionDirectories(thisDir).name)
-%         end
-%         
-%         continue
-%     end
-% 
-% 
-%     %Load all layers and all channels in parallel 
-%     maxChans=3;
-%     imStack=cell(maxChans,param.mosaic.numOpticalPlanes);
-%     tileIndex=cell(maxChans,param.mosaic.numOpticalPlanes);
-% 
-%     %Extract section number from directory name
-%     sectionNumber = sectionDirName2sectionNum(sectionDirectories(thisDir).name);
-% 
-%     for thisChan = chansToLoad
-%         for thisLayer=1:param.mosaic.numOpticalPlanes
-%             fprintf('Loading section %03d, layer %02d, chan %d\n',sectionNumber,thisLayer,thisChan)
-%             %Load the raw tiles for this layer without cropping, illumination correction, or phase correction
-%             try 
-%                 [thisImStack,thisTileIndex]=tileLoad([sectionNumber,thisLayer,0,0,thisChan], ...
-%                     'doIlluminationCorrection', false, ...
-%                     'doCrop', false, ...
-%                     'doCombCorrection', false, ...
-%                     'doSubtractOffset', false);
-%             catch ME
-%                 fprintf('%s - Could not load images for channel %d. Is this channel missing?\n',mfilename, thisChan)
-%                 fprintf('Failed with error message: %s\n', ME.message)
-%                 analysesPerformed=[];
-%                 break
-%             end
-%             imStack{thisChan,thisLayer}=thisImStack;
-%             tileIndex{thisChan,thisLayer}=thisTileIndex;
-%         end
-%     end
-% 
-% 
-%     %Bail out of this iteration if we couldn't load image data (likely due to missing tileIndex file)
-%     %the tileIndex file isn't created if generateTileIndex is confused about the number of raw TIFF files 
-%     %or if it can't find raw TIFF files
-%     if all(cellfun(@isempty,imStack))
-%         fprintf('%s couldn''t load any image data from directory %s. SKIPPING\n',...
-%             mfilename, sectionDirectories(thisDir).name)
-%         continue
-%     end
-% 
-% 
-%     %-----------------------------------------------------------------
-%     %Write tile statistics to a file. 
-%     if exist(statsFile,'file') && length(sectionsToProcess)==1 && sectionsToProcess==0 %Skip if sectionsToProcess is zero and file exists
-%         fprintf('%s stats file already exists\n',sectionDirectories(thisDir).name)
-%         load(statsFile);
-%     else
-%         % Write tile statistics to disk. This can later be used to quickly calculate things like the intensity of
-%         % the backround tiles. If the offset subtraction was requested in the INI file (for non TV data) then we 
-%         % will apply this to the image stack. This is why we request the stack to be returned. 
-%         [tileStats,~]=writeTileStats(imStack, tileIndex, sectionStatsDirName, statsFile);
-%     end
-% 
-%     %TODO be smarter in detecting if the following corrections are done. i.e. ALL the files should be present
-%     %-----------------------------------------------------------------
-%     %Do comb correction if user asked for it
-% 
-%     if combCorChans
-%         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
-%             fprintf('%s exists. Skipping this comb corrrection\n',combFile)
-%         else    
-%             writeCombCorCoefs(imStack, sectionStatsDirName, combCorChans)
-%             analysesPerformed.combCor=1;
-%         end
-%     end
-% 
-% 
-%     %-----------------------------------------------------------------
-%     %Do illumination correction if the user asked for it
-%     %Handle existing average files: wipe if necessary or load them in order to add to them. 
-%     if illumChans
-%         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir')
-%             fprintf('Skipping illumination corrrection\n')
-%         else
-%             calcAverageMatFiles(imStack, tileIndex, sectionStatsDirName, illumChans, tileStats)
-%             analysesPerformed.illumCor=1;
-%         end
-%     end
-
-end 
+end
 
 
 timeIt = toc;
