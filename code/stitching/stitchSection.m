@@ -91,7 +91,7 @@ end
 %Parse optional arguments
 params = inputParser;
 params.CaseSensitive = false;
-params.addParamValue('stitchedSize', 100, @(x) isnumeric(x) && isscalar(x));
+params.addParamValue('stitchedSize', 100, @(x) isnumeric(x));
 params.addParamValue('overwrite', false, @(x) islogical(x) || x==0 || x==1);
 params.addParamValue('chessboard', false, @(x) islogical(x) || x==0 || x==1);
 params.parse(varargin{:});
