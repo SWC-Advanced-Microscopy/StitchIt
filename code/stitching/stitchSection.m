@@ -173,6 +173,7 @@ end
 
 
 numStitched=0; %The number of images stitched. This is just used for error checking
+
 parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -303,9 +304,9 @@ for thisR = 1:length(reducedSizeDir)
         fclose(fid);
 
         %Be extra careful and save the reduced file size
-        stitchedSize = stitchedSize(thisR);
+        thisStitchedSize = stitchedSize(thisR);
         fname = sprintf('.%s%s%s%d%sstitchedSize.mat',...
                                 filesep,reducedSizeDir{thisR},filesep, channel, filesep);
 
-        save(fname,'stitchedSize')
+        save(fname,'thisStitchedSize')
 end
