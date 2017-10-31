@@ -1,5 +1,5 @@
 function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
-    resolution, copySIHeader)
+    resolution, copySIHeader, copyBakingTrayFiles)
 %BINRAWDATA Reads the raw data folder, bin tiff files and write
 %them in targetDir
 %
@@ -19,6 +19,8 @@ function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
 % - copySIHeader: default true. If true, the `Software` field of the first
 % image of the original is copied with hRoiManager.linesPerFrame and 
 % hRoiManager.pixelsPerLine updated to the binned value
+% - copyBakingTrayFiles: default true. If true, copies the tilePosition.mat
+% file from each section folder to the target dir
 
 
 % Print warning and ask confirmation if binSize on Z
@@ -39,6 +41,9 @@ function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
     end
     if ~exist('copySIHeader', 'var') || isempty(copySIHeader)
         copySIHeader = true;
+    end
+    if ~exist('copyBakingTrayFiles', 'var') || isempty(copyBakingTrayFiles)
+        copyBakingTrayFiles = true;
     end
     
     % Load ini file variables and parameters
@@ -76,6 +81,7 @@ function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
         error(['%s can not find any raw data directories belonging to ' ...
                'sample %s'],mfilename,param.sample.ID)
     end
+   
 
     % Create target directory
     if ~exist(targetDir, 'dir')
@@ -103,6 +109,24 @@ function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
         fprintf('  doing %s\n', sectionDirectories(thisDir).name)
         binSectionFolder(sectionDir, param, sectionTargetDir, binSize, ...
                          binType, overWrite, resolution, copySIHeader);
+        if copyBakingTrayFiles
+            bktFiles = {'tilePositions.mat', 'COMPLETED', ...
+                        'acquisition_log.txt'};
+            for iF = 1:numel(bktFiles)
+                fname = bktFiles{iF};
+                tilePosPath = fullfile(sectionDir, ...
+                                       fname);
+                if ~exist(tilePosPath, 'file')
+                    fprintf('No %s position file for %s\n', ...
+                            fname, sectionDir)
+                end
+                tilePosTarget = fullfile(sectionTargetDir, fname);
+                if sectionsToProcess < 0 || ~exist(tilePosTarget, 'file')
+                    copyfile(tilePosPath, tilePosTarget);
+                end
+            end
+        end
+        
         tEndSec = toc(tStartProc);
         fprintf('  done section after %.2s\n', tEndSec)
     end
