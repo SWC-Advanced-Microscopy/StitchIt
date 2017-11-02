@@ -328,7 +328,8 @@ while 1
 
 
 
-  analysesPerformed = preProcessTiles(0,0,'combCorChans', combCorChans, 'illumChans'); %PRE-PROCESS TILES
+  analysesPerformed = preProcessTiles(0,0,'combCorChans', combCorChans, ...
+                                      'illumChans', illumChans); %PRE-PROCESS TILES
 
 
   if isempty(analysesPerformed)
