@@ -102,7 +102,7 @@ tic();
                 fprintf(['Binning will ignore %.0f pixel(s) along axis ' ...
                          '%.0f\n'], size(data, 1) - oldPart, iDim)
             end
-            data = data(1:oldPart,:);
+            data = data(1:oldPart,:,:);
         end
     
         if debug; disp('reshape');end
