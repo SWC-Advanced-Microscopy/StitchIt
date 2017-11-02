@@ -102,7 +102,11 @@ tic();
                 fprintf(['Binning will ignore %.0f pixel(s) along axis ' ...
                          '%.0f\n'], size(data, 1) - oldPart, iDim)
             end
-            data = data(1:oldPart,:,:);
+            % A bit cumbersome writting to index only along the
+            % first dimension
+            idx = repmat({':'}, 1, ndims(data));
+            idx{1} = 1:oldPart;
+            data = data(idx{:});
         end
     
         if debug; disp('reshape');end
