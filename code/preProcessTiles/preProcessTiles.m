@@ -1,8 +1,7 @@
-function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, ...
-                                   varargin)
+function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, varargin)
 % Load each tile and perform all calculations needed for subsequent quick stitching
 %
-% function analysesPerformed=preProcessTiles(sectionsToProcess,combCorChans,illumChans,verbose)
+% function analysesPerformed=preProcessTiles(sectionsToProcess,combCorChans,'param1',val1, ...)
 %
 %
 % PURPOSE
@@ -27,7 +26,7 @@ function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, ...
 % 
 %
 %
-% INPUTS
+% INPUTS (required)
 % - sectionsToProcess - By default we loop through all of the section 
 % directories and analyse the tiles they contain. However this can be modified:
 % 1) If sectionsToProcess is zero (the default) or empty then conduct default
@@ -42,20 +41,22 @@ function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, ...
 % - channelsToProcess - By default all channels are used to
 % generate tileStats files. This can be modified here. One top of
 % the channels listed in `channelsToProcess`, channels in
-% `combCorChans` and/or `illumChans` will be processed
+% `combCorChans` and/or `illumChans` will be processed as described below
 %
-% - combCorChans [optional] - zero by default. combCorChans can be a scalar or
+%
+% INPUTS (optional param/value pairs)
+% - combCorChans - zero by default. combCorChans can be a scalar or
 %   a vector defining which image channels are to be *averaged together* for the 
 %   comb correction. e.g. if it is [1,2], then we will average channels 1 and 2
 %   and feed this into the comb correction algorithm. A single set of coefficients 
 %   is produced for all channels. if zero or empty, no correction is done. 
 % 
-% - illumChans [optional] - zero by default. Same format as combCorChans, but 
+% - illumChans - zero by default. Same format as combCorChans, but 
 %   we instead make an average image for each channel. This gives us greater 
 %   flexibility down the road (e.g. average images from different
 %   channels or not). If zero don't do illum correction.
 %
-% - verbose [optional] - 1 by default. If zero we supress messages indicating that 
+% - verbose - 1 (true) by default. If zero we supress messages indicating that 
 %   analysis was skipped for a directory.
 %
 %
@@ -68,19 +69,19 @@ function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, ...
 % One
 % Process sections [1,1] and [90,5] (i.e. physical section 90, optical section 5)
 % If these already exist, they are re-processed. Process only channel 1 illumination correction.
-% preProcessTiles([1,1;90,5],0,1)
+% preProcessTiles([1,1;90,5],0,'illumChans',1)
 %
 % Two
-% Process phsyical sections 10 to 20:
-% preProcessTiles(1:20,0,1:4)
+% Make tileStats only for physical sections 10 to 20 of channels 1 and 2
+% preProcessTiles(1:20,1:2)
 %
 % Three
 % Process all illumination correction data not already done for channel 1.
-% preProcessTiles([],0,1)
+% preProcessTiles([],0,'illumChans',1)
 %
 % Four
 % re-precess everything for channel 1 illumination correction.
-% preProcessTiles(-1,0,1)
+% preProcessTiles(-1,0,'illumChans',1)
 %
 %
 %
