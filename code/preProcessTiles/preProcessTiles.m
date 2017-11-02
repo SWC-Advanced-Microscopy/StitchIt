@@ -1,4 +1,5 @@
-function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,verbose)
+function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, ...
+                                   varargin)
 % Load each tile and perform all calculations needed for subsequent quick stitching
 %
 % function analysesPerformed=preProcessTiles(sectionsToProcess,combCorChans,illumChans,verbose)
@@ -37,7 +38,12 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 % 3) If sectionsToProcess is a vector or a scalar >0 then we analyse only these 
 %    these section directories AND we over-write existing coefficient files in all 
 %    channels.
-% 
+%
+% - channelsToProcess - By default all channels are used to
+% generate tileStats files. This can be modified here. One top of
+% the channels listed in `channelsToProcess`, channels in
+% `combCorChans` and/or `illumChans` will be processed
+%
 % - combCorChans [optional] - zero by default. combCorChans can be a scalar or
 %   a vector defining which image channels are to be *averaged together* for the 
 %   comb correction. e.g. if it is [1,2], then we will average channels 1 and 2
@@ -97,30 +103,26 @@ if nargin<1 || isempty(sectionsToProcess)
     sectionsToProcess=0; 
 end
 
-if nargin<2 || isempty(combCorChans)
-    combCorChans=0;
+
+if nargin<2 || isempty(channelsToProcess)
+    channelsToProcess=0;
 end
 
-if nargin<3 || isempty(illumChans)
-    illumChans=0;
-end
+params = inputParser;
+params.CaseSensitive = false;
+params.addParamValue('combCorChans', 0, @(x) isnumeric(x));
+params.addParamValue('illumChans', 0, @(x) isnumeric(x));
+params.addParamValue('verbose', true, @(x) islogical(x) || x==0 || x==1);
+params.parse(varargin{:});
+
+combCorChans=params.Results.combCorChans;
+illumChans=params.Results.illumChans;
+verbose=params.Results.verbose;
 
 
 %This is the output arg
 analysesPerformed.combCor=0;
 analysesPerformed.illumCor=0;
-
-if ~illumChans & ~combCorChans
-    fprintf('%s exiting with no analyses performed\n',mfilename)
-    if nargout>0
-        varargout{1}=analysesPerformed;
-    end
-    return
-end
-
-if nargin<4
-    verbose=1;
-end
 
 
 %Load ini file variables
@@ -167,10 +169,17 @@ fprintf('\n')
 
 tic
 
-%Figure out which channels we are to load on each pass through the loop
+%Figure out which channels we are to load on each pass through the
+%loop
+if channelsToProcess == 0
+    channelsToProcess = [param.sample.activeChannels{:}];
+    % TODO that works for bakingTray check for tissuecyte?
+end
+
 illumChans=illumChans(:)'; %ensure it's a row vector
 combCorChans=combCorChans(:)';
-chansToLoad = unique([illumChans,combCorChans]);
+channelsToProcess=channelsToProcess(:)';
+chansToLoad = unique([illumChans,combCorChans, channelsToProcess]);
 % remove 0. The value for 'no channel' in combCorChans or illumChans
 chansToLoad = chansToLoad(chansToLoad~=0);
 
