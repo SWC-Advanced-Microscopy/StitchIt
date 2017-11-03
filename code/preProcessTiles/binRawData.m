@@ -3,7 +3,8 @@ function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
 %BINRAWDATA Reads the raw data folder, bin tiff files and write
 %them in targetDir
 %
-% function binRawData(targetDir, binSize, binType)
+% binRawData(sectionsToProcess, targetDir, binSize, binType, ...
+%            resolution, copySIHeader, copyBakingTrayFiles)
 %
 % Inputs:
 % - sectionsToProcess: 0 for all, -1 to force redo, vector for list
