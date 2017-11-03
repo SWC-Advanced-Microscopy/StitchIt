@@ -111,7 +111,7 @@ tic();
     
         if debug; disp('reshape');end
         % reshape by bin size
-        shp = [2, size(data)];
+        shp = [bS, size(data)];
         shp(2) = newShape;
         data = reshape(data, shp);
 
