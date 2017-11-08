@@ -120,7 +120,7 @@ fprintf('Producing %d stitched images from channel %d. This will consume %0.2f G
     nSections, channel, GBrequired )
 
 spaceUsed=stitchit.tools.returnDiskSpace;
-if (spaceUsed.freeGB + GBrequired) > spaceUsed.totalGB
+if  GBrequired > spaceUsed.freeGB 
     fprintf('\n ** Not enough disk space to stitch these sections. You have only %d GB left!\n ** %s is aborting\n\n',...
         round(spaceUsed.freeGB), mfilename)
     return
