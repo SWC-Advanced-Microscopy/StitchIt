@@ -38,10 +38,9 @@ function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, varargin
 %    these section directories AND we over-write existing coefficient files in all 
 %    channels.
 %
-% - channelsToProcess - By default all channels are used to
-% generate tileStats files. This can be modified here. One top of
-% the channels listed in `channelsToProcess`, channels in
-% `combCorChans` and/or `illumChans` will be processed as described below
+% - channelsToProcess - If is empty (default), all channels are
+% used to  generate tileStats files. If 0, only channels from
+% `combCorChans` and/or `illumChans` will be processed.
 %
 %
 % INPUTS (optional param/value pairs)
@@ -105,8 +104,8 @@ if nargin<1 || isempty(sectionsToProcess)
 end
 
 
-if nargin<2 || isempty(channelsToProcess)
-    channelsToProcess=0;
+if nargin<2
+    channelsToProcess=[];
 end
 
 params = inputParser;
@@ -172,9 +171,8 @@ tic
 
 %Figure out which channels we are to load on each pass through the
 %loop
-if channelsToProcess == 0
+if isempty(channelsToProcess)
     channelsToProcess = [param.sample.activeChannels{:}];
-    % TODO that works for bakingTray check for tissuecyte?
 end
 
 illumChans=illumChans(:)'; %ensure it's a row vector
