@@ -193,39 +193,7 @@ function binSectionFolder(sectionDir, param, targetDir, binSize, binType, ...
             soft = 'Matlab';
         end
 
-%         toc(tSecStart);
-        % Write the tiff to disk
-        tagstruct = struct();
-        tagstruct.ImageDescription = '';
-        nframes = size(data,3);
-
-        
-        % set TIFF tags
-        tagstruct.ImageLength = size(data,1);
-        tagstruct.ImageWidth = size(data,2);
-        tagstruct.Compression = Tiff.Compression.None;
-        tagstruct.BitsPerSample = 16;
-        tagstruct.SamplesPerPixel = 1;
-        tagstruct.RowsPerStrip = size(data,1);
-        tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
-        tagstruct.Photometric = Tiff.Photometric.MinIsBlack;
-        tagstruct.Software = soft;
-        tagstruct.SampleFormat = 2;     % signed int
-
-        % write frames
-        targetTiff = Tiff(path2target,'w');
-        targetTiff.setTag(tagstruct);
-        targetTiff.write(squeeze(data(:,:,1)));
-        if nframes > 1
-            for indf = 2:nframes
-                % every framerperfile, create a new TIFF
-                % append to existing TIFF
-                targetTiff.writeDirectory();
-                targetTiff.setTag(tagstruct);
-                targetTiff.write(data(:,:,indf));
-            end
-        end
-        targetTiff.close()
+        stitchit.tools.writeSignedTiff(data, path2target, soft)
     end
     tSecEnd = toc(tSecStart);
     fprintf('... in %.2 s\n', tSecEnd)
