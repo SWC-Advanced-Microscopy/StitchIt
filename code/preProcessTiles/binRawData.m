@@ -129,10 +129,10 @@ function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
         end
         
         tEndSec = toc(tStartProc);
-        fprintf('  done section after %.2s\n', tEndSec)
+        fprintf('  done section after %.2f s\n', tEndSec)
     end
     tEndProc = toc(tStartProc);
-    fprintf('Done processing in %.2s\n', tEndProc)
+    fprintf('Done processing in %.2f s\n', tEndProc)
 end
 
 function binSectionFolder(sectionDir, param, targetDir, binSize, binType, ...
