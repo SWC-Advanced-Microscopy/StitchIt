@@ -84,7 +84,7 @@ end
 
 %Loop through and stitch all requested channels
 generateTileIndex; %Ensure the tile index is present
-analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
+analysesPerformed = preProcessTiles(0, 'combChans', combChans,'illumChans', illumChans); %Ensure we have the pre-processing steps done
 
 if analysesPerformed.illumCor || ~exist(fullfile(config.subdir.rawDataDir, config.subdir.averageDir),'dir');
     collateAverageImages

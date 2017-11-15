@@ -1,4 +1,4 @@
-function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, varargin)
+function varargout=preProcessTiles(sectionsToProcess, varargin)
 % Load each tile and perform all calculations needed for subsequent quick stitching
 %
 % function analysesPerformed=preProcessTiles(sectionsToProcess,combCorChans,'param1',val1, ...)
@@ -38,12 +38,12 @@ function varargout=preProcessTiles(sectionsToProcess,channelsToProcess, varargin
 %    these section directories AND we over-write existing coefficient files in all 
 %    channels.
 %
+%
+% INPUTS (optional param/value pairs)
 % - channelsToProcess - If is empty (default), all channels are
 % used to  generate tileStats files. If 0, only channels from
 % `combCorChans` and/or `illumChans` will be processed.
 %
-%
-% INPUTS (optional param/value pairs)
 % - combCorChans - zero by default. combCorChans can be a scalar or
 %   a vector defining which image channels are to be *averaged together* for the 
 %   comb correction. e.g. if it is [1,2], then we will average channels 1 and 2
@@ -103,19 +103,16 @@ if nargin<1 || isempty(sectionsToProcess)
     sectionsToProcess=0; 
 end
 
-
-if nargin<2
-    channelsToProcess=[];
-end
-
 params = inputParser;
 params.CaseSensitive = false;
 params.addParamValue('combCorChans', 0, @(x) isnumeric(x));
 params.addParamValue('illumChans', 0, @(x) isnumeric(x));
+params.addParamValue('channelsToProcess', 0, @(x) isnumeric(x));
 params.addParamValue('verbose', true, @(x) islogical(x) || x==0 || x==1);
 params.parse(varargin{:});
 
 combCorChans=params.Results.combCorChans;
+channelsToProcess=params.Results.channelsToProcess;
 illumChans=params.Results.illumChans;
 verbose=params.Results.verbose;
 
