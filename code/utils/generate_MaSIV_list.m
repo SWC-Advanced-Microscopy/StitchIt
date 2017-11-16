@@ -72,46 +72,51 @@ stitchit.tools.writeSimpleYAML(YML,fullfile(MaSIV_DIR,MaSIV_YML))
 chans = dir(stitchedDir);
 
 for ii=1:length(chans)
+    chanName = chans(ii).name;
+    if startsWith(chanName, '.')
+        % skip private and relative folder
+        continue
+    end
+    tifDir = fullfile(stitchedDir, chanName);
+    if ~isdir(tifDir)
+        % skip if there are local files. Continue only for directories
+        continue
+    end
 
-    if regexp(chans(ii).name,'\d+')
+    tifs=dir(fullfile(tifDir,'*.tif'));
 
+    if isempty(tifs)
+        fprintf('No tiffs in %s. Skipping\n',tifDir)
+        continue
+    end
 
-        tifDir=[stitchedDir,'/',chans(ii).name];
-        tifs=dir([tifDir,'/','*.tif']);
-
-        if isempty(tifs)
-            fprintf('No tiffs in %s. Skipping\n',tifDir)
-            continue
+    missing=findMissingSections(tifs);
+    if missing && ~overide
+        fprintf(['\nMissing sections. Not building the image lists.\n',...
+            'Please fix your data or overide this warning (help %s), if you know what you''re doing.\n\n'], ...
+            mfilename)
+        if nargout>0
+            varargout{1}=-1;
         end
-
-        missing=findMissingSections(tifs);
-        if missing & ~overide
-            fprintf(['\nMissing sections. Not building the image lists.\n',...
-                'Please fix your data or overide this warning (help %s), if you know what you''re doing.\n\n'], ...
-                mfilename)
-            if nargout>0
-                varargout{1}=-1;
-            end
-            return
-        end
-        if missing & overide
-            fprintf('\n BUILDING THE LISTS WITH MISSING SECTIONS\n\n')
-
-        end
-    
-
-        fprintf('Making channel %s file\n',chans(ii).name)
-        thisChan = str2num(chans(ii).name);
-        
-        thisFname = fullfile(MaSIV_DIR, sprintf('%sCh%02d.txt',stitchedFileListName,thisChan) );
-        fid=fopen(thisFname,'w+');
-        for thisTif = 1:length(tifs)         
-                fprintf(fid,[tifDir,'/',tifs(thisTif).name,'\n']);
-            
-        end
-        fclose(fid);
+        return
+    end
+    if missing && overide
+        fprintf('\n BUILDING THE LISTS WITH MISSING SECTIONS\n\n')
 
     end
+
+
+    fprintf('Making channel %s file\n',chanName)
+
+    thisFname = fullfile(MaSIV_DIR, sprintf('%sCh_%s.txt',stitchedFileListName,chanName) );
+    fid=fopen(thisFname,'w+');
+    for thisTif = 1:length(tifs)         
+            fprintf(fid,[tifDir,'/',tifs(thisTif).name,'\n']);
+
+    end
+    fclose(fid);
+
+
 
 end
 
@@ -130,7 +135,7 @@ function missing=findMissingSections(tifs)
     optical = zeros(length(tifs),1);    
 
 
-    for ii=1:length(tifs);
+    for ii=1:length(tifs)
         tok=regexp(tifs(ii).name,'section_(\d+)_(\d+)','tokens');
         if isempty(tok)
             error('regexp failed')
