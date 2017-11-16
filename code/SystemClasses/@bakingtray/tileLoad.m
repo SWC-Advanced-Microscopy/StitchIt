@@ -181,14 +181,24 @@ end
 % is useful in the event that a drifting offset is creating problems. 
 % Can be used to deal with offset amplifiers for a wider dynamic range.
 if doSubtractOffset
-    tileStatsFname = fullfile(sectionProcessDir, sprintf('tileStats_ch%.0f.mat', channel));
-    if exist(tileStatsFname,'file')
-        load(tileStatsFname)
-        offsetMu = mean(tileStats.offsetMean(:)); %since all depths will have the same underlying value
-        im = im - cast(offsetMu,class(im));
-    else
-        fprintf('bakingtray.tileLoad attempted to perform an offset correction but can not find file %s\n', tileStatsFname);
+    % Find the first image of that acquisition (not assuming that 1 is
+    % first)
+    dirNames = dir(userConfig.subdir.rawDataDir);
+    dirNames = sort({dirNames.name});
+    dirNames = dirNames(startsWith(dirNames, param.sample.ID));
+    firstSlice = dirNames{1};
+    firstSecNum = sectionDirName2sectionNum(firstSlice);
+    % Get name of the first file, assuming the section start at 1 (that
+    % should be true)
+    firstSectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,firstSecNum,1);
+    firstTiff = fullfile(userConfig.subdir.rawDataDir, firstSlice, firstSectionTiff);
+    if ~exist(firstTiff, 'file')
+        error('Asked for offset subtraction but could not load the first tiff of the acquisition:\n%s', firstTiff)
     end
+    firstImInfo = imfinfo(firstTiff);
+    firstSI=obj.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
+    offset = firstSI.channelOffset;
+    im = im - cast(offset(channel),class(im));    
 end
 
 %Do illumination correction if requested to do so
