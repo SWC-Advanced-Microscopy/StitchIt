@@ -275,7 +275,7 @@ for thisDir = 1:length(sectionDirectories)
         chanDirs=arrayfun(@(x) fullfile(aveDir, num2str(x)), illumChans, 'un', 0);
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir') && ...
                 all(cellfun(@exist, chanDirs))
-            fprintf('Skipping illumination correction\n')
+            fprintf('Average folder already exists. Skipping illumination correction\n')
         else
             % load channel if needed
             notLoaded = arrayfun(@(x) isempty(imStack{x,1}), illumChans);
