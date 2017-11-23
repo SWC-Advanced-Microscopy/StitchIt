@@ -1,7 +1,7 @@
 function varargout=preProcessTiles(sectionsToProcess, varargin)
 % Load each tile and perform all calculations needed for subsequent quick stitching
 %
-% function analysesPerformed=preProcessTiles(sectionsToProcess,combCorChans,'param1',val1, ...)
+% function analysesPerformed=preProcessTiles(sectionsToProcess,'param1',val1, ...)
 %
 %
 % PURPOSE
