@@ -161,9 +161,16 @@ function [I,imInfo] = openTiff(fileName, regionSpec, downSample, methodFlag)
   end
 
   %Check if the image is the expected size. If not, there is likely corruption
-  if size(I,1) ~= imInfo.Height || size(I,2) ~= imInfo.Width
-    fprintf('\n\n ** Assembled image is of size %d by %d. Expected size is %d by %d. Image %s is probably garbled.\n', ...
-      size(I,1), size(I,2), imInfo.Height, imInfo.Width, fileName)
+  if ~doCrop
+      if size(I,1) ~= imInfo.Height || size(I,2) ~= imInfo.Width
+          fprintf('\n\n ** Assembled image is of size %d by %d. Expected size is %d by %d. Image %s is probably garbled.\n', ...
+              size(I,1), size(I,2), imInfo.Height, imInfo.Width, fileName)
+      end
+  else
+      if size(I,1) ~= regionSpec(4) || size(I,2) ~= regionSpec(3)
+          fprintf('\n\n ** Assembled image is of size %d by %d. Expected size is %d by %d. Image %s is probably garbled.\n', ...
+              size(I,1), size(I,2), regionSpec(4), regionSpec(3), fileName)
+      end
   end
 
 end %openTiff
