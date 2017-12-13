@@ -1,5 +1,9 @@
 StitchIt Change Log
 
+17/12/10 
+- preProcessTiles now takes paramater/value pairs as input arguments
+- Image offset is read from ScanImage file header and is not calculated. 
+
 17/10/16
 - MAJOR: stitching-related parameters (including average images) are now stored in a separate location 
          to the raw data. So data sets processed prior to this date will need preprocessing again. 
