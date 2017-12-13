@@ -5,7 +5,7 @@ function varargout=generate_MaSIV_list(stitchedDir,overide)
 %
 %
 % Purpose
-% Make stitched image file lists from data stitched with tvMat to
+% Make stitched image file lists from data stitched with StitchIt to
 % enable import into MaSIV.
 %
 %
@@ -36,7 +36,7 @@ if nargin<2
 end
 
 if ispc
-    fprintf('Fails on Windows machines. Not fixed yet\n')
+    fprintf('Likely this function fails on Windows machines. Please report back if it works.\n')
 end
 
 if ~exist(stitchedDir,'dir')
