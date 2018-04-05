@@ -1,7 +1,7 @@
-function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,verbose)
+function varargout=preProcessTiles(sectionsToProcess, varargin)
 % Load each tile and perform all calculations needed for subsequent quick stitching
 %
-% function analysesPerformed=preProcessTiles(sectionsToProcess,combCorChans,illumChans,verbose)
+% function analysesPerformed=preProcessTiles(sectionsToProcess,'param1',val1, ...)
 %
 %
 % PURPOSE
@@ -26,7 +26,7 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 % 
 %
 %
-% INPUTS
+% INPUTS (required)
 % - sectionsToProcess - By default we loop through all of the section 
 % directories and analyse the tiles they contain. However this can be modified:
 % 1) If sectionsToProcess is zero (the default) or empty then conduct default
@@ -37,19 +37,25 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 % 3) If sectionsToProcess is a vector or a scalar >0 then we analyse only these 
 %    these section directories AND we over-write existing coefficient files in all 
 %    channels.
-% 
-% - combCorChans [optional] - zero by default. combCorChans can be a scalar or
+%
+%
+% INPUTS (optional param/value pairs)
+% - channelsToProcess - If is empty (default), all channels are
+% used to  generate tileStats files. If 0, only channels from
+% `combCorChans` and/or `illumChans` will be processed.
+%
+% - combCorChans - zero by default. combCorChans can be a scalar or
 %   a vector defining which image channels are to be *averaged together* for the 
 %   comb correction. e.g. if it is [1,2], then we will average channels 1 and 2
 %   and feed this into the comb correction algorithm. A single set of coefficients 
 %   is produced for all channels. if zero or empty, no correction is done. 
 % 
-% - illumChans [optional] - zero by default. Same format as combCorChans, but 
+% - illumChans - zero by default. Same format as combCorChans, but 
 %   we instead make an average image for each channel. This gives us greater 
 %   flexibility down the road (e.g. average images from different
 %   channels or not). If zero don't do illum correction.
 %
-% - verbose [optional] - 1 by default. If zero we supress messages indicating that 
+% - verbose - 1 (true) by default. If zero we supress messages indicating that 
 %   analysis was skipped for a directory.
 %
 %
@@ -62,19 +68,19 @@ function varargout=preProcessTiles(sectionsToProcess,combCorChans,illumChans,ver
 % One
 % Process sections [1,1] and [90,5] (i.e. physical section 90, optical section 5)
 % If these already exist, they are re-processed. Process only channel 1 illumination correction.
-% preProcessTiles([1,1;90,5],0,1)
+% preProcessTiles([1,1;90,5],0,'illumChans',1)
 %
 % Two
-% Process phsyical sections 10 to 20:
-% preProcessTiles(1:20,0,1:4)
+% Make tileStats only for physical sections 10 to 20 of channels 1 and 2
+% preProcessTiles(1:20,1:2)
 %
 % Three
 % Process all illumination correction data not already done for channel 1.
-% preProcessTiles([],0,1)
+% preProcessTiles([],0,'illumChans',1)
 %
 % Four
 % re-precess everything for channel 1 illumination correction.
-% preProcessTiles(-1,0,1)
+% preProcessTiles(-1,0,'illumChans',1)
 %
 %
 %
@@ -97,30 +103,23 @@ if nargin<1 || isempty(sectionsToProcess)
     sectionsToProcess=0; 
 end
 
-if nargin<2 || isempty(combCorChans)
-    combCorChans=0;
-end
+params = inputParser;
+params.CaseSensitive = false;
+params.addParamValue('combCorChans', 0, @(x) isnumeric(x));
+params.addParamValue('illumChans', 0, @(x) isnumeric(x));
+params.addParamValue('channelsToProcess', 0, @(x) isnumeric(x));
+params.addParamValue('verbose', true, @(x) islogical(x) || x==0 || x==1);
+params.parse(varargin{:});
 
-if nargin<3 || isempty(illumChans)
-    illumChans=0;
-end
+combCorChans=params.Results.combCorChans;
+channelsToProcess=params.Results.channelsToProcess;
+illumChans=params.Results.illumChans;
+verbose=params.Results.verbose;
 
 
 %This is the output arg
 analysesPerformed.combCor=0;
 analysesPerformed.illumCor=0;
-
-if ~illumChans & ~combCorChans
-    fprintf('%s exiting with no analyses performed\n',mfilename)
-    if nargout>0
-        varargout{1}=analysesPerformed;
-    end
-    return
-end
-
-if nargin<4
-    verbose=1;
-end
 
 
 %Load ini file variables
@@ -167,10 +166,16 @@ fprintf('\n')
 
 tic
 
-%Figure out which channels we are to load on each pass through the loop
+%Figure out which channels we are to load on each pass through the
+%loop
+if isempty(channelsToProcess)
+    channelsToProcess = [param.sample.activeChannels{:}];
+end
+
 illumChans=illumChans(:)'; %ensure it's a row vector
 combCorChans=combCorChans(:)';
-chansToLoad = unique([illumChans,combCorChans]);
+channelsToProcess=channelsToProcess(:)';
+chansToLoad = unique([illumChans,combCorChans, channelsToProcess]);
 % remove 0. The value for 'no channel' in combCorChans or illumChans
 chansToLoad = chansToLoad(chansToLoad~=0);
 
@@ -270,7 +275,7 @@ for thisDir = 1:length(sectionDirectories)
         chanDirs=arrayfun(@(x) fullfile(aveDir, num2str(x)), illumChans, 'un', 0);
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(aveDir,'dir') && ...
                 all(cellfun(@exist, chanDirs))
-            fprintf('Skipping illumination correction\n')
+            fprintf('Average folder already exists. Skipping illumination correction\n')
         else
             % load channel if needed
             notLoaded = arrayfun(@(x) isempty(imStack{x,1}), illumChans);

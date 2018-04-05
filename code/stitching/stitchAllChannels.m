@@ -1,7 +1,7 @@
-function stitchAllChannels(chansToStitch,stitchedSize,illumChans,combChans)
+function stitchAllChannels(chansToStitch,stitchedSize,illumChans,combCorChans)
 % Stitch all channels within the current sample directory
 %
-% function stitchAllChannels(chansToStitch,stitchedSize,combChans,illumChans)
+% function stitchAllChannels(chansToStitch,stitchedSize,combCorChans,illumChans)
 %
 %
 % Purpose
@@ -18,7 +18,7 @@ function stitchAllChannels(chansToStitch,stitchedSize,illumChans,combChans)
 %              range of different sizes to produced. e.g. [25,50,100]
 % illumChans - On which channels to calculate the illumination correction if this hasn't 
 %             already been done. By default it's the same a the chansToStich. 
-% combChans - On which channels we will calculate the comb correction if this hasn't already been done. 
+% combCorChans - On which channels we will calculate the comb correction if this hasn't already been done. 
 %             by default this is set to zero and no comb correction is done.
 %
 %
@@ -75,8 +75,8 @@ if nargin<3 || isempty(illumChans)
     illumChans=chansToStitch;
 end
 
-if nargin<4 || isempty(combChans)
-    combChans=0;
+if nargin<4 || isempty(combCorChans)
+    combCorChans=0;
 end
 
 
@@ -84,7 +84,7 @@ end
 
 %Loop through and stitch all requested channels
 generateTileIndex; %Ensure the tile index is present
-analysesPerformed = preProcessTiles(0,combChans,illumChans); %Ensure we have the pre-processing steps done
+analysesPerformed = preProcessTiles(0, 'combCorChans', combCorChans,'illumChans', illumChans); %Ensure we have the pre-processing steps done
 
 if analysesPerformed.illumCor || ~exist(fullfile(config.subdir.rawDataDir, config.subdir.averageDir),'dir');
     collateAverageImages

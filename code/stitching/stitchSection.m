@@ -91,7 +91,7 @@ end
 %Parse optional arguments
 params = inputParser;
 params.CaseSensitive = false;
-params.addParamValue('stitchedSize', 100, @(x) isnumeric(x) && isscalar(x));
+params.addParamValue('stitchedSize', 100, @(x) isnumeric(x));
 params.addParamValue('overwrite', false, @(x) islogical(x) || x==0 || x==1);
 params.addParamValue('chessboard', false, @(x) islogical(x) || x==0 || x==1);
 params.parse(varargin{:});
@@ -120,7 +120,7 @@ fprintf('Producing %d stitched images from channel %d. This will consume %0.2f G
     nSections, channel, GBrequired )
 
 spaceUsed=stitchit.tools.returnDiskSpace;
-if (spaceUsed.freeGB + GBrequired) > spaceUsed.totalGB
+if  GBrequired > spaceUsed.freeGB 
     fprintf('\n ** Not enough disk space to stitch these sections. You have only %d GB left!\n ** %s is aborting\n\n',...
         round(spaceUsed.freeGB), mfilename)
     return
@@ -173,6 +173,7 @@ end
 
 
 numStitched=0; %The number of images stitched. This is just used for error checking
+
 parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -303,9 +304,9 @@ for thisR = 1:length(reducedSizeDir)
         fclose(fid);
 
         %Be extra careful and save the reduced file size
-        stitchedSize = stitchedSize(thisR);
+        thisStitchedSize = stitchedSize(thisR);
         fname = sprintf('.%s%s%s%d%sstitchedSize.mat',...
                                 filesep,reducedSizeDir{thisR},filesep, channel, filesep);
 
-        save(fname,'stitchedSize')
+        save(fname,'thisStitchedSize')
 end

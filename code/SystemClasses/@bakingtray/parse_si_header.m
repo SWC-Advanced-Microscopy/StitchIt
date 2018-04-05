@@ -24,7 +24,14 @@ function si_metadata = parse_si_header(~,tiff_header, si_fields)
     %   This function will fail if several parsed fields contain one sub-field
     %   with the same name.
     %
-    % SEE ALSO stacksload
+    % EXAMPLES:
+    % Read the "Software" field
+    % A=B.parse_si_header(T(1),'Software');
+    %
+    % Read both the 'ImageDescription' and  `Software` fields
+    % B.parse_si_header(T(1),{'ImageDescription','Software'})
+
+
 
     % check inputs
     if ~exist('tiff_header', 'var')
