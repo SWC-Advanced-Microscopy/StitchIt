@@ -8,10 +8,9 @@ function varargout=preProcessTiles(sectionsToProcess, varargin)
 % For the final stitched image to look good we will need to pre-process the
 % tiles before assembling. This precedes registration of the tiles. The
 % following will need to be done by this function:
-%  1) Calculate coefficients for fixing the comb-correction artifact. 
-%  2) Calculate average images to remove vignetting, X-scanner turn-around brightening,
-%     alternating light/dark lines, any weird bright spots caused by beam sitting 
-%     stationary over the sample for some period of time. 
+%  1) Calculate average images to remove vignetting and other artifacts that are 
+%     constant across tiles.
+%  2) Calculate coefficients for fixing the comb-correction artifact on the TissueVision. 
 %  3) Store tile mean and median intensity for possible later use.
 %
 % The above are performed here. Each image is loaded only once in this phase. The 
@@ -44,17 +43,20 @@ function varargout=preProcessTiles(sectionsToProcess, varargin)
 % used to  generate tileStats files. If 0, only channels from
 % `combCorChans` and/or `illumChans` will be processed.
 %
-% - combCorChans - zero by default. combCorChans can be a scalar or
-%   a vector defining which image channels are to be *averaged together* for the 
-%   comb correction. e.g. if it is [1,2], then we will average channels 1 and 2
-%   and feed this into the comb correction algorithm. A single set of coefficients 
-%   is produced for all channels. if zero or empty, no correction is done. 
-% 
 % - illumChans - zero by default. Same format as combCorChans, but 
 %   we instead make an average image for each channel. This gives us greater 
 %   flexibility down the road (e.g. average images from different
 %   channels or not). If zero don't do illum correction.
 %
+% - combCorChans - zero by default. combCorChans can be a scalar or
+%   a vector defining which image channels are to be *averaged together* for the 
+%   comb correction. e.g. if it is [1,2], then we will average channels 1 and 2
+%   and feed this into the comb correction algorithm. A single set of coefficients 
+%   is produced for all channels. if zero or empty, no correction is done. 
+%   NOTE: This argument is intended for TissueVision data only and may need
+%   tweaking to run well.
+%   See - https://github.com/BaselLaserMouse/StitchIt/wiki/Tile-pre-processing
+% 
 % - verbose - 1 (true) by default. If zero we supress messages indicating that 
 %   analysis was skipped for a directory.
 %
@@ -116,6 +118,12 @@ channelsToProcess=params.Results.channelsToProcess;
 illumChans=params.Results.illumChans;
 verbose=params.Results.verbose;
 
+
+if ~strcmp(determineStitchItSystemType,'TissueCyte') && ...
+    (length(combCorChans)>1 || combCorChans~=0)
+    fprintf('\nYou have requested to run a comb-correction on non-TissueVision data. Please see:\n ')
+    fprintf('https://github.com/BaselLaserMouse/StitchIt/wiki/Tile-pre-processing\n\n')
+end
 
 %This is the output arg
 analysesPerformed.combCor=0;
