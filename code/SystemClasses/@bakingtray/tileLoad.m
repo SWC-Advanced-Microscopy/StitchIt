@@ -129,7 +129,7 @@ parfor XYposInd=1:length(indsToKeep)
     planeInSIstack =  numChannelsAvailable*(planeNum-1) + find(channelsInSIstack==channel);
 
     %Load the tile and add to the stack
-    im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16'); %TODO: check -- this used to produce weirdly large numbers. Maybe it doesn't any more?
+    im(:,:,XYposInd)=rot90(stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16'),userConfig.tile.tileRotate);
 
 end
 
