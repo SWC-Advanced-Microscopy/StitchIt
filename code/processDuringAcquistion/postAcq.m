@@ -44,6 +44,7 @@ end
 
 %-----------------------------------------------------
 %attempt to stitch all the data
+collateAverageImages % Ensure all are collated
 stitchAllChannels
 %-----------------------------------------------------
 

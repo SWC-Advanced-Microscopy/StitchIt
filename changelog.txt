@@ -1,5 +1,9 @@
 StitchIt Change Log
 
+18/05/02
+- MAJOR: Allow for optional tile rotation during image loading. Note the new tileRotate argument to the INI file under the "tile" section. 
+- Average image tile collation is now only performed during syncAndCrunch for the first few sections and then again at the end. 
+
 17/12/10 
 - preProcessTiles now takes paramater/value pairs as input arguments
 - Image offset is read from ScanImage file header and is not calculated. 
