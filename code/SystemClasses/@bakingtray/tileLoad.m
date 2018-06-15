@@ -116,6 +116,7 @@ end
 
 
 %Load the last frame and pre-allocate the rest of the stack
+
 im=stitchit.tools.loadTiffStack(path2stack,'frames',planeNum,'outputType','int16');
 im=repmat(im,[1,1,size(positionArray,1)]);
 im(:,:,1:end-1)=0;
@@ -129,8 +130,7 @@ parfor XYposInd=1:length(indsToKeep)
     planeInSIstack =  numChannelsAvailable*(planeNum-1) + find(channelsInSIstack==channel);
 
     %Load the tile and add to the stack
-    im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16'); %TODO: check -- this used to produce weirdly large numbers. Maybe it doesn't any more?
-
+    im(:,:,XYposInd)=rot90(stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16'),userConfig.tile.tileRotate);
 end
 
 

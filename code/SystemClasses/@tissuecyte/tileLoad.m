@@ -112,7 +112,7 @@ parfor ii=1:length(fileIndex)
     if isempty(tmp)
         im(:,:,ii) = 0;
     else
-        im(:,:,ii) = tmp;
+        im(:,:,ii) = rot90(tmp,userConfig.tile.tileRotate);
     end
     loaded(ii) = 1;
 end

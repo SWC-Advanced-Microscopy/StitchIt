@@ -341,8 +341,9 @@ while 1
     lastDir=thisDir; %The last directory to have been processed. 
   end
 
-
-  if analysesPerformed.illumCor
+  %Don't collate average images after we have 15 sections of
+  %them. For speed...
+  if analysesPerformed.illumCor && sum(indexPresent)<15
     try
       collateAverageImages %GENERATE GRAND-AVERAGE IMAGES (although these keep getting over-written)
     catch ME

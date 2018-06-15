@@ -68,7 +68,7 @@ function varargout=preProcessTiles(sectionsToProcess, varargin)
 % One
 % Process sections [1,1] and [90,5] (i.e. physical section 90, optical section 5)
 % If these already exist, they are re-processed. Process only channel 1 illumination correction.
-% preProcessTiles([1,1;90,5],0,'illumChans',1)
+% preProcessTiles([1,1;90,5],'illumChans',1)
 %
 % Two
 % Make tileStats only for physical sections 10 to 20 of channels 1 and 2
@@ -76,11 +76,11 @@ function varargout=preProcessTiles(sectionsToProcess, varargin)
 %
 % Three
 % Process all illumination correction data not already done for channel 1.
-% preProcessTiles([],0,'illumChans',1)
+% preProcessTiles([],'illumChans',1)
 %
 % Four
 % re-precess everything for channel 1 illumination correction.
-% preProcessTiles(-1,0,'illumChans',1)
+% preProcessTiles(-1,'illumChans',1)
 %
 %
 %
