@@ -112,10 +112,16 @@ parfor ii=1:length(fileIndex)
     if isempty(tmp)
         im(:,:,ii) = 0;
     else
-        im(:,:,ii) = rot90(tmp,userConfig.tile.tileRotate);
+        im(:,:,ii) = tmp;
     end
     loaded(ii) = 1;
 end
+
+
+% UNCOMMENT FOLLOWING LINE TO EXPLORE IMAGE MANIPULATION FOR STITCHING
+% see help stitchit.tools.lensdistort
+%im = stitchit.tools.lensdistort(im, [0,0.0],'affineMat',[1,0.0,0; 0.0,1,0; 0,0,1],'interpMethod','nearest');
+im = rot90(im,userConfig.tile.tileRotate);
 
 
 %Handle missing tiles 
