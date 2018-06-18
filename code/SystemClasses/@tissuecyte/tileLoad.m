@@ -52,12 +52,18 @@ else
     index=readTileIndex(tileIndexFile);
 end
 
-
 %Find the index of the optical section and tile(s)
 f=find(index(:,3)==coords(2)); %Get this optical section 
 index = index(f,:);
 
 indsToKeep=1:length(index);
+
+if coords(2)==0
+    error('TissueCyte tileLoad.m is not yet set up to load all optical sections at once')
+end
+if coords(5)==0
+    error('TissueCyte tileLoad.m is not yet set up to load all channels at once')
+end
 
 if coords(3)>0
     f=find(index(:,4)==coords(3)); %Row in tile array

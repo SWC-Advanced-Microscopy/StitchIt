@@ -107,6 +107,8 @@ SI=obj.parse_si_header(imInfo(1),'Software'); % Parse the ScanImage TIFF header
 channelsInSIstack = SI.channelSave;
 numChannelsAvailable = length(channelsInSIstack);
 
+
+
 if ~any(SI.channelsActive == channel)
     availChansStr = repmat('%d ', [1, length(channelsInSIstack)] );
     fprintf(['ERROR: tileLoad is attempting to load channel %d but this does not exist. Available channels: ', availChansStr, '\n'], ...
@@ -114,13 +116,24 @@ if ~any(SI.channelsActive == channel)
     return
 end
 
+% Check that the user has asked for an optical plane that exists
+if planeNum>SI.numFramesPerVolume
+    fprintf('ERROR: tileLoad is attempting to load plane %d but this does not exist. There are %d available planes\n',...
+        planeNum,SI.numFramesPerVolume)
+    return
+end
+%Load all frames if requested
+if planeNum==0
+    %planeNum = 1:SI.numFramesPerVolume;
+end
+
 
 %Load the last frame and pre-allocate the rest of the stack
-
 im=stitchit.tools.loadTiffStack(path2stack,'frames',planeNum,'outputType','int16');
 im=repmat(im,[1,1,size(positionArray,1)]);
 im(:,:,1:end-1)=0;
 
+n=1; %counter for adding images to stack
 parfor XYposInd=1:length(indsToKeep)
 
     sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,indsToKeep(XYposInd) );
@@ -130,7 +143,7 @@ parfor XYposInd=1:length(indsToKeep)
     planeInSIstack =  numChannelsAvailable*(planeNum-1) + find(channelsInSIstack==channel);
 
     %Load the tile and add to the stack
-    im(:,:,XYposInd)=rot90(stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16'),userConfig.tile.tileRotate);
+    im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16');
 end
 
 
@@ -143,7 +156,10 @@ if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
     return
 end
 
-im = rot90(im,-1); 
+
+%im = stitchit.tools.lensdistort(im, [0,0.03],'affineMat',[1,0.0,0,; -0.017,1,0; 0,0,1],'interpMethod','nearest');
+
+im = rot90(im,userConfig.tile.tileRotate); 
 
 
 
