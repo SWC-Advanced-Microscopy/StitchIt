@@ -214,7 +214,7 @@ if doSubtractOffset
     firstImInfo = imfinfo(firstTiff);
     firstSI=obj.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
     offset = firstSI.channelOffset;
-    im = im - cast(offset(channel),class(im));    
+    im = im - cast(offset(channel),class(im));
 end
 
 %Do illumination correction if requested to do so
