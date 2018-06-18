@@ -62,8 +62,11 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
                 end
 
                 dimFrames=thisStack(:,:,sortedInds(1:nDimmestFrames));
-                options = statset('MaxIter', 1000);
-                Gm=fitgmdist(single(dimFrames(1:100:end)'),2, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
+                %Take the average of these to get rid of odd outlier bright spots. 
+                %If these are present they can stop the fit from converging
+                muDimFrames = mean(dimFrames,3);
+                options = statset('MaxIter', 5000);
+                Gm=fitgmdist(single(muDimFrames(:)),2, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
                 if Gm.Converged
                     [~,maxPropInd]=max(Gm.ComponentProportion);
                     tileStats.offsetMean(1,thisLayer) = Gm.mu(maxPropInd);
