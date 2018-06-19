@@ -1,7 +1,10 @@
 StitchIt Change Log
 
 18/06/18
-- MAJOR - Bugfix in BakingTray tile load means the tileRotate parameter in the INI file will likely need changing. 
+- MAJOR - BakingTray tiles can be manipulated (undistorted and affine transformed) to allow for better stitching. User must edit StitchingParameters.VoxelSize in recipe to tweak mics per pixel if needed.
+- MAJOR - Bugfix in BakingTray tile loader means the tileRotate parameter in the INI file will likely 
+need changing. 
+
 
 18/05/02
 - MAJOR: Allow for optional tile rotation during image loading. Note the new tileRotate argument to the INI file under the "tile" section. 
