@@ -157,8 +157,12 @@ if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
 end
 
 
-%im = stitchit.tools.lensdistort(im, [0,0.03],'affineMat',[1,0.0,0,; -0.017,1,0; 0,0,1],'interpMethod','nearest');
+%Perform any required image manipulations
+LD = param.lensDistort;
+im = stitchit.tools.lensdistort(im, [LD.rows, LD.cols],'affineMat',param.affineMat);
 
+
+%Rotate if needed to allow for stitching
 im = rot90(im,userConfig.tile.tileRotate); 
 
 

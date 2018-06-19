@@ -36,7 +36,7 @@ function outputIm = lensdistort(inputIm, k, varargin)
 %   'interpMethod'         String that specifies the interpolating kernel 
 %                           that the separable resampler uses. Valid
 %                           strings are 'cubic', 'linear' and 'nearest'. By
-%                           default, the 'interpolation' is set to 'linear'
+%                           default, the 'interpolation' is set to 'nearest'
 %
 %   'padMethod'             String that controls how the resampler 
 %                           interpolates or assigns values to output elements 
@@ -91,10 +91,10 @@ function outputIm = lensdistort(inputIm, k, varargin)
 % Modifications
 % - Separate k for rows and columns (R. Campbell, June 2018)
 % - Neaten, update examples, etc (R. Campbell, June 2018)
-% - Set default interpolator to linear (R. Campbell, June 2018)
+% - Set default interpolator to nearest (R. Campbell, June 2018)
 % - Allow the padding value to be set via an input argument (R. Campbell, June 2018)
-% - Allow inputIm to be an image stack and process it in one go for speed.(R. Campbell, June 2018)
-% - Affine transformation along with distortion correction.(R. Campbell, June 2018)
+% - Allow inputIm to be an image stack and process it in one go for speed. (R. Campbell, June 2018)
+% - Affine transformation along with distortion correction. (R. Campbell, June 2018)
 
 
 %-------------------------------------------------------------------------
@@ -110,7 +110,7 @@ addRequired(p,'k',@isnumeric);
 
 % Sets the default values for the optional parameters
 addParameter(p,'borderType','crop', @(x) any(validatestring(x,{'fit','crop'})) );
-addParameter(p,'interpMethod','linear', @(x) any(validatestring(x, {'cubic','linear', 'nearest'})) );
+addParameter(p,'interpMethod','nearest', @(x) any(validatestring(x, {'cubic','linear', 'nearest'})) );
 addParameter(p,'padMethod','fill', @(x) any(validatestring(x,{'bound','circular', 'fill', 'replicate', 'symmetric'})) );
 addParameter(p,'fType',4, @isnumeric);
 addParameter(p,'padValue', min(inputIm(:)), @isnumeric);
@@ -136,7 +136,10 @@ k(k==0) = 1E-9;
 
 
 %-------------------------------------------------------------------------
-% Run the correction
+% Run the correction but short-circuit if nothing was requested
+if all(k==0) && isempty(affineMat)
+    outputIm=inputIm;
+end
 outputIm = imDistCorrect(inputIm,k);
 
 
