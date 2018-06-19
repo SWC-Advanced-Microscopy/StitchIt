@@ -44,7 +44,9 @@ out.sample.acqStartTime= raw.Acquisition.acqStartTime;
 out.sample.activeChannels = raw.ScannerSettings.activeChannels;
 out.mosaic = raw.mosaic;
 out.tile =raw.Tile;
-out.voxelSize=raw.VoxelSize;
+out.voxelSize=raw.StitchingParameters.VoxelSize; %Read from the user-tweaked settings.
+out.lensDistort=raw.StitchingParameters.lensDistort;
+out.affineMat=cell2mat(raw.StitchingParameters.affineMat);
 out.numTiles = raw.NumTiles;  
 out.TileStepSize = raw.TileStepSize;
 out.TileStepSize.X = 1E3 * out.TileStepSize.X; 
@@ -58,6 +60,8 @@ if out.mosaic.sliceThickness<1
 end
 
 return
+
+
 %TODO: we need the stage locations
 if ~isempty(raw.XPos)
     out.stageLocations.requestedStep.X = raw.XPos(:,1); %What was the motion step requested by the microscope?
