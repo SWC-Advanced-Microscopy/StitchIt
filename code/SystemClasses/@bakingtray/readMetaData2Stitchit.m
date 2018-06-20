@@ -46,8 +46,12 @@ out.mosaic = raw.mosaic;
 out.tile =raw.Tile;
 out.voxelSize=raw.StitchingParameters.VoxelSize; %Read from the user-tweaked settings.
 out.lensDistort=raw.StitchingParameters.lensDistort;
+if isempty(out.lensDistort)
+    out.lensDistort.rows=0;
+    out.lensDistort.cols=0;
+end
 out.affineMat=cell2mat(raw.StitchingParameters.affineMat);
-out.numTiles = raw.NumTiles;  
+out.numTiles = raw.NumTiles;
 out.TileStepSize = raw.TileStepSize;
 out.TileStepSize.X = 1E3 * out.TileStepSize.X; 
 out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; 
