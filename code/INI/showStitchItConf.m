@@ -24,7 +24,9 @@ if nargin<2
     INIfname='stitchitConf.ini';
 end
 
-
+if ~exist(INIfname,'file')
+    fprintf('%s failed to find INI file %s\n',mfilename,INIfname)
+end
 
 %Read INI file
 ini = IniConfig();

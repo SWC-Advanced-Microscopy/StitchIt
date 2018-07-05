@@ -103,7 +103,7 @@ doChessBoard=params.Results.chessboard;
 
 
 param=readMetaData2Stitchit;
-userConfig=readStitchItINI;
+[userConfig,fullPathToINIfile]=readStitchItINI;
 
 %Do not proceeed if stitching will fill the disk
 
@@ -291,7 +291,7 @@ end
 
 
 %Finally, write the stitching parameters to the directory. 
-iniFileContents=showStitchItConf(-1);
+iniFileContents=showStitchItConf(-1,fullPathToINIfile);
 
 for thisR = 1:length(reducedSizeDir)
         fname = sprintf('.%s%s%s%d%sstitchingParams.ini',...
