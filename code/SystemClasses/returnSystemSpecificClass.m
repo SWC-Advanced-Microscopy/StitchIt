@@ -1,4 +1,4 @@
-function returnedClass = returnSystemSpecificClass
+function returnedClass = returnSystemSpecificClass(systemType)
 % Determine the acquisition system used for this experiment and return the class that handles this
 %
 %    function returnedClass = returnSystemSpecificClass
@@ -17,7 +17,7 @@ function returnedClass = returnSystemSpecificClass
 %
 %
 % Inputs
-% functionName - none
+% systemType - optionally force load of a specific system class: 'TissueCyte' or 'BakingTray'
 % 
 % Outputs
 % returnedClass - a class that provides all the system-specifc methods needed to assemble a dataset
@@ -38,12 +38,15 @@ function returnedClass = returnSystemSpecificClass
 % class as an example.
 
 
+if nargin<1
+    systemType=determineStitchItSystemType;
+end
 
-switch determineStitchItSystemType;
-case 'TissueCyte'
-    returnedClass=tissuecyte;
-case 'BakingTray'
-    returnedClass=bakingtray;
-otherwise
-    error('Can not find acquisition system log file in %s\n',pwd)
+switch systemType;
+    case 'TissueCyte'
+        returnedClass=tissuecyte;
+    case 'BakingTray'
+        returnedClass=bakingtray;
+    otherwise
+        error('Can not find acquisition system log file in %s\n',pwd)
 end

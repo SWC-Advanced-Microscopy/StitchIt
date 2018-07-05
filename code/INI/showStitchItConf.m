@@ -47,7 +47,7 @@ if nargout>0
 end
 
 if rawFile==0
-    showFields(readStitchItINI(INIfname));
+    showFields(readStitchItINI('INIfname',INIfname));
 end
 
 

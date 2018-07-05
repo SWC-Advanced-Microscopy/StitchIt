@@ -1,4 +1,4 @@
-function [out,pathToINI]=readStitchItINI(INIfname)
+function [out,pathToINI]=readStitchItINI(varargin)
 % Read SitchIt INI file into a structure
 %
 % function [out,pathToINI]=readStitchItINI(INIfname)
@@ -10,17 +10,18 @@ function [out,pathToINI]=readStitchItINI(INIfname)
 %
 % readStitchItINI searches for the INI file in the following way:
 % 1) If it is called from an experiment directory, it identifies the system ID using
-%    readMetaData2Stitchit and attempts to load the system-specifc INI file if this is
+%    readMetaData2Stitchit and attempts to load the system-specific INI file if this is
 %    in the path. e.g. if M.System.ID is 'Noodle' then readStitchitINI looks for an 
 %    INI file called stitchitConf_noodle.ini anywhere in the MATLAB path. Normal path rules 
 %    apply: a file in the current directory takes precedence over one elsewhere.
 %    Note we use lower case version in file name!
 % 2) If a system-specific INI file is not found, readStitchitINI looks for a file called
-%    stitchitConf.INI in the same way as it looked for the system-specifc file
+%    stitchitConf.INI in the same way as it looked for the system-specific file
 %
 %
 % Inputs
-% INIfname   - [optional] if empty or missing the above rules apply.
+% All inputs as optional parameter/value pairs
+% 'INIfname'   - Path to INI file to read. If empty or missing the above rules apply.
 %
 %
 % Outputs
@@ -31,14 +32,26 @@ function [out,pathToINI]=readStitchItINI(INIfname)
 % Rob Campbell - Basel 2014
 
 
-if nargin<1 || isempty(INIfname)
-    systemType = determineStitchItSystemType;
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+%Parse optional arguments
+params = inputParser;
+params.CaseSensitive = false;
+params.addParamValue('INIfname', []);
+params.parse(varargin{:});
+
+INIfname=params.Results.INIfname;
+
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+if isempty(INIfname)
+    systemType=determineStitchItSystemType;
     if isnumeric(systemType) &&  systemType == -1
-        INIfname='stitchitConf.ini';
+        INIfname='stitchitConf.ini'; %Try reading the default INI file
     else
         % This is really crap, but I need to read TissueCyte stuff in separately 
         % because we will get a recursive function call otherwise. TODO: fix this shit
-        switch determineStitchItSystemType
+        switch systemType
             case 'TissueCyte' 
                 T=tissuecyte;
                 M=T.readMosaicMetaData(T.getTiledAcquisitionParamFile);
