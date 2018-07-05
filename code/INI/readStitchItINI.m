@@ -13,8 +13,8 @@ function [out,pathToINI]=readStitchItINI(INIfname)
 %    readMetaData2Stitchit and attempts to load the system-specifc INI file if this is
 %    in the path. e.g. if M.System.ID is 'Noodle' then readStitchitINI looks for an 
 %    INI file called stitchitConf_noodle.ini anywhere in the MATLAB path. Normal path rules 
-%    Note we use lower case version in file name!
 %    apply: a file in the current directory takes precedence over one elsewhere.
+%    Note we use lower case version in file name!
 % 2) If a system-specific INI file is not found, readStitchitINI looks for a file called
 %    stitchitConf.INI in the same way as it looked for the system-specifc file
 %
@@ -31,7 +31,7 @@ function [out,pathToINI]=readStitchItINI(INIfname)
 % Rob Campbell - Basel 2014
 
 
-if nargin<1 | isempty(INIfname)
+if nargin<1 || isempty(INIfname)
     systemType = determineStitchItSystemType;
     if isnumeric(systemType) &&  systemType == -1
         INIfname='stitchitConf.ini';
@@ -59,10 +59,6 @@ if nargin<1 | isempty(INIfname)
         end
 
     end
-end
-
-if nargin<2
-    processIni=1;
 end
 
 

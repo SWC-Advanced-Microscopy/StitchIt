@@ -51,7 +51,6 @@ end
 
 
 
-
 function showFields(thisStruct)
 
     f=fields(thisStruct);
