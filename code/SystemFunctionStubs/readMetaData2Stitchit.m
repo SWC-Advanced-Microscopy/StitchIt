@@ -46,8 +46,7 @@ function [out,sucessfulRead,mosOut]=readMetaData2Stitchit(varargin)
 %
 %
 % Developer Note:
-% This function should avoid calling readStitchItINI in order to avoid
-% recursion situations. 
+% This function should avoid calling readStitchItINI in order to avoid recursion. 
 % 
 %
 %
