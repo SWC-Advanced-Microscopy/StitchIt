@@ -92,6 +92,10 @@ else %if we didn't do optical sections, it is the separation between layers whic
     out.voxelSize.Z=raw.zres;
 end
 
+%These two fields appear in the BakingTray reader so they appear here too, even though
+%the TV does not produce these settings.
+out.lensDistort=[];
+out.affineMat=[];
 
 % NUMTILES 
 %The number of tiles the system will take in x and y
@@ -103,6 +107,7 @@ out.numTiles.Y=raw.mcolumns; %y means along the direction of the y stage
 %The size of each tile step size
 out.TileStepSize.X=raw.mrowres; %x means along the direction of the x stage
 out.TileStepSize.Y=raw.mcolumnres; %y means along the direction of the y stage
+
 
 
 % SYSTEM

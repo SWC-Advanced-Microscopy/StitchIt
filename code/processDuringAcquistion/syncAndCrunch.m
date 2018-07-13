@@ -1,60 +1,112 @@
-function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,chanToPlot)
-% download data from server, pre-process, and send to WWW
+function syncAndCrunch(serverDir,chanToPlot,varargin)
+% Pull data off acquisition system, pre-process, and send sample images to the WWW
 %
-% function syncAndCrunch(localDir,serverDir,combCorChans,illumChans,chanToPlot)
+% function syncAndCrunch(serverDir,chanToPlot, ... )
 %
 %
 % Purpose
-% Perform tile index generation, analysis (mean image and comb corr), 
-% collate average images, then build last section and send to web. 
+% Perform tile index generation, pre-processing of images, and send preview stitched
+% images to the web. 
+%
+% Set up
+% You should set up your INI file and define a landing directory before running this
+% function. See also:
+% https://github.com/BaselLaserMouse/StitchIt/wiki/Setting-up-syncAndCrunch
+% https://github.com/BaselLaserMouse/StitchIt/wiki/syncAndCrunch-walk-through
+% 
+%
 %
 % Inputs
-% localDir - the full path to the local directory which will house the data directory. 
 % serverDir - the full path to data directory on the server
-% combCorChans - vector defining which channels will contribute to comb correction.
-%               if empty or missing this is set to 0, so no correction is done.
+% chanToPlot - Which channel to send to web (if missing, this is the first available 
+%              channel). If zero, don't do the web plots. 
+%
+% Inputs (param/val pairs)
+% landingDir - the full path to the local directory which will house the data directory. 
 % illumChans - vector defining which channels will have mean images calculated.
-%              If empty or missing, all available channels are corrected. To not calculate set to zero.
-%              These chans are stitched at the end.
-% chanToPlot - Which channel to send to web (by default this is the first channel in illumChans). 
-%              If zero, don't do the web plots. 
+%              If empty or missing, all available channels are corrected. To not calculate 
+%              set to zero. These chans are stitched at the end.
+% combCorChans - vector defining which channels will contribute to comb correction.
+%               if empty or missing this is set to 0, so no correction is done. It is suggested
+%               NOT to use this option unless you have TissueCyte data and you know what you 
+%               are doing. Most users should never need this option.
 %
 %
 % Example
-% 1) The following will create the directory AE033 in /mnt/data/TissueCyte/AwesomeExperiments
+% 1) Pull data from '/mnt/anatomyScope/sample01' into the default landing directory and
+%    run illumination correction on all channels. Plot chan 2 to the web. 
+%  >> syncAndCrunch('/mnt/anatomyScope/sample01',2)
+%
+% 2) Create the directory AE033 in /mnt/data/TissueCyte/AwesomeExperiments
 % and sync data to it. Conduct comb-correction and illumination correction on chans 1:3
-% 
+% then send channel 1 to the web.
 %
 % LDir = '/mnt/data/TissueCyte/AwesomeExperiments'
 % SDir = '/mnt/tvbuffer/Data/AwesomeExperiments/AE033'
-% syncAndCrunch(LDir,SDir,1:3,1:3,1)
-% 
+% syncAndCrunch(SDir,1,'landingDir',LDir,'illumChans',1:3,'combCorChans',1:3)
+%
 %
 % NOTE! 
-% The string for the local directory argument is NOT:
+% The string for the local landing directory arguments should NOT be:
 % '/mnt/data/TissueCyte/AwesomeExperiments/AE033'
 % It is: 
 % '/mnt/data/TissueCyte/AwesomeExperiments/''
 % However, syncAndCrunch will attept to catch this error.
 %
 %
-% 2) Perform no comb correction but do illumination correction on
-%    all available channels:
-% syncAndCrunch(LDir,SDir,1:3,1:3,1)
-%
 %
 % Rob Campbell - Basel 2015
 
 
+% Read the INI file 
+%Initial INI file read
+curDir=pwd;
+try
+  cd(serverDir)
+  config=readStitchItINI; 
+
+  if config.syncAndCrunch.landingDirectory == 0 
+    fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
+      '\tSee the shipped default INI file in %s as an example\n\n'],  fileparts(which('readStitchItINI')) )
+    return
+  end
+
+  defaultChans = channelsAvailableForStitching; 
+catch ME
+  cd(curDir)
+  rethrow(ME)
+end
+
+% Parse optional inputs
+P=inputParser;
+P.CaseSensitive=false;
+P.addParamValue('landingDir', config.syncAndCrunch.landingDirectory)
+P.addParamValue('illumChans',defaultChans)
+P.addParamValue('combCorChans',0)
+
+P.parse(varargin{:});
+
+landingDir=P.Results.landingDir;
+illumChans=P.Results.illumChans;
+combCorChans=P.Results.combCorChans;
+
+if  ~ischar(landingDir) | landingDir==0
+  fprintf('Please define a directory into which data will land.\n')
+  return
+end
+
+if nargin<2 || isempty(chanToPlot)
+  chanToPlot = illumChans(1);
+end
+
+
+
 %Input argument error checks
-if ~ischar(localDir)
-  fprintf('ERROR: localDir should be a string\n')
+if ~exist(landingDir,'dir')
+  fprintf('ERROR: Cannot find directory %s defined by landingDir\n',landingDir)
   return
 end
-if ~exist(localDir,'dir')
-  fprintf('ERROR: Cannot find directory %s defined by localDir\n',localDir)
-  return
-end
+
 if ~ischar(serverDir)
   fprintf('ERROR: serverDir should be a string\n')
   return
@@ -64,46 +116,36 @@ if ~exist(serverDir,'dir')
   return
 end
 
+
 %Remove trailing fileseps
-if strcmp(localDir(end),filesep)
-  localDir(end)=[];
+if strcmp(landingDir(end),filesep)
+  landingDir(end)=[];
 end
 if strcmp(serverDir(end),filesep)
   serverDir(end)=[];
 end
 
 %Bail out of the two are the same
-if strcmp(serverDir,localDir)
-  fprintf('ERROR: serverDir and localDir are the same\n')
+if strcmp(serverDir,landingDir)
+  fprintf('ERROR: serverDir and landingDir are the same\n')
   return
 end
 
 
-if nargin<3 || isempty(combCorChans)
-  combCorChans=0;
-end
 if ~isnumeric(combCorChans)
   fprintf('ERROR: combCorChans should be a numeric scalar or vector\n')
   return
 end
 
-if nargin<4
-  illumChans=[];
-end
 if ~isnumeric(illumChans)
   fprintf('ERROR: illumChans should be a numeric scalar or vector\n')
   return
-end
-
-if nargin<5
-  chanToPlot=[];
 end
 
 if ~isempty(chanToPlot) && (~isnumeric(chanToPlot) || ~isscalar(chanToPlot))
   fprintf('ERROR: chanToPlot should be empty or a numeric scalar\n')
   return
 end
-
 
 
 
@@ -121,23 +163,23 @@ fprintf('\n\n')
 % The experiment name is simply the last directory in the serverDir:
 % TODO: is that really the best way of doing things? <--
 
-%If local dir contains the experiment directory at the end, we should remove this and raise a warning
+%If local landing directory contains the experiment directory at the end, we should remove this and raise a warning
 [~,expName,extension] = fileparts(serverDir);
 
-[localDirMinusExtension,localTargetRoot] = fileparts(localDir);
+[landingDirMinusExtension,localTargetRoot] = fileparts(landingDir);
 
 if strcmp(localTargetRoot,expName)
-  fprintf('\nNOTE: Stripping %s from localDir. see help %s for details\n\n',expName,mfilename);
-  localDir = localDirMinusExtension;
+  fprintf('\nNOTE: Stripping %s from landingDir. see help %s for details\n\n',expName,mfilename);
+  landingDir = landingDirMinusExtension;
 end
 
-if ~isWritable(localDir)
-  fprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',localDir)
+if ~isWritable(landingDir)
+  fprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir)
 end
 
 
 % expDir is the path to the local directory where we will be copying data
-expDir = fullfile(localDir,expName,extension); %we add extension just in case the user put a "." in the file name
+expDir = fullfile(landingDir,expName,extension); %we add extension just in case the user put a "." in the file name
 
 
 %Do an initial rsync 
@@ -228,7 +270,7 @@ while 1
     break
   end
 
-  %read tvMat config file
+  %read the StitchIt config file
   try
     config=readStitchItINI;
   catch ME
@@ -252,7 +294,7 @@ while 1
   end
 
 
-  %Pull data from TV buffer server to analysis machine
+  %Pull data from acquisition system/server to local analysis machine
   params = readMetaData2Stitchit;
   numSections = params.mosaic.numSections;
   %Get the number of acquired directories so far
@@ -264,7 +306,7 @@ while 1
     [returnStatus,~]=unix(sprintf('rsync %s %s%s %s', config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir));
   catch
     if returnStatus~=0 && ~sentWarning
-      stitchit.tools.notify([generateMessage('negative'),' rsync failed in ',localDir,' Attempting to continue'])
+      stitchit.tools.notify([generateMessage('negative'),' rsync failed in ',landingDir,' Attempting to continue'])
       sentWarning=1;
     end
   end 
@@ -419,7 +461,7 @@ if ~expAlreadyFinished
 end
 
 try
-  stitchit.tools.warnLowDiskSpace(localDir,90)
+  stitchit.tools.warnLowDiskSpace(landingDir,90)
   eval(postAcqFun) %Run the post-acquisition function
   success=true;
 catch ME

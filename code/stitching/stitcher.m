@@ -156,7 +156,7 @@ if any(size(stitchedPlane)>allocatedSize)
 end
 
 
-%Flip sections if needed. 
+%Flip or rotate sections if needed. 
 st=userConfig.stitching;
 if st.flipud
     stitchedPlane=flipud(stitchedPlane);
@@ -167,6 +167,12 @@ if st.fliplr
     stitchedPlane=fliplr(stitchedPlane);
     tilePositionInPixels(:,1)=abs(tilePositionInPixels(:,1)-max(tilePositionInPixels(:,1)))+1;
 end
+
+if st.rotate ~= 0 
+    stitchedPlane=rot90(stitchedPlane,st.rotate);
+    %TODO - return the tilePositionInPixels
+end
+
 
 
 
