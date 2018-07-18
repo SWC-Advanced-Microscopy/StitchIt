@@ -16,10 +16,10 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % Also see:
 % syncAndCrunch
 
+userConfig = readStitchItINI;
 if nargin<1 || isempty(sectionToPlot)
     sectionToPlot = lastCompletedSection; 
 else
-    userConfig = readStitchItINI;
     rawDataDir = userConfig.subdir.rawDataDir;
     baseName = sprintf('%s%s%s', rawDataDir, filesep, directoryBaseName);
     sectionToPlot = sprintf('%s%04d',baseName,sectionToPlot);
@@ -37,6 +37,22 @@ end
 
 verbose=1; %Used to diagnose a MATLAB segfault that occurs at some point during image production
 
+
+% Don't proceed if there a a lock file in the web-subirectory
+lockfile=fullfile(userConfig.subdir.WEBdir,'LOCK');
+tidyUp = onCleanup(@() thisCleanup(lockfile));
+
+if exist(lockfile,'file')
+    varargout={};
+    return
+else
+    fclose(fopen(lockfile,'w')); %make the lock file
+end
+
+
+
+
+
 [~,thisSectionDir]=fileparts(sectionToPlot);
 generateTileIndex(thisSectionDir,[],0);
 
@@ -45,7 +61,6 @@ tok=regexp(sectionToPlot,'.*-(\d+)','tokens');
 ind=str2num(tok{1}{1});
 
 
-userConfig=readStitchItINI;
 rescaleThresh=userConfig.syncAndCrunch.rescaleThresh;
 
 if rescaleThresh>1
@@ -242,3 +257,7 @@ function [im,thresh]=rescaleImage(im,thresh)
 
     im = im * (2^8-1);
     im = uint8(im);
+
+
+function thisCleanup(lockfile)
+    delete(lockfile)
