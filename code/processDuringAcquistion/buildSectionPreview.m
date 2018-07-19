@@ -39,6 +39,10 @@ verbose=1; %Used to diagnose a MATLAB segfault that occurs at some point during 
 
 
 % Don't proceed if there a a lock file in the web-subirectory
+if ~exist(userConfig.subdir.WEBdir,'dir')
+    mkdir(userConfig.subdir.WEBdir)
+end
+
 lockfile=fullfile(userConfig.subdir.WEBdir,'LOCK');
 tidyUp = onCleanup(@() thisCleanup(lockfile));
 
@@ -90,10 +94,6 @@ end
 %rescale and save
 F=figure('visible','off');
 
-
-if ~exist(userConfig.subdir.WEBdir,'dir')
-    mkdir(userConfig.subdir.WEBdir)
-end
 
 if verbose
     fprintf('Creating main image\n')
