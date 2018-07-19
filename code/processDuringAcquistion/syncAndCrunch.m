@@ -419,8 +419,7 @@ while 1
         % TODO
         % 1) Run this in a separate process so we can return right away to processing data
         % 2) Create the ability for buildSectionPreview to write to a log file in order to keep track of error and the status of stuff
-        parfeval(@buildSectionPreview,0,[],chanToPlot); %plot last completed section and send to the web
-        % TODO -- there is no error check with the parfeval
+        buildSectionPreview([],chanToPlot); %plot last completed section and send to the web
       catch ME
         if ~sentPlotwarning %So we don't send a flood of messages
           stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',ME.message])
