@@ -15,11 +15,11 @@ if isempty(D)
 end
 
 if length(D)>1
+    D = D(end);
     if ~supressWarning
-        fprintf('%s: Found multiple recipe files. Please specify a single file\n', mfilename)
+        fprintf('%s: Found multiple recipe files. Loading the most recent: %s\n', ...
+         mfilename, D.name)
     end
-    paramFile=[];
-    return
 end
 
 paramFile=D.name;

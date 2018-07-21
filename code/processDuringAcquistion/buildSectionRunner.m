@@ -9,6 +9,12 @@ function buildSectionRunner(chan)
 %
 %
 
+if nargin<1
+    c=channelsAvailableForStitching;
+    chan=c(1);
+    fprintf('\n\n * No channel to plot defined.\n * Choosing channel %d to send to web\n\n', chan)
+end
+
 curN=generateTileIndex;
 
 
