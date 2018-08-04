@@ -15,11 +15,7 @@ if isempty(D)
 end
 
 if length(D)>1
-    D = D(end);
-    if ~supressWarning
-        fprintf('%s: Found multiple recipe files. Loading the most recent: %s\n', ...
-         mfilename, D.name)
-    end
+    D = D(end); %Load the most recent (file names include date and time)
 end
 
 paramFile=D.name;
