@@ -182,6 +182,10 @@ end
 expDir = fullfile(landingDir,expName,extension); %we add extension just in case the user put a "." in the file name
 
 
+% Attempt to kill any pre-existing syncer or rsync processes for this sample. 
+% It's unlikely this will be the case, but just in case...
+killSyncer(serverDir)
+
 %Do an initial rsync 
 % copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
@@ -191,17 +195,15 @@ end
 
 
 % Copy meta-data files and so forth but no experiment data yet.
-% We do this to ensure we have the meta-data file present
-fprintf('Copying meta-data files from %s to %s\n', serverDir, expDir)
-unix(sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir)); %copies everything not a directory
+% We do this just to make the directory and ensure that all is working
+exitStatus = unix(sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir)); %copies everything not a directory
+if exitStatus ~= 0
+  fprintf('Initial rsync failed. QUITTING\n')
+  return
+end
 
 cd(expDir) %The directory where we are writing the experimental data
 
-%Initial INI file read
-config=readStitchItINI;
-
-% TODO: the following line shold not be needed. We comment it out for now and delete soon (July 2017)
-% unix(sprintf('rsync %s %s%s*.* %s',config.syncAndCrunch.rsyncFlag, serverDir,filesep,expDir));
 
 % Only create the local "rawData" folder if it does not exist on the server. The TissueCyte will not make it
 % but BakingTray does make it. 
@@ -241,6 +243,31 @@ else
 end
 
 
+
+%% START SHELL SCRIPT TO PULL DATA OFF THE SERVER
+tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir));
+
+pathToScript=fileparts(which(mfilename));
+pathToScript=fullfile(pathToScript,'syncer.sh');
+
+% TODO
+% 1) Should this script use the "landing directory" or the full path to the local experiment directory?
+%    I think I prefer the latter. It makes the script less flexible other uses but that's OK, I reckon. 
+% 2) I was doing two rsyncs before in the while loop: one for raw data and one for files with extensions. 
+%    Should I keep doing this?
+%    [returnStatus,~]=unix(sprintf('rsync %s %s%s*.* %s', config.syncAndCrunch.rsyncFlag, serverDir,filesep, expDir)); %files with extensions copied to experiment dir
+%    [returnStatus,~]=unix(sprintf('rsync %s %s%s %s', config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir));
+% 3) Test that the syncer will stop when a ctrl-c quits syncAndCrunch
+unix(sprintf('%s -r %s -s %s -l %s &', ...
+  pathToScript, ...
+  config.syncAndCrunch.rsyncFlag, ...
+  serverDir, ...
+  fileparts(expDir)) ); %This is a hack to use the landing directory
+
+% The shell script is now running in the background and we proceed with pre-processing
+%%% - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - -  - - - - - - - -
+
+
 % The raw data (section) directories are kept here
 pathToRawData = fullfile(expDir,config.subdir.rawDataDir);
 
@@ -248,13 +275,10 @@ pathToRawData = fullfile(expDir,config.subdir.rawDataDir);
 %those data
 lastDir='';
 
-%TODO:  We could use parfeval to keep rsync running the whole time in a loop that stops only when a 
-%       file called "FINISHED" is made in the experiment directory
-
 sentPlotwarning=0; %To record if warning about plot failure was sent
 sentConfigWarning=0; %Record if we failed to read INI file
 sentCollateWarning=0;
-sentWarning=0;
+
 
 
 
@@ -299,19 +323,6 @@ while 1
   numSections = params.mosaic.numSections;
   %Get the number of acquired directories so far
   numDirsAcquired = length(returnDataDirs(pathToRawData));
-
-  fprintf('Getting files for section %d/%d from server\n', numDirsAcquired, numSections)
-  try
-    [returnStatus,~]=unix(sprintf('rsync %s %s%s*.* %s', config.syncAndCrunch.rsyncFlag, serverDir,filesep, expDir)); %files with extensions copied to experiment dir
-    [returnStatus,~]=unix(sprintf('rsync %s %s%s %s', config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir));
-  catch
-    if returnStatus~=0 && ~sentWarning
-      stitchit.tools.notify([generateMessage('negative'),' rsync failed in ',landingDir,' Attempting to continue'])
-      sentWarning=1;
-    end
-  end 
-
-
 
 
   %Do not proceed until we have at least one finished section
@@ -405,7 +416,10 @@ while 1
   else
     fprintf('Building images and sending to web\n') 
       try 
-        buildSectionPreview([],chanToPlot); %plot last completed section as per the trigger file
+        % TODO
+        % 1) Run this in a separate process so we can return right away to processing data
+        % 2) Create the ability for buildSectionPreview to write to a log file in order to keep track of error and the status of stuff
+        buildSectionPreview([],chanToPlot); %plot last completed section and send to the web
       catch ME
         if ~sentPlotwarning %So we don't send a flood of messages
           stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',ME.message])
@@ -490,23 +504,28 @@ stitchit.tools.notify('syncAndCrunch finished')
 
 
 %-------------------------------------------------------------------------------------
-function out = finished
-  %Return true if the finished file is present. false otherwise.
-  config=readStitchItINI;
-  if exist('FINISHED','file') || ...
-    exist('FINISHED.txt','file') || ...
-    exist(fullfile(config.subdir.rawDataDir,'FINISHED'))  || ...
-    exist(fullfile(config.subdir.rawDataDir,'FINISHED.txt'),'file')
+  function out = finished
+    %Return true if the finished file is present. false otherwise.
+    config=readStitchItINI;
+    if exist('FINISHED','file') || ...
+      exist('FINISHED.txt','file') || ...
+      exist(fullfile(config.subdir.rawDataDir,'FINISHED'))  || ...
+      exist(fullfile(config.subdir.rawDataDir,'FINISHED.txt'),'file')
 
-    out = true;
-  else
-    out = false;
-  end
+      out = true;
+    else
+      out = false;
+    end
 
 
+  function dataDirs=returnDataDirs(rawDataDir)
+    %return directories that are likely section directories based on the name
+    potentialDirs=dir([rawDataDir,filesep,'*-0*']); %TODO: should enforce that this ends with a number?
+    dataDirs=potentialDirs([potentialDirs.isdir]==true);
 
-function dataDirs=returnDataDirs(rawDataDir)
-  %return directories that are likely section directories based on the name
-  potentialDirs=dir([rawDataDir,filesep,'*-0*']); %TODO: should enforce that this ends with a number?
-  dataDirs=potentialDirs([potentialDirs.isdir]==true);
+
+  function SandC_cleanUpFunction(serverDir)
+    fprintf('Cleaning up syncAndCrunch\n')
+    killSyncer(serverDir)
+
 
