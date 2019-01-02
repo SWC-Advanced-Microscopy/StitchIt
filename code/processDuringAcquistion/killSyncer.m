@@ -1,5 +1,5 @@
 function killSyncer(serverDir,simulate)
-% Kill all syncer.sh processes associated witha a defined server directory
+% Kill all syncer.sh processes associated with a defined server directory
 %
 % function killSyncer(serverDir,simulate)
 %
@@ -37,38 +37,11 @@ end
 % Kill syncer.sh
 % NB: Brackets avoid grep command appearing in ps results
 searchString=sprintf('''[s]yncer\\.sh.* -s %s''',serverDir);
-PIDs=findProcesses(searchString);
-killPIDs(PIDs,simulate)
+PIDs=stitchit.tools.findProcesses(searchString);
+stitchit.tools.killPIDs(PIDs,simulate)
 
 
 % Kill rsync
 searchString=sprintf('''[r]sync .* %s ''',serverDir); 
-PIDs=findProcesses(searchString);
-killPIDs(PIDs,simulate)
-
-
-
-
-function PIDs=findProcesses(searchString)
-    cmd=sprintf('ps a | grep %s',searchString);
-    fprintf('\nSearching for processes with: %s\n',cmd)
-    [exitStatus, stdout]=unix(cmd);
-    % Find the PIDs
-    PIDs=regexp(stdout,' *(\d+) pts','tokens');
-    if ~isempty(PIDs)
-        fprintf('Found:\n%s\n',stdout)
-    end
-
-function killPIDs(PIDs,simulate)
-    if isempty(PIDs)
-        fprintf('Found no PIDs to kill.\n')
-    end
-
-    for ii=1:length(PIDs)
-        cmd = sprintf('kill -9 %s', PIDs{ii}{1});
-        if ~simulate
-            unix(cmd);
-        else
-            fprintf('SIMULATING: %s\n',cmd)
-        end
-    end
+PIDs=stitchit.tools.findProcesses(searchString);
+stitchit.tools.killPIDs(PIDs,simulate)

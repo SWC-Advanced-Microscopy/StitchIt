@@ -16,6 +16,7 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % Also see:
 % syncAndCrunch
 
+
 userConfig = readStitchItINI;
 if nargin<1 || isempty(sectionToPlot)
     sectionToPlot = lastCompletedSection; 

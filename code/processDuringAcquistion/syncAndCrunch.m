@@ -245,7 +245,7 @@ end
 
 
 %% START SHELL SCRIPT TO PULL DATA OFF THE SERVER
-tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir));
+tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir)); %First ensure we can tidy up in case of failure
 
 pathToScript=fileparts(which(mfilename));
 pathToScript=fullfile(pathToScript,'syncer.sh');
@@ -281,6 +281,24 @@ sentCollateWarning=0;
 
 
 
+% Start background web preview thread
+if chanToPlot ~= 0
+  mPath = config.syncAndCrunch.MATLABpath;
+  nSecRun = which('buildSectionRunner');
+
+  % Before proceeding, let's kill any currently running background web previews
+  PIDs=stitchit.tools.findProcesses('buildSectionRunner');
+  stitchit.tools.killPIDs(PIDs)
+
+  if exist(mPath,'file')
+    CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1', mPath, nSecRun, chanToPlot);
+    fprintf('Running background web preview with:\n %s\n', CMD)
+    unix(CMD)
+  else
+    fprintf(['Can not find MATLAB executable at %s. ', ...
+      'Not running background web preview process.\n'...
+      'Web preview may lag behind acquisition if dataset is large.\n'], mPath)
+  end
 
 
 %----------------------------------------------------------------------------------------
@@ -411,6 +429,8 @@ while 1
   end
 
 
+  % We may already be running this in the background. If so, there is a lock so two processes can't attempt to build a preview
+  % at the same time. Consequently it's no big deal if the following code is still present.
   if chanToPlot==0
     fprintf('Not sending preview images to web\n')
   else

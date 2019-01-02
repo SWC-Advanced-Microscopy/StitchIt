@@ -9,6 +9,25 @@ function buildSectionRunner(chan)
 %
 %
 
+
+% This funtion may have been called from the system command line to run in the background from
+% syncAndCrunch using something like: via /usr/bin/MATLABR2017b/bin/matlab -nosplash -nodesktop -r 'run("buildSectionRunner(2)")'
+% In this case we must ensure that StitchIt is in the path. So we will test this first, and add it if needed, before carrying on. 
+thisMfile = which(mfilename);
+thisPath = fileparts(thisMfile);
+MATLABpath = path;
+
+if isempty(strfind(MATLABpath,thisPath))
+    % buildSection runner is not in the path so neither is StitchIt.
+    % Let's add StitchIt to the path
+    StitchItPath = fileparts(thisPath);
+    fprintf('Adding StitchIt to path at %s\n', StitchItPath)
+    addpath(genpath(StitchItPath));
+end
+
+
+
+
 if nargin<1
     c=channelsAvailableForStitching;
     chan=c(1);
@@ -28,3 +47,4 @@ while ~exist('./FINISHED','file')
 end
 
 
+fprintf('Acquisition is FINISHED. %s is quitting\n', mfilename)
