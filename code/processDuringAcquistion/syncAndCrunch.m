@@ -286,13 +286,21 @@ if chanToPlot ~= 0
   mPath = config.syncAndCrunch.MATLABpath;
   nSecRun = which('buildSectionRunner');
 
+  % The script file name we will build to run the background task
+  pathToBSfile = fullfile(tempdir,'webPreviewBootstrap.m');
+
   % Before proceeding, let's kill any currently running background web previews
-  PIDs=stitchit.tools.findProcesses('buildSectionRunner');
+  PIDs=stitchit.tools.findProcesses(pathToBSfile);
   stitchit.tools.killPIDs(PIDs)
 
+  % Write the boostrap file
+  fid = fopen(pathToBSfile,'w');
+  fprintf(fid,'run(''%s(%d,''''%s'''')''' , nSecRun(1:end-2), chanToPlot, pwd);
+  fclose(fid);
+
   if exist(mPath,'file')
-    CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1 &', mPath, nSecRun(1:end-2), chanToPlot);
-    CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s(%d,%s)")'' ', mPath, nSecRun(1:end-2), chanToPlot,pwd);
+    %CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1 &', mPath, nSecRun(1:end-2), chanToPlot);
+    CMD = sprintf('%s -nosplash -nodesktop -r ''%s'' ', pathToBSfile);
     fprintf('Running background web preview with:\n %s\n', CMD)
     unix(CMD)
   else
