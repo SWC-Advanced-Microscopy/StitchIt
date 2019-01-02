@@ -1,4 +1,4 @@
-function buildSectionRunner(chan)
+function buildSectionRunner(chan,runInPath)
 % Simple function that constantly looks for new data and sends them to the web if found
 %
 % function buildSectionRunner(chan)
@@ -9,6 +9,11 @@ function buildSectionRunner(chan)
 %
 %
 
+  if nargin<2
+    runInPath=pwd;
+  end
+
+  cd(runInPath)
 
 % This funtion may have been called from the system command line to run in the background from
 % syncAndCrunch using something like: via /usr/bin/MATLABR2017b/bin/matlab -nosplash -nodesktop -r 'run("buildSectionRunner(2)")'
@@ -20,9 +25,12 @@ MATLABpath = path;
 if isempty(strfind(MATLABpath,thisPath))
     % buildSection runner is not in the path so neither is StitchIt.
     % Let's add StitchIt to the path
+    
     StitchItPath = fileparts(thisPath);
     fprintf('Adding StitchIt to path at %s\n', StitchItPath)
     addpath(genpath(StitchItPath));
+
+    fprintf('Running in directory: %s\n', pwd)
 end
 
 

@@ -8,9 +8,12 @@ function killPIDs(PIDs,simulate)
     %
     % Rob Campbell - SWC
     %
-    % See also: killPIDs
+    % See also: findProcesses
 
-    findProcesses
+    if nargin<2
+        simulate=false;
+    end
+
     if isempty(PIDs)
         fprintf('Found no PIDs to kill.\n')
     end

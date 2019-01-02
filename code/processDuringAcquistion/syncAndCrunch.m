@@ -291,7 +291,8 @@ if chanToPlot ~= 0
   stitchit.tools.killPIDs(PIDs)
 
   if exist(mPath,'file')
-    CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1', mPath, nSecRun, chanToPlot);
+    CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1 &', mPath, nSecRun(1:end-2), chanToPlot);
+    CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s(%d,%s)")'' ', mPath, nSecRun(1:end-2), chanToPlot,pwd);
     fprintf('Running background web preview with:\n %s\n', CMD)
     unix(CMD)
   else
@@ -299,7 +300,7 @@ if chanToPlot ~= 0
       'Not running background web preview process.\n'...
       'Web preview may lag behind acquisition if dataset is large.\n'], mPath)
   end
-
+end %if chanToPlot
 
 %----------------------------------------------------------------------------------------
 % start big while loop that runs during acquisition
