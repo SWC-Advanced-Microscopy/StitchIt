@@ -9,11 +9,11 @@ function buildSectionRunner(chan,runInPath)
 %
 %
 
-  if nargin<2
-    runInPath=pwd;
-  end
+if nargin<2
+  runInPath=pwd;
+end
 
-  cd(runInPath)
+cd(runInPath)
 
 % This funtion may have been called from the system command line to run in the background from
 % syncAndCrunch using something like: via /usr/bin/MATLABR2017b/bin/matlab -nosplash -nodesktop -r 'run("buildSectionRunner(2)")'
