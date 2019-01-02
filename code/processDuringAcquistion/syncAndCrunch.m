@@ -303,9 +303,9 @@ if chanToPlot ~= 0
 
   if exist(mPath,'file')
     %CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1 &', mPath, nSecRun(1:end-2), chanToPlot);
-    CMD = sprintf('%s -nosplash -nodesktop -r ''%s'' > %s &', mPath, pathToBSfile, logFilePath);
-    fprintf('Running background web preview with:\n %s\n', CMD)
-    unix(CMD)
+    CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s")'' > %s &', mPath, pathToBSfile, logFilePath);
+    fprintf('Running background web preview with:\n %s\n', CMD);
+    unix(CMD);
   else
     fprintf(['Can not find MATLAB executable at %s. ', ...
       'Not running background web preview process.\n'...
