@@ -37,7 +37,7 @@ function downsampleAllChannels(voxelSize)
 
   % Now move all files to the destination directory
   for ii = 1:length(fnames)
-    fprintf('Moving %s to %s\n', fnames{ii}, dsDirName)
+    fprintf('Moving %s* to %s\n', fnames{ii}, dsDirName)
     movefile(fnames{ii}, dsDirName)
   end
   
