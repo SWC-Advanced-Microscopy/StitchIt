@@ -35,7 +35,7 @@ function varargout=preProcessTiles(sectionsToProcess, varargin)
 %    all available directories. This is the only way to start with a fresh average image
 % 3) If sectionsToProcess is a vector or a scalar >0 then we analyse only these 
 %    these section directories AND we over-write existing coefficient files in all 
-%    channels.
+%    channels (i.e. same as -1).
 %
 %
 % INPUTS (optional param/value pairs)
@@ -203,17 +203,19 @@ for thisDir = 1:length(sectionDirectories) %Loop through section directories
         continue %Is only executed if user defined specific directories to process
     end
 
-    if exist(lockfile,'file')
-        fprintf('** preProcessTiles finds a lock file at %s but carries on anyway. ** \n', lockfile)
-    end
 
     % We will make a lock file in the directory 
-    % (TODO: currently nothing will use this but it opens up the option for processing multiple directories at once)
     thisSectionDirName = fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name);
     lockfile = fullfile(thisSectionDirName, 'preProcessFilesLOCK');
     if verbose
         fprintf('Adding lock file at %s\n', lockfile)
     end
+
+    if exist(lockfile,'file')
+        fprintf('** preProcessTiles finds a lock file at %s. Skipping. ** \n', lockfile)
+        continue
+    end
+
     fclose(fopen(lockfile,'w')); %make the lock file
     save(currentLockFileTemp,'lockfile'); %update the mat file containing the lock file location
 
