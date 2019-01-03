@@ -1,10 +1,18 @@
-function fnames=downsampleAllChannels(voxelSize)
+function downsampleAllChannels(voxelSize)
 % function downsampleAllChannels(voxelSize)
 %
 % Purpose
 % Downsample all channels to MHD files with a voxel size defined by
-% "voxelSize". If voxelSize is missing, we use 25 microns.
-
+% "voxelSize". If voxelSize is missing, we use 25 microns. Then copy
+% all to a single directory.
+%
+% Inputs
+% voxelSize - a scalar (25 by default) defining the target voxel
+%             size of the resample operation.
+%
+%
+% Rob Campbell - SWC, 2018
+  
 
   if nargin<1
     voxelSize=25;
@@ -26,3 +34,11 @@ function fnames=downsampleAllChannels(voxelSize)
     [~,tFname]=resampleVolume(tChan,voxelSize);
     fnames{ii} = tFname;
   end
+
+  % Now move all files to the destination directory
+  for ii = 1:length(fnames)
+    fprintf('Moving %s to %s\n', fnames{ii}, dsDirName)
+    movefile(fnames{ii}, dsDirName)
+  end
+  
+  
