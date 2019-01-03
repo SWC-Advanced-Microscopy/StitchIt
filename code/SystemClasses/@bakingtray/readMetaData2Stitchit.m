@@ -16,7 +16,7 @@ if nargin<3
 end
 
 %Read the TissueCyte mosaic file
-rawOut=yaml.ReadYaml(fname,verbose);
+rawOut=stitchit.yaml.ReadYaml(fname,verbose);
 
 if isstruct(rawOut)
     sucessfulRead=true;

@@ -3,7 +3,6 @@
 
 
 function myHelp () {
-# Using a here doc with standard out.
 cat <<-END
 syncer.sh
 

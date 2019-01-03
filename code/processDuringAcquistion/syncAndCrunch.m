@@ -58,8 +58,9 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Rob Campbell - Basel 2015
 
 
-% Read the INI file 
-%Initial INI file read
+% Read the INI file  (Initial INI file read)
+
+makeLocalStitchItConf %First make a local copy of the INI file. We need this for the background web image generation to work
 curDir=pwd;
 try
   cd(serverDir)
@@ -245,7 +246,7 @@ end
 
 
 %% START SHELL SCRIPT TO PULL DATA OFF THE SERVER
-tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir));
+tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir)); %First ensure we can tidy up in case of failure
 
 pathToScript=fileparts(which(mfilename));
 pathToScript=fullfile(pathToScript,'syncer.sh');
@@ -281,7 +282,37 @@ sentCollateWarning=0;
 
 
 
+% Start background web preview thread
+if chanToPlot ~= 0
+  mPath = config.syncAndCrunch.MATLABpath;
+  nSecRun = which('buildSectionRunner');
 
+
+  % The script file name we will build to run the background task
+  pathToBSfile = fullfile(tempdir,'webPreviewBootstrap.m');
+  logFilePath = fullfile(tempdir,'webPreviewLogFile');
+  
+  % Before proceeding, let's kill any currently running background web previews
+  PIDs=stitchit.tools.findProcesses(pathToBSfile);
+  stitchit.tools.killPIDs(PIDs)
+
+  % Write the boostrap file
+  fid = fopen(pathToBSfile,'w');
+  fprintf(fid,'cd(''%s'');\n', fileparts(nSecRun)); %cd to the function directory
+  fprintf(fid,'buildSectionRunner(%d,''%s'');\n', chanToPlot, pwd);
+  fclose(fid);
+
+  if exist(mPath,'file')
+    %CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1 &', mPath, nSecRun(1:end-2), chanToPlot);
+    CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s")'' > %s &', mPath, pathToBSfile, logFilePath);
+    fprintf('Running background web preview with:\n %s\n', CMD);
+    unix(CMD);
+  else
+    fprintf(['Can not find MATLAB executable at %s. ', ...
+      'Not running background web preview process.\n'...
+      'Web preview may lag behind acquisition if dataset is large.\n'], mPath)
+  end
+end %if chanToPlot
 
 %----------------------------------------------------------------------------------------
 % start big while loop that runs during acquisition
@@ -411,6 +442,8 @@ while 1
   end
 
 
+  % We may already be running this in the background. If so, there is a lock so two processes can't attempt to build a preview
+  % at the same time. Consequently it's no big deal if the following code is still present.
   if chanToPlot==0
     fprintf('Not sending preview images to web\n')
   else
