@@ -10,6 +10,6 @@ if isempty(parameterFile)
     error('Can not find a BakingTray recipe file in the current directory\n')
 end
 
-params = yaml.ReadYaml(parameterFile);
+params = stitchit.yaml.ReadYaml(parameterFile);
 
 baseName = [params.sample.ID,'-'];
