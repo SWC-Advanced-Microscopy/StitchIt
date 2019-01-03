@@ -26,7 +26,6 @@ if isempty(strfind(MATLABpath,thisPath))
     fprintf('buildSectionRunner is at %s\n', thisMfile);
     StitchItPath = fileparts(thisPath);
     fprintf('Adding StitchIt to path at %s\n', StitchItPath);
-    genpath(StitchItPath)
     addpath(genpath(StitchItPath));
 end
 
@@ -34,6 +33,7 @@ end
 cd(runInPath) %Ensure we are in the correct path if the suer
               %specified a different one
 fprintf('Running in directory: %s\n', runInPath);
+disp(datestr(now,'dd-mm-YYYY HH:MM:SS'))
 
 if nargin<1
     c=channelsAvailableForStitching;

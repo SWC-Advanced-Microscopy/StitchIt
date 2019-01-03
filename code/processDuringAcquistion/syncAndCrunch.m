@@ -60,7 +60,6 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 
 % Read the INI file  (Initial INI file read)
 
-makeLocalStitchItConf %First make a local copy of the INI file. We need this for the background web image generation to work
 curDir=pwd;
 try
   cd(serverDir)
@@ -205,6 +204,7 @@ end
 
 cd(expDir) %The directory where we are writing the experimental data
 
+makeLocalStitchItConf %First make a local copy of the INI file. We need this for the background web image generation to work
 
 % Only create the local "rawData" folder if it does not exist on the server. The TissueCyte will not make it
 % but BakingTray does make it. 
