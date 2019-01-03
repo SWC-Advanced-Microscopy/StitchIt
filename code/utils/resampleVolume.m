@@ -219,7 +219,7 @@ try
   if strcmp('tiff',fileFormat)
     save3Dtiff(vol,downsampledFname)
   elseif strcmp('mhd',fileFormat)
-    mhd_write(vol,downsampledFname,[1,1,1])
+    stitchit.tools.mhd_write(vol,downsampledFname,[1,1,1])
   else
     %This should *never* execute as we've already checked the file format string 
     %at the start of the function. Nonetheless, we leave this code "just in case"
@@ -229,7 +229,7 @@ try
   end
 
 catch
-  msg=sprintf('resampleVolume failed to save: ensure you have mhd_write or save3Dtiff in your path\n');
+  msg=sprintf('resampleVolume failed to save: double-check you have mhd_write or save3Dtiff in your path\n');
   fprintf(msg)
   fprintf(fid,msg);
   disp(lasterror)
