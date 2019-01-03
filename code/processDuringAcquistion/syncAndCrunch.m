@@ -58,8 +58,9 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Rob Campbell - Basel 2015
 
 
-% Read the INI file 
-%Initial INI file read
+% Read the INI file  (Initial INI file read)
+
+makeLocalStitchItConf %First make a local copy of the INI file. We need this for the background web image generation to work
 curDir=pwd;
 try
   cd(serverDir)
