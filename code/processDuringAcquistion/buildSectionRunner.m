@@ -102,6 +102,11 @@ function buildSectionRunner(chan,runInPath)
         % then assign it to a variable so it will be used on the next 
         % section. If it's not valid, replace it with the originally
         % chosen channel. 
+
+        if ~exist(chanFname,'file')
+            createTmpChanFile
+        end
+
         fid=fopen(chanFname,'r');
         data=fscanf(fid,'%d');
         data=data(1); 
