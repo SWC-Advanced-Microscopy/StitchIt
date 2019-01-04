@@ -207,9 +207,6 @@ for thisDir = 1:length(sectionDirectories) %Loop through section directories
     % We will make a lock file in the directory 
     thisSectionDirName = fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name);
     lockfile = fullfile(thisSectionDirName, 'preProcessFilesLOCK');
-    if verbose
-        fprintf('Adding lock file at %s\n', lockfile)
-    end
 
     if exist(lockfile,'file')
         fprintf('** preProcessTiles finds a lock file at %s. Skipping. ** \n', lockfile)

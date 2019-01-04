@@ -95,7 +95,7 @@ function buildSectionRunner(chan,runInPath)
         fid=fopen(chanFname,'w'); 
         fprintf(fid,'%d',chan); 
         fclose(fid);
-    end
+    end %function createTmpChanFile
 
     function chan=readChan
         % Read the channel to plot from the text file. If it's valid 
@@ -140,7 +140,7 @@ function buildSectionRunner(chan,runInPath)
         %Otherwise we hope nothing went wrong and we use this
         %channel to plot
         chanToPlotNext = data;
-    end
+    end %function chan=readChan
 
 
 end
