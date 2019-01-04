@@ -58,8 +58,17 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Rob Campbell - Basel 2015
 
 
+  if nargin==0
+    ACQ=findCurrentlyRunningAcquisition;
+    if isempty(ACQ)
+      fprintf('CAN FIND NO ACQUISITION TO START WORK\n')
+      return
+    end
+    syncAndCrunch(ACQ.samplePath,ACQ.chanToDisplay);
+    return
+  end
+  
 % Read the INI file  (Initial INI file read)
-
 curDir=pwd;
 try
   cd(serverDir)
@@ -71,7 +80,6 @@ try
     return
   end
 
-  defaultChans = channelsAvailableForStitching; 
 catch ME
   cd(curDir)
   rethrow(ME)
@@ -81,7 +89,7 @@ end
 P=inputParser;
 P.CaseSensitive=false;
 P.addParamValue('landingDir', config.syncAndCrunch.landingDirectory)
-P.addParamValue('illumChans',defaultChans)
+P.addParamValue('illumChans',[]) %If empty all are processed, this is handled later
 P.addParamValue('combCorChans',0)
 
 P.parse(varargin{:});
@@ -434,7 +442,7 @@ while 1
     else
 
       T=dir(webPreviewLogLocation);
-      secondsSinceLastUpdate = (now-datenum(T.date))*24*60^2;
+      secondsSinceLastUpdate = (now-T.datenum)*24*60^2;
 
       if secondsSinceLastUpdate > 60*5
         msg=sprintf('%d seconds elapsed since last update of web preview log file. RESTARTING WEB PREVIEW!\n', ...
@@ -502,6 +510,8 @@ end
 
 try
   stitchit.tools.warnLowDiskSpace(landingDir,90)
+  msg = sprintf('Running post acquisition function\n');
+  writeLineToLogFile(logFileName,msg);
   eval(postAcqFun) %Run the post-acquisition function
   success=true;
 catch ME
@@ -513,6 +523,8 @@ catch ME
 end
 
 if ~expAlreadyFinished && success
+  msg=sprintf('Stitching finished!\n');
+  writeLineToLogFile(logFileName,msg);
   stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
 end
 
@@ -520,7 +532,8 @@ end
 if exist(config.subdir.WEBdir,'dir')
     success=rmdir(config.subdir.WEBdir,'s');
     if ~success
-      fprintf('Tried to delete directory %s but failed to do so\n',config.subdir.WEBdir)
+      msg = sprintf('Tried to delete directory %s but failed to do so\n',config.subdir.WEBdir);
+      writeLineToLogFile(logFileName,msg);
     end
 end
 
@@ -551,8 +564,10 @@ stitchit.tools.notify('syncAndCrunch finished')
 
 
   function SandC_cleanUpFunction(serverDir)
-    fprintf('Cleaning up syncAndCrunch\n')
     killSyncer(serverDir)
+    msg = fprintf('Cleaning up syncAndCrunch\n');
+    writeLineToLogFile('StitchIt_Log.txt', msg); %HARD-CODED
+
 
 
   function startBackgroundWebPreview(chanToPlot,config)
