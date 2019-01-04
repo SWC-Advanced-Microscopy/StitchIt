@@ -4,9 +4,24 @@ function [currentAcq,dirDetails] = findCurrentlyRunningAcquisition
 
   
     currentAcq = [];
-    acqMountPoint = '/mnt/brainsaw'; % TODO - integrate into INI file
 
-    d=dir(acqMountPoint);
+    config=readStitchItINI; 
+    MP = config.syncAndCrunch.acqMountPoint;
+
+    if MP==0
+      fprintf([' ** You need to set acqMountPoint in your INI file to ' ...
+               'use syncAndCrunch with no input arguments\n'])
+      return
+    end
+
+    if ~exist(MP,'dir')
+      fprintf('%s unable to find acquisition mount point %s\n',...
+              mfilename, MP)
+      return
+    end
+
+    d=dir(MP);
+
     if length(d)<3
       return
     end

@@ -17,6 +17,11 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 %
 %
 % Inputs
+% If run with no input arguments, syncAndCrunch looks for a current
+% acquisition on the acquisition system mount point and runs on
+% this using the channel the user is currently viewing as that to
+% send to the web. 
+%
 % serverDir - the full path to data directory on the server
 % chanToPlot - Which channel to send to web (if missing, this is the first available 
 %              channel). If zero, don't do the web plots. 
@@ -45,25 +50,33 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % SDir = '/mnt/tvbuffer/Data/AwesomeExperiments/AE033'
 % syncAndCrunch(SDir,1,'landingDir',LDir,'illumChans',1:3,'combCorChans',1:3)
 %
+% 3) Just run "syncAndCrunch" (!)
+%
 %
 % NOTE! 
 % The string for the local landing directory arguments should NOT be:
 % '/mnt/data/TissueCyte/AwesomeExperiments/AE033'
 % It is: 
 % '/mnt/data/TissueCyte/AwesomeExperiments/''
-% However, syncAndCrunch will attept to catch this error.
+% However, syncAndCrunch will attempt to catch this error.
 %
 %
 %
-% Rob Campbell - Basel 2015
-
+% Rob Campbell - Basel 2015, 2016, 2018
+%                SWC 2019
+%
+  
 
   if nargin==0
     ACQ=findCurrentlyRunningAcquisition;
+
     if isempty(ACQ)
-      fprintf('CAN FIND NO ACQUISITION TO START WORK\n')
+      config=readStitchItINI; 
+      MP = config.syncAndCrunch.acqMountPoint;
+      fprintf('Can not find any currently running acquisitions at %s\n',MP)
       return
     end
+
     syncAndCrunch(ACQ.samplePath,ACQ.chanToDisplay);
     return
   end
