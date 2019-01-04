@@ -432,7 +432,7 @@ while 1
 
   % Check the background web preview is still running and re-start it if not. We may already be running this in the background. If so, there is a lock so two processes can't attempt to build a preview
   % at the same time. Consequently it's no big deal if the following code is still present.
-  if chanToPlot==0
+  if chanToPlot~=0
     webPreviewLogLocation = '/tmp/webPreviewLogFile';
 
     if ~exist(webPreviewLogLocation)
