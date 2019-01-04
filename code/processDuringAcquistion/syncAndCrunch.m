@@ -151,6 +151,9 @@ end
 
 %Report if StitchIt is not up to date
 logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
+msg = sprintf(' --- Starting syncAndCrunch ---\n');
+writeLineToLogFile(logFileName,msg);
+
 try 
   stitchit.updateChecker.checkIfUpToDate;
 catch ME
@@ -174,7 +177,8 @@ if strcmp(localTargetRoot,expName)
 end
 
 if ~isWritable(landingDir)
-  fprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir)
+  msg = sprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir);
+  writeLineToLogFile(logFileName,msg)
 end
 
 
@@ -189,7 +193,8 @@ killSyncer(serverDir)
 %Do an initial rsync 
 % copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
-  fprintf('Making local raw data directory %s\n', expDir)
+  msg=sprintf('Making local raw data directory %s\n', expDir);
+  writeLineToLogFile(logFileName,msg)
   mkdir(expDir)
 end
 
@@ -198,7 +203,8 @@ end
 % We do this just to make the directory and ensure that all is working
 exitStatus = unix(sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir)); %copies everything not a directory
 if exitStatus ~= 0
-  fprintf('Initial rsync failed. QUITTING\n')
+  msg=sprintf('Initial rsync failed. QUITTING\n');
+  writeLineToLogFile(logFileName,msg)
   return
 end
 
@@ -214,11 +220,12 @@ else
   rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
 end
 
-fprintf('Getting first batch of data from server and copying to %s\n',rawDataDir)
-
+msg=fprintf('Getting first batch of data from server and copying to %s\n',rawDataDir);
+writeLineToLogFile(logFileName,msg);
 
 cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
-fprintf('Running:\n%s\n',cmd)
+msg = sprintf('Running:\n%s\n',cmd);
+writeLineToLogFile(logFileName,msg)
 unix(cmd);
 
 
@@ -284,34 +291,7 @@ sentCollateWarning=0;
 
 % Start background web preview thread
 if chanToPlot ~= 0
-  mPath = config.syncAndCrunch.MATLABpath;
-  nSecRun = which('buildSectionRunner');
-
-
-  % The script file name we will build to run the background task
-  pathToBSfile = fullfile(tempdir,'webPreviewBootstrap.m');
-  logFilePath = fullfile(tempdir,'webPreviewLogFile');
-  
-  % Before proceeding, let's kill any currently running background web previews
-  PIDs=stitchit.tools.findProcesses(pathToBSfile);
-  stitchit.tools.killPIDs(PIDs)
-
-  % Write the boostrap file
-  fid = fopen(pathToBSfile,'w');
-  fprintf(fid,'cd(''%s'');\n', fileparts(nSecRun)); %cd to the function directory
-  fprintf(fid,'buildSectionRunner(%d,''%s'');\n', chanToPlot, pwd);
-  fclose(fid);
-
-  if exist(mPath,'file')
-    %CMD = sprintf('%s -nosplash -nodesktop -r ''%s(%d)'' >/dev/null 2>&1 &', mPath, nSecRun(1:end-2), chanToPlot);
-    CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s")'' > %s &', mPath, pathToBSfile, logFilePath);
-    fprintf('Running background web preview with:\n %s\n', CMD);
-    unix(CMD);
-  else
-    fprintf(['Can not find MATLAB executable at %s. ', ...
-      'Not running background web preview process.\n'...
-      'Web preview may lag behind acquisition if dataset is large.\n'], mPath)
-  end
+  startBackgroundWebPreview(chanToPlot)
 end %if chanToPlot
 
 %----------------------------------------------------------------------------------------
@@ -439,30 +419,40 @@ while 1
       end
       stitchit.tools.logger(ME,logFileName)
     end %try/catch
-  end
+  end %if analysesPerformed.illumCor
 
 
-  % We may already be running this in the background. If so, there is a lock so two processes can't attempt to build a preview
+  % Check the background web preview is still running and re-start it if not. We may already be running this in the background. If so, there is a lock so two processes can't attempt to build a preview
   % at the same time. Consequently it's no big deal if the following code is still present.
   if chanToPlot==0
-    fprintf('Not sending preview images to web\n')
-  else
-    fprintf('Building images and sending to web\n') 
+    webPreviewLogLocation = '/tmp/webPreviewLogFile';
+
+    if ~exist(webPreviewLogLocation)
+      msg=sprintf('No web preview log file at %s. Not making any web preview images.\n', webPreviewLogLocation);
+      writeLineToLogFile(logFileName,msg);
+
+    else
+
+      T=dir(webPreviewLogLocation);
+      secondsSinceLastUpdate = (now-datenum(T.date))*24*60^2;
+      if secondsSinceLastUpdate > 60*5
+        msg=sprintf('%d seconds elapsed since last update of web preview log file. RESTARTING WEB PREVIEW!\n', ...
+          secondsSinceLastUpdate);
+        writeLineToLogFile(logFileName,msg);
+
       try 
-        % TODO
-        % 1) Run this in a separate process so we can return right away to processing data
-        % 2) Create the ability for buildSectionPreview to write to a log file in order to keep track of error and the status of stuff
-        buildSectionPreview([],chanToPlot); %plot last completed section and send to the web
+        startBackgroundWebPreview(chanToPlot)
       catch ME
         if ~sentPlotwarning %So we don't send a flood of messages
-          stitchit.tools.notify([generateMessage('negative'),' Failed to plot image. ',ME.message])
+          stitchit.tools.notify([generateMessage('negative'),' Failed restart web preview. ',ME.message])
           sentPlotwarning=1;
         else
-          fprintf(['Failed to plot image. ', ME.message])
+          fprintf(['Failed to restart web preview. ', ME.message]);
         end 
         stitchit.tools.logger(ME,logFileName)
       end %try/catch
-  end
+    end %if ~exist(webPreviewLogLocation)
+  end %if chanToPlot==0
 
 
 
@@ -477,7 +467,7 @@ while 1
       fprintf('\n** All sections have been acquired. Beginning to stitch **\n')
     unix('touch FINISHED');
     unix('touch ORIG_DATA_LIKELY_HAD_MISSING_TILES'); %Very likely contains missing tiles
-  end
+  end %if length(indexPresent)
   
 
 end
@@ -538,7 +528,7 @@ stitchit.tools.notify('syncAndCrunch finished')
 
 %-------------------------------------------------------------------------------------
   function out = finished
-    %Return true if the finished file is present. false otherwise.
+    % Return true if the finished file is present. false otherwise.
     config=readStitchItINI;
     if exist('FINISHED','file') || ...
       exist('FINISHED.txt','file') || ...
@@ -552,7 +542,7 @@ stitchit.tools.notify('syncAndCrunch finished')
 
 
   function dataDirs=returnDataDirs(rawDataDir)
-    %return directories that are likely section directories based on the name
+    % Return directories that are likely section directories based on the name
     potentialDirs=dir([rawDataDir,filesep,'*-0*']); %TODO: should enforce that this ends with a number?
     dataDirs=potentialDirs([potentialDirs.isdir]==true);
 
@@ -560,5 +550,50 @@ stitchit.tools.notify('syncAndCrunch finished')
   function SandC_cleanUpFunction(serverDir)
     fprintf('Cleaning up syncAndCrunch\n')
     killSyncer(serverDir)
+
+
+  function startBackgroundWebPreview(chanToPlot)
+    % Starts a background MATLAB process that sends low-res preview images of one channels to the web
+    mPath = config.syncAndCrunch.MATLABpath;
+    nSecRun = which('buildSectionRunner');
+
+    % The script file name we will build to run the background task
+    pathToBSfile = fullfile(tempdir,'webPreviewBootstrap.m');
+    logFilePath = fullfile(tempdir,'webPreviewLogFile');
+    
+    % Before proceeding, let's kill any currently running background web previews
+    PIDs=stitchit.tools.findProcesses(pathToBSfile);
+    stitchit.tools.killPIDs(PIDs)
+
+    % Write the boostrap file
+    fid = fopen(pathToBSfile,'w');
+    fprintf(fid,'cd(''%s'');\n', fileparts(nSecRun)); %cd to the function directory
+    fprintf(fid,'buildSectionRunner(%d,''%s'');\n', chanToPlot, pwd);
+    fclose(fid);
+
+    if exist(mPath,'file')
+      CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s")'' > %s &', mPath, pathToBSfile, logFilePath);
+      msg = sprintf('Running background web preview with:\n %s\n', CMD);
+      writeLineToLogFile('StitchIt_Log.txt', msg); %HARD-CODED log file name, but ok...
+      unix(CMD);
+    else
+      fprintf(['Can not find MATLAB executable at %s. ', ...
+        'Not running background web preview process.\n'...
+        'Web preview may lag behind acquisition if dataset is large.\n'], mPath)
+    end
+
+    function writeLineToLogFile(logFileName,msg)
+      % Simply writes a string to the log file and also displays on screen
+
+      fprintf(msg) %Display to screen
+
+      fid=fopen(logFileName,'a+');
+      if fid ~= 0
+        fprintf('FAILED TO OPEN %s FOR WRITING\n', logFileName)
+        return
+      end
+      fprintf(fid, datestr(now, 'HH:MM:SS dd-mm-yyyy - ') )
+      fprintf(fid,msg);
+      fclose(fid);
 
 
