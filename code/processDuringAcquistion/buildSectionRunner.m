@@ -71,7 +71,7 @@ function buildSectionRunner(chan,runInPath)
     curN=generateTileIndex;
 
 
-    fprintf(['%s will produce web previews of all new sections until the  ' ...
+    fprintf(['%s will produce web previews of all new sections until the ' ...
              'FINISHED file appears\n'], mfilename)
 
     while ~exist('./FINISHED','file')
@@ -81,7 +81,7 @@ function buildSectionRunner(chan,runInPath)
             readChan % assigns the variable chanToPlotNext
             buildSectionPreview([],chanToPlotNext)
         end
-        pause(2)
+        pause(10)
     end
 
 
@@ -104,21 +104,42 @@ function buildSectionRunner(chan,runInPath)
         % chosen channel. 
 
         if ~exist(chanFname,'file')
-            createTmpChanFile
+           createTmpChanFile
         end
 
-        fid=fopen(chanFname,'r');
-        data=fscanf(fid,'%d');
-        data=data(1); 
-        fclose(fid);
+        try 
+          fid=fopen(chanFname,'r');
+          data=fscanf(fid,'%d');
+
+          if length(data)>1
+            disp('Channel file contains more than one number. Fixing it.')
+            createTmpChanFile %replace with default
+            chanToPlotNext = chan; %Use the default
+            fclose(fid);
+            return
+          else
+            fclose(fid);
+          end
+
+        catch
+ 
+          disp('Error reading channel file. Fixing it and using default channel')
+          createTmpChanFile %replace with default
+          chanToPlotNext = chan; %Use the default
+          return
+        end
+        
 
         if isempty(find(availableChannels==data))
             fprintf('\n\n * Channel %d read from disk is not available.\n * Choosing channel %d to send to web\n\n', data, chan)
-            chanToPlotNext = chan;
-            createTmpChanFile % So this doesn't happen every time
-        else
-            chanToPlotNext = data;
+            chanToPlotNext = chan; %Use the default
+            createTmpChanFile % Replace file content
+            return
         end
+
+        %Otherwise we hope nothing went wrong and we use this
+        %channel to plot
+        chanToPlotNext = data;
     end
 
 
