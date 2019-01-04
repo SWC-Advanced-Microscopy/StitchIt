@@ -1,7 +1,16 @@
 StitchIt Change Log
 
+04/01/19
+- MAJOR: syncAndCrunch runs the web preview as a background task so it keeps up better with high bandwidth acquisitions.
+         You can now change which channel is being sent to the web by editing the file at /tmp/buildSectionRunnerTargetChannel so you you could do: echo "3" > /tmp/buildSectionRunnerTargetChannel
+- mhd_write and the YAML reader are integrated into the repo, making instalation easier.
+
+04/08/18
+- Bugfix: was failing to read z voxel size correctly.
+- Now reads the most recent BakingTray recipe file, even if there are multiple.
+
 13/07/18
-- MAJOR - syncAndCrunch has new call system! See "help syncAndCrunch" and note you need to edit your INI file. See the default INI file and https://github.com/BaselLaserMouse/StitchIt/wiki/Setting-up-syncAndCrunch
+- MAJOR: syncAndCrunch has new call system! See "help syncAndCrunch" and note you need to edit your INI file. See the default INI file and https://github.com/BaselLaserMouse/StitchIt/wiki/Setting-up-syncAndCrunch
 
 18/06/18
 - MAJOR - BakingTray tiles can be manipulated (undistorted and affine transformed) to allow for better stitching. User must edit StitchingParameters.VoxelSize in recipe to tweak mics per pixel if needed.
