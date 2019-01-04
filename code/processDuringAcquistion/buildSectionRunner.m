@@ -55,7 +55,7 @@ function buildSectionRunner(chan,runInPath)
 
 
     %Write this to a text file that will be read on each pass through the loop
-    chanFname=fullfile(tempdir,'buildSectionRunnerTargetChannel')
+    chanFname=fullfile(tempdir,'buildSectionRunnerTargetChannel');
     createTmpChanFile
 
 
@@ -81,12 +81,12 @@ function buildSectionRunner(chan,runInPath)
             readChan % assigns the variable chanToPlotNext
             buildSectionPreview([],chanToPlotNext)
         end
-        pause(5)
+        pause(2)
     end
 
 
     fprintf('Acquisition is FINISHED. %s is quitting\n', mfilename)
-    delete(fname)
+    delete(chanFname)
 
     function createTmpChanFile
         % Create a file that will contain the channel plot as originally defined
