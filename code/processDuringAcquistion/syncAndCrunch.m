@@ -220,7 +220,7 @@ else
   rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
 end
 
-msg=fprintf('Getting first batch of data from server and copying to %s\n',rawDataDir);
+msg=fprintf('STARTING!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
 writeLineToLogFile(logFileName,msg);
 
 cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
@@ -291,7 +291,7 @@ sentCollateWarning=0;
 
 % Start background web preview thread
 if chanToPlot ~= 0
-  startBackgroundWebPreview(chanToPlot)
+  startBackgroundWebPreview(chanToPlot,config)
 end %if chanToPlot
 
 %----------------------------------------------------------------------------------------
@@ -435,22 +435,25 @@ while 1
 
       T=dir(webPreviewLogLocation);
       secondsSinceLastUpdate = (now-datenum(T.date))*24*60^2;
+
       if secondsSinceLastUpdate > 60*5
         msg=sprintf('%d seconds elapsed since last update of web preview log file. RESTARTING WEB PREVIEW!\n', ...
           secondsSinceLastUpdate);
         writeLineToLogFile(logFileName,msg);
 
-      try 
-        startBackgroundWebPreview(chanToPlot)
-      catch ME
-        if ~sentPlotwarning %So we don't send a flood of messages
-          stitchit.tools.notify([generateMessage('negative'),' Failed restart web preview. ',ME.message])
-          sentPlotwarning=1;
-        else
-          fprintf(['Failed to restart web preview. ', ME.message]);
-        end 
-        stitchit.tools.logger(ME,logFileName)
-      end %try/catch
+        try 
+          startBackgroundWebPreview(chanToPlot,config)
+        catch ME
+          if ~sentPlotwarning %So we don't send a flood of messages
+            stitchit.tools.notify([generateMessage('negative'),' Failed restart web preview. ',ME.message])
+            sentPlotwarning=1;
+          else
+            fprintf(['Failed to restart web preview. ', ME.message]);
+          end 
+          stitchit.tools.logger(ME,logFileName)
+        end %try/catch
+      end %secondsSinceLastUpdate
+
     end %if ~exist(webPreviewLogLocation)
   end %if chanToPlot==0
 
@@ -552,7 +555,7 @@ stitchit.tools.notify('syncAndCrunch finished')
     killSyncer(serverDir)
 
 
-  function startBackgroundWebPreview(chanToPlot)
+  function startBackgroundWebPreview(chanToPlot,config)
     % Starts a background MATLAB process that sends low-res preview images of one channels to the web
     mPath = config.syncAndCrunch.MATLABpath;
     nSecRun = which('buildSectionRunner');
@@ -585,15 +588,14 @@ stitchit.tools.notify('syncAndCrunch finished')
     function writeLineToLogFile(logFileName,msg)
       % Simply writes a string to the log file and also displays on screen
 
-      fprintf(msg) %Display to screen
+      fprintf('%s',msg); %Display to screen
 
       fid=fopen(logFileName,'a+');
-      if fid ~= 0
+      if fid < 0
         fprintf('FAILED TO OPEN %s FOR WRITING\n', logFileName)
         return
       end
-      fprintf(fid, datestr(now, 'HH:MM:SS dd-mm-yyyy - ') )
-      fprintf(fid,msg);
+      fprintf(fid, '%s', datestr(now, 'HH:MM:SS dd-mm-yyyy - ') );
+      fprintf(fid, '%s', msg);
       fclose(fid);
-
 
