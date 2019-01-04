@@ -444,7 +444,7 @@ while 1
 
 
     % Check the background web preview is still running and re-start it if not. 
-    if chanToPlot~=0
+    if chanToPlot~=0 && ~exist('FINISHED','file')
         webPreviewLogLocation = '/tmp/webPreviewLogFile';
 
         if ~exist(webPreviewLogLocation)
