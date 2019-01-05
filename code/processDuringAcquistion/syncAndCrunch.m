@@ -409,12 +409,15 @@ while 1
         stitchit.tools.logger(ME,logFileName)
     end %try/catch
 
-    fprintf('\nCRUNCHING newly found completed data directories\n')
-
-
+    
+    % - - - - 
+    % Now call preProcessTiles to create average tiles, tile stats, etc
+    fprintf('\nCRUNCHING newly found completed data directories with preProcessTiles\n\n')
 
     analysesPerformed = preProcessTiles(0,'combCorChans', combCorChans, ...
-                                        'illumChans', illumChans); %PRE-PROCESS TILES
+                                        'illumChans', illumChans); 
+    fprintf('\nFINISHED THIS ROUND OF PROCESSING\n\n')
+    % - - - - 
 
 
     if isempty(analysesPerformed)
@@ -444,9 +447,10 @@ while 1
 
 
     % Check the background web preview is still running and re-start it if not. 
+    fprintf('About to test whether web preview is running\n')
     if chanToPlot~=0 && ~exist('FINISHED','file')
         webPreviewLogLocation = '/tmp/webPreviewLogFile';
-
+        fprintf('Testing whether web preview is still running\n')
         if ~exist(webPreviewLogLocation)
             msg=sprintf('No web preview log file at %s. Not making any web preview images.\n', webPreviewLogLocation);
             writeLineToLogFile(logFileName,msg);
@@ -456,9 +460,9 @@ while 1
             T=dir(webPreviewLogLocation);
             secondsSinceLastUpdate = (now-T.datenum)*24*60^2;
 
-            if secondsSinceLastUpdate > 60*5
+            if secondsSinceLastUpdate > 60*2
                 msg=sprintf('%d seconds elapsed since last update of web preview log file. RESTARTING WEB PREVIEW!\n', ...
-                    secondsSinceLastUpdate);
+                    round(secondsSinceLastUpdate));
                 writeLineToLogFile(logFileName,msg);
 
                 try 
@@ -472,9 +476,13 @@ while 1
                     end 
                     stitchit.tools.logger(ME,logFileName)
                 end %try/catch
+            else
+              fprintf('Web preview log file last updated %d seconds ago\n',round(secondsSinceLastUpdate))
             end %secondsSinceLastUpdate
 
-        end %if ~exist(webPreviewLogLocation)
+        end %if ~exist(webPreviewLogLocation
+    else
+      fprintf('Not testing for web preview. chan=%d\n', chanToPlot)
     end %if chanToPlot==0
 
 
