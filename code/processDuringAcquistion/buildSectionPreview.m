@@ -45,16 +45,17 @@ if ~exist(userConfig.subdir.WEBdir,'dir')
 end
 
 lockfile=fullfile(userConfig.subdir.WEBdir,'LOCK');
-tidyUp = onCleanup(@() thisCleanup(lockfile));
+
 
 if exist(lockfile,'file')
+    fprintf('%s found lockfile. aborting\n',mfilename)
     varargout={};
     return
 else
     fclose(fopen(lockfile,'w')); %make the lock file
 end
 
-
+tidyUp = onCleanup(@() thisCleanup(lockfile));
 
 
 

@@ -74,11 +74,23 @@ function buildSectionRunner(chan,runInPath)
     fprintf(['%s will produce web previews of all new sections until the ' ...
              'FINISHED file appears\n'], mfilename)
 
+
+    % Delete a lock file if it exists
+    userConfig = readStitchItINI;
+    lockfile=fullfile(userConfig.subdir.WEBdir,'LOCK');    
+    if exist(userConfig.subdir.WEBdir,'dir') && exist(lockfile,'file')
+      fprintf('%s deleting orphan lock file.\n', mfilename)
+      delete(lockfile)
+    end
+
+
     while ~exist('./FINISHED','file')
         t=generateTileIndex;
         if t~=curN
             curN=t;
             readChan % assigns the variable chanToPlotNext
+            fprintf('%s calling buildSectionPreview with channel %d\n', ...
+                    mfilename,chanToPlotNext)
             buildSectionPreview([],chanToPlotNext)
         end
         pause(10)
@@ -91,13 +103,23 @@ function buildSectionRunner(chan,runInPath)
     function createTmpChanFile
         % Create a file that will contain the channel plot as originally defined
         % by the user at the command line. 
+
         fprintf('Writing channel to plot to file at %s\n', chanFname)
-        fid=fopen(chanFname,'w'); 
-        fprintf(fid,'%d',chan); 
-        fclose(fid);
+        try
+            fid=fopen(chanFname,'w'); 
+            fprintf(fid,'%d',chan); 
+            fclose(fid);
+        catch ME
+          fprintf('Failed to create channel temp file with error:\n')
+          disp(ME.message)
+          return
+        end
+        fprintf('Finished writing channel to plot file\n')
+        
+          
     end %function createTmpChanFile
 
-    function chan=readChan
+    function readChan
         % Read the channel to plot from the text file. If it's valid 
         % then assign it to a variable so it will be used on the next 
         % section. If it's not valid, replace it with the originally
@@ -121,9 +143,9 @@ function buildSectionRunner(chan,runInPath)
             fclose(fid);
           end
 
-        catch
- 
-          disp('Error reading channel file. Fixing it and using default channel')
+        catch ME
+          fprintf('Reverting to channel %d\n', chan)
+          disp(ME.message)
           createTmpChanFile %replace with default
           chanToPlotNext = chan; %Use the default
           return
@@ -131,14 +153,13 @@ function buildSectionRunner(chan,runInPath)
         
 
         if isempty(find(availableChannels==data))
-            fprintf('\n\n * Channel %d read from disk is not available.\n * Choosing channel %d to send to web\n\n', data, chan)
+            fprintf('Reverting to channel %d\n', chan)
             chanToPlotNext = chan; %Use the default
             createTmpChanFile % Replace file content
             return
         end
 
-        %Otherwise we hope nothing went wrong and we use this
-        %channel to plot
+        %Otherwise we hope nothing went wrong and we use this channel to plot
         chanToPlotNext = data;
     end %function chan=readChan
 
