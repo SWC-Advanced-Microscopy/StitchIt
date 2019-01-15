@@ -20,13 +20,18 @@ function [out,pathToINI]=readStitchItINI(varargin)
 %
 %
 % Inputs
-% All inputs as optional parameter/value pairs
+% All inputs as *optional* parameter/value pairs
 % 'INIfname'   - Path to INI file to read. If empty or missing the above rules apply.
-%
+% 'systemType' = either 'TissueCyte' or anything else
 %
 % Outputs
 % out - the contents of the INI file (plus some minor processing) as a structure
 % pathToINI - path to the INI file.
+%
+% Example
+%
+% >> readStitchItINI; %Usually this is enough
+% >> readStitchItINI('INIfname', '/opt/matlabCommon/stitchitConf_brainsaw.ini')
 %
 %
 % Rob Campbell - Basel 2014
@@ -37,15 +42,19 @@ function [out,pathToINI]=readStitchItINI(varargin)
 params = inputParser;
 params.CaseSensitive = false;
 params.addParamValue('INIfname', []);
+params.addParamValue('systemType', []);
 params.parse(varargin{:});
 
 INIfname=params.Results.INIfname;
-
+systemType=params.Results.systemType;
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 if isempty(INIfname)
-    systemType=determineStitchItSystemType;
+    if isempty(systemType)
+      systemType=determineStitchItSystemType;
+    end
+    
     if isnumeric(systemType) &&  systemType == -1
         INIfname='stitchitConf.ini'; %Try reading the default INI file
     else
@@ -56,7 +65,9 @@ if isempty(INIfname)
                 T=tissuecyte;
                 M=T.readMosaicMetaData(T.getTiledAcquisitionParamFile);
                 M.System.ID = M.ScannerID; %TODO: again, this should not be here. It's here because of the recursion problem. 
-            otherwise %Sanity prevails 
+            case 'brainsaw'
+                M.System.ID = 'brainsaw';
+            otherwise
                 M=readMetaData2Stitchit;
         end
  

@@ -71,10 +71,10 @@ if nargin==0
     ACQ=findCurrentlyRunningAcquisition;
 
     if isempty(ACQ)
-    config=readStitchItINI; 
-    MP = config.syncAndCrunch.acqMountPoint;
-    fprintf('Can not find any currently running acquisitions at %s\n',MP)
-    return
+      config=readStitchItINI('systemType','brainsaw');
+      MP = config.syncAndCrunch.acqMountPoint;
+      fprintf('Can not find any currently running acquisitions at %s\n',MP)
+      return
     end
 
     syncAndCrunch(ACQ.samplePath,ACQ.chanToDisplay);

@@ -24,7 +24,7 @@ function [currentAcq,dirDetails] = findCurrentlyRunningAcquisition
 
 currentAcq = [];
 
-config=readStitchItINI; 
+config=readStitchItINI('systemType','brainsaw');
 MP = config.syncAndCrunch.acqMountPoint;
 
 if MP==0
