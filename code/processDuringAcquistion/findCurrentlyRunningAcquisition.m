@@ -75,37 +75,31 @@ function dirDetails = getDirDetails(dirStruct)
     pathToDir = fullfile(dirStruct.folder, dirStruct.name);
     dirDetails.isAcqDir=false;
 
-    if exist(fullfile(pathToDir,'rawData'),'dir') && ...
-            exist(fullfile(pathToDir,'scanSettings.mat'),'file')
-    %Then this is overwhelming likely to be an acquisition directory.
-    recipeFile = dir(fullfile(pathToDir,'recipe_*.yml'));
-    if isempty(recipeFile)
-        return
-    end
-    dirDetails.isAcqDir=true;
-    recipeFile = recipeFile(end); % In case there are several
-
-    dirDetails.samplePath = pathToDir;
-    dirDetails.containsFINISHED = exist(fullfile(pathToDir,'FINISHED'), 'file')==2;
-
-    d = dir(fullfile(pathToDir,'acqLog_*.txt'));
-    dirDetails.secondsSinceLastAcqLogUpdate=inf;
-
-    if ~isempty(d)
-        d=d(end);
-        deltaS = (now-d.datenum) * 24*60^2;
-        if deltaS<0
-            deltaS=0;
+    if exist(fullfile(pathToDir,'rawData'),'dir')
+        %Then this is overwhelming likely to be an acquisition directory.
+        recipeFile = dir(fullfile(pathToDir,'recipe_*.yml'));
+        if isempty(recipeFile)
+            return
         end
-        dirDetails.secondsSinceLastAcqLogUpdate = round(deltaS);
+        dirDetails.isAcqDir=true;
+        recipeFile = recipeFile(end); % In case there are several
+
+        dirDetails.samplePath = pathToDir;
+        dirDetails.containsFINISHED = exist(fullfile(pathToDir,'FINISHED'), 'file')==2;
+
+        d = dir(fullfile(pathToDir,'acqLog_*.txt'));
+        dirDetails.secondsSinceLastAcqLogUpdate=inf;
+
+        if ~isempty(d)
+            d=d(end);
+            deltaS = (now-d.datenum) * 24*60^2;
+            if deltaS<0
+                deltaS=0;
+            end
+            dirDetails.secondsSinceLastAcqLogUpdate = round(deltaS);
+        end
+
+        load(fullfile(pathToDir,'scanSettings.mat'));
+        dirDetails.chanToDisplay = ...
+                scanSettings.hChannels.channelDisplay(1);
     end
-
-    load(fullfile(pathToDir,'scanSettings.mat'));
-    dirDetails.chanToDisplay = ...
-            scanSettings.hChannels.channelDisplay(1);
-
-    else
-    %Otherwise bail out and indicate it's not an acq dir
-    return
-    end
-
