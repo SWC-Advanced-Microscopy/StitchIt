@@ -72,11 +72,17 @@ if isempty(INIfname)
         end
  
         sysINIfname=sprintf('stitchitConf_%s.ini', lower(M.System.ID));
+        localINIfname='stitchitConf_local.ini';
         defaultINIfname='stitchitConf.ini';
-        if exist(sysINIfname,'file')        
-           INIfname = sysINIfname;
+        if exist(fullfile(pwd,localINIfname),'file') 
+          %First we ask if there is an ini file in the current directory
+          INIfname = localINIfname;
+        elseif exist(sysINIfname,'file')
+          % Then the global one          
+          INIfname = sysINIfname;
         elseif exist(defaultINIfname,'file')
-           INIfname = defaultINIfname;
+          % Otherwise the defaults
+          INIfname = defaultINIfname;
         else
            error(['Can not find any valid stitchit INI files. Not even a default one called %s.\n',...
             'Likely you have not set things up properly.'],defaultINIfname)

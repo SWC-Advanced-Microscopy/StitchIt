@@ -32,7 +32,7 @@ end
 if ~exist(pathToINI)
     error('Can not find %s',pathToINI)
 else
-    localFname=fullfile(pwd,'stitchitConf.ini');
+    localFname=fullfile(pwd,'stitchitConf_local.ini');
     if exist(localFname,'file')
         fprintf('%s already exists. Not copying\n', localFname)
     else
