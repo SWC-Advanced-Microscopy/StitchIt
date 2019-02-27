@@ -11,6 +11,7 @@ function openOrigView(obj)
     obj.hOrigView.MenuBar = 'none';
     obj.hOrigView.ToolBar = 'none';
     obj.hOrigView.Color=[1,1,1]*0.1;
+    %obj.hOrigView.HandleVisibility='off';
     obj.hOrigView.Name = 'Original stack projection';
 
     obj.hOrigView.CloseRequestFcn = []; % Closing main window will close this

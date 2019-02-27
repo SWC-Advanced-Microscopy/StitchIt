@@ -47,6 +47,9 @@ classdef sampleSplitter < handle
 
         lastDrawnBox % When a new area is selected, it's stored here
         selectedRow  %Selected row in the table
+
+
+        listeners={}
     end % hidden properties
 
     methods
@@ -115,7 +118,7 @@ classdef sampleSplitter < handle
             obj.hMain.Resize = 'off';
             obj.hMain.Name = 'StitchIt Sample Splitter';
             obj.hMain.Position(4)=300;
-
+            obj.hMain.HandleVisibility='off'; %Stops other stuff plotting into it
             mPos = get(0,'MonitorPositions');
             obj.hMain.Position(2)=mPos(4) - obj.hMain.Position(4) - 60;   
 
@@ -147,6 +150,9 @@ classdef sampleSplitter < handle
                 'ColumnWidth', {40,40,40,40,40,260},...
                 'ColumnEditable', [false, false, false, false, true, true]);
 
+            obj.listeners{end+1} = addlistener(obj.hDataTable, 'Data', 'PostSet', @obj.tableModifiedCallback);
+
+
             % Display the loaded image in a new window
             obj.openOrigView
 
@@ -155,6 +161,8 @@ classdef sampleSplitter < handle
 
 
         function delete(obj)
+            cellfun(@delete,obj.listeners)
+
             delete(obj.hOrigView)
             delete(obj.hPreview)
             delete(obj.hMain)
@@ -189,8 +197,7 @@ classdef sampleSplitter < handle
             if length(obj.hBox)<1
                 obj.hButton_deleteROI.Enable='Off';
             end
-
-        end
+        end % deleteROI
 
         function tableHighlightCallback(obj,src,evt)
             % This callback runs when a new table cell is highlighted
@@ -221,9 +228,19 @@ classdef sampleSplitter < handle
             end
 
             obj.tableHighlightCallback(src,evt);
-
         end % tableEditCallback
 
+
+        function tableModifiedCallback(obj,src,evt)
+            % This callback runs when the table is modified programatically
+            if isempty(obj.selectedRow)
+                return
+            end
+            disp('setting')
+            coords = cell2mat(obj.hDataTable.Data(obj.selectedRow ,1:4))
+            rotQuantity = obj.hDataTable.Data{obj.selectedRow,5}
+            obj.openPreviewView(coords,rotQuantity);
+        end % tableEditCallback
 
     end % hidden methods
 

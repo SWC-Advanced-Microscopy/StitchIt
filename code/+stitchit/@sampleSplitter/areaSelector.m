@@ -28,15 +28,19 @@ function areaSelector(obj,~,~)
     boxYvaluesForPlot = [za(2), za(2), za(2)+za(4), za(2)+za(4), za(2)];
     if isempty(obj.hDataTable.Data)
         obj.hDataTable.Data  = [num2cell(za), 0, 'ROI 1'];
-        obj.hBox = plot(boxXvaluesForPlot, boxYvaluesForPlot, '-r','LineWidth',2);
+        obj.hBox = plot(boxXvaluesForPlot, boxYvaluesForPlot, '-r','LineWidth',2, ...
+            'parent', obj.origViewImAxes);
+        obj.selectedRow=1;
         
     else
         tmp = [num2cell(za), 0, sprintf('ROI %d', length(obj.hBox)+1)];
 
         obj.hDataTable.Data  = [obj.hDataTable.Data; tmp];
-        tmp = plot(boxXvaluesForPlot, boxYvaluesForPlot, '-r','LineWidth',2);
+        tmp = plot(boxXvaluesForPlot, boxYvaluesForPlot, '-r','LineWidth',2, ...
+                  'parent', obj.origViewImAxes);
         obj.hBox = [obj.hBox, tmp];
         set([obj.hBox(1:end-1)],'color','c','LineWidth',1)
+        obj.selectedRow=length(obj.hBox);
     end
     
 
