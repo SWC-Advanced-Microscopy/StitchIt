@@ -12,22 +12,29 @@ function addROI(obj, coords)
         coords(2)=1;
     end
 
-    boxHeight = coords(2)+coords(4);
-    boxWidth = coords(1)+coords(3);
+    boxEndHeightPos = coords(2)+coords(4); %Pixel where ROI will end along rows
+    boxEndWidthPos = coords(1)+coords(3); %Pixel where ROI will end along cols
 
-    if (boxHeight+coords(2)) > size(obj.origImage,1)
-        boxHeight = size(obj.origImage,1);
-        boxHeight-(coords(2)+coords(4));
-        coords(4) = boxHeight-coords(2);
+    if boxEndHeightPos > size(obj.origImage,1)
+        fprintf('Correcting overflow ROI height from %d pixels ', coords(4));
+        boxEndHeightPos = size(obj.origImage,1); %cap to image
+        coords(4) = boxEndHeightPos-coords(2);
+        boxEndHeightPos = coords(2)+coords(4);
+        fprintf('to %d pixels\n',coords(4));
     end
-    if (boxWidth+coords(1)) > size(obj.origImage,2)
-        boxWidth = size(obj.origImage,2);
-        coords(3) = boxWidth-coords(1);
+
+    if boxEndWidthPos > size(obj.origImage,2)
+        fprintf('x=%d boxEndWidthPos %d\n',coords(1), boxEndWidthPos)
+        fprintf('Correcting overflow ROI width from %d pixels ',coords(3));
+        boxEndWidthPos = size(obj.origImage,2); %cap to image
+        coords(3) = boxEndWidthPos-coords(1);
+        boxEndWidthPos = coords(1)+coords(3);
+        fprintf('to %d pixels\n',coords(3));
     end
 
     % Values of teh current box to be added to the data table
-    boxXvaluesForPlot = [coords(1), boxWidth, boxWidth, coords(1), coords(1)];
-    boxYvaluesForPlot = [coords(2), coords(2), boxHeight, boxHeight, coords(2)];
+    boxXvaluesForPlot = [coords(1), boxEndWidthPos, boxEndWidthPos, coords(1), coords(1)];
+    boxYvaluesForPlot = [coords(2), coords(2), boxEndHeightPos, boxEndHeightPos, coords(2)];
 
 
     if isempty(obj.hDataTable.Data)
@@ -40,7 +47,7 @@ function addROI(obj, coords)
     end
     
     obj.updatePlottedBoxes;
-    obj.openPreviewView(coords); %TODO: have it get this from the data table and the selectedRow?
+    obj.openPreviewView(coords); %TODO: get this from the data table and the selectedRow?
 
     if size(obj.hDataTable.Data,1);
         obj.hButton_deleteROI.Enable='On';
