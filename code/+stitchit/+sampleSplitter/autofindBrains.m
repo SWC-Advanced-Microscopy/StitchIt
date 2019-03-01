@@ -17,7 +17,7 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     % Rob Campbell - SWC, 2019
 
 
-    if nargin<2
+    if nargin<2 || isempty(pixelSize)
         pixelSize = 25; 
     end
     if nargin<3
@@ -69,7 +69,6 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
         colormap gray
 
         hold on 
-        OUT = {};
         for ii=1:length(L)
             tL = L{ii};
             xP = [min(tL(:,2)), max(tL(:,2))];
@@ -78,9 +77,6 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
             plot([xP(1), xP(2), xP(2), xP(1), xP(1)], ...
                  [yP(1), yP(1), yP(2), yP(2), yP(1)], ...
                  '-r', 'Parent', ax)
-
-            % Return in same format as MATLAB position vectors (x,y,xsize,ysize)
-            OUT{ii} = [xP(1), yP(1), xP(2)-xP(1), yP(2)-yP(1)];
         end
         hold(ax,'off')
         axis equal off
@@ -89,6 +85,15 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
 
     % Optionally return coords of each box
     if nargout>0
+        colormap gray
+
+        OUT = {};
+        for ii=1:length(L)
+            tL = L{ii};
+            xP = [min(tL(:,2)), max(tL(:,2))];
+            yP = [min(tL(:,1)), max(tL(:,1))];
+            OUT{ii} = [xP(1), yP(1), xP(2)-xP(1), yP(2)-yP(1)];
+        end
         varargout{1}=OUT;
     end
 

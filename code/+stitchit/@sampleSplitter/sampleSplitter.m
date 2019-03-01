@@ -35,6 +35,7 @@ classdef sampleSplitter < handle
 
         hButton_drawBoxAddROI
         hButton_deleteROI
+        hButton_autoFind
         hDataTable
 
         origViewImAxes % The image axes into which we will put the original image
@@ -135,11 +136,18 @@ classdef sampleSplitter < handle
             obj.hButton_deleteROI = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
                 'Enable','off', ...
-                'Position', [90,10,130,35], 'String', 'Delete ROI', ...
+                'Position', [90,10,120,35], 'String', 'Delete ROI', ...
                 'ToolTip', 'Delete a ROI', ...
                 'Callback', @obj.deleteROI,...
                 'Parent', obj.hMain);
 
+            obj.hButton_autoFind = uicontrol('Style', 'PushButton', ...
+                'Units', 'Pixels', ...
+                'Enable','on', ...
+                'Position', [210,10,130,35], 'String', 'Auto Find Brains', ...
+                'ToolTip', 'Automatically draw ROIs around brains', ...
+                'Callback', @obj.autoFindBrainsInLoadedImage,...
+                'Parent', obj.hMain);
 
             % Add the uitable which will contain ROI info
             obj.hDataTable = uitable('Parent', obj.hMain, ...
@@ -180,24 +188,68 @@ classdef sampleSplitter < handle
             obj.delete %class destructor
         end % figClose
 
+
+        function areaSelector(obj,~,~)
+            % Callback function of hButton_drawBoxAddROI
+            % Draws box and uses this to add a ROI
+            h = imrect(obj.origViewImAxes);
+
+            obj.lastDrawnBox = round(wait(h));
+            delete(h)
+            za = obj.lastDrawnBox;
+
+            obj.addROI(za)
+
+        end % Close areaSelector
+
+
         function deleteROI(obj,~,~)
+            % hButton_deleteROI callback
+            % Deletes the current selected row
             if isempty(obj.selectedRow)
                 return
             end
 
             % Delete stuff
-            obj.hDataTable.Data(obj.selectedRow,:) = [];
-            delete(obj.hBox(obj.selectedRow));
-            obj.hBox(obj.selectedRow) = [];
+            fprintf('Deleting ROI: %s\n', obj.hDataTable.Data{obj.selectedRow,6})
 
-            if isempty(obj.hBox)
-                delete(obj.hPreview)
-            end
+            obj.hDataTable.Data(obj.selectedRow,:) = [];
+            % Plotted ROI is deleted automatically by obj.updatePlottedBoxes which runs
+            % via the listener callback obj.tableModifiedCallback
 
             if length(obj.hBox)<1
                 obj.hButton_deleteROI.Enable='Off';
             end
         end % deleteROI
+
+
+        function autoFindBrainsInLoadedImage(obj,~,~)
+            % hButton_autoFind callback
+            % Uses +sampleSplitter.autofindBrains to automaticall identify brains in the 
+            % currently loaded image then adds these ROIs
+
+            % Run the algorthm 
+            ROIs = stitchit.sampleSplitter.autofindBrains(obj.origImage,obj.micsPerPixel);
+
+            if isempty(ROIs)
+                fprintf('Oh No! No brains found by +sampleSplitter.autofindBrains.\n')
+                return
+            end
+
+            % Delete existing ROIs
+            for ii=1:size(obj.hDataTable.Data,1)
+                obj.selectedRow=1;
+                obj.deleteROI
+            end
+
+            % Add our ROIs
+            for ii=1:length(ROIs)
+                fprintf('Adding ROI %d\n', ii)
+                obj.addROI(ROIs{ii})
+            end
+
+        end % autoFindBrainsInLoadedImage
+
 
         function tableHighlightCallback(obj,src,evt)
             % This callback runs when a new table cell is highlighted
@@ -209,15 +261,16 @@ classdef sampleSplitter < handle
 
             % Highlight the correct box
             if ~isempty(obj.hBox)
-                set([obj.hBox],'color','c') 
-                obj.hBox(obj.selectedRow).Color = 'r';
+                set([obj.hBox],'color','c','LineWidth',1) 
+                set(obj.hBox(obj.selectedRow), 'Color','r','LineWidth',2);
             end
 
             % Show this ROI in window
             coords = cell2mat(obj.hDataTable.Data(obj.selectedRow ,1:4));
             rotQuantity = cell2mat(obj.hDataTable.Data(obj.selectedRow ,5));
-            obj.openPreviewView(coords,rotQuantity);
+            obj.openPreviewView(coords,rotQuantity); %Update the small preview
         end % tableHighlightCallback
+
 
         function tableEditCallback(obj,src,evt)
             % This callback runs when an edit is made to the table. We use it to 
@@ -233,13 +286,15 @@ classdef sampleSplitter < handle
 
         function tableModifiedCallback(obj,src,evt)
             % This callback runs when the table is modified programatically
-            if isempty(obj.selectedRow)
+            if isempty(obj.selectedRow) || isempty(obj.hDataTable.Data)
                 return
             end
-            disp('setting')
-            coords = cell2mat(obj.hDataTable.Data(obj.selectedRow ,1:4))
-            rotQuantity = obj.hDataTable.Data{obj.selectedRow,5}
+            coords = cell2mat(obj.hDataTable.Data(obj.selectedRow ,1:4));
+            rotQuantity = obj.hDataTable.Data{obj.selectedRow,5};
             obj.openPreviewView(coords,rotQuantity);
+
+            obj.updatePlottedBoxes
+
         end % tableEditCallback
 
     end % hidden methods
