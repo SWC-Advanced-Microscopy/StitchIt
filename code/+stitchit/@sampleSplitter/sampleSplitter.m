@@ -121,8 +121,7 @@ classdef sampleSplitter < handle
             obj.hMain.Position(4)=300;
             obj.hMain.HandleVisibility='off'; %Stops other stuff plotting into it
             mPos = get(0,'MonitorPositions');
-            obj.hMain.Position(2)=mPos(4) - obj.hMain.Position(4) - 60;   
-
+            obj.hMain.Position(2)=mPos(4) - obj.hMain.Position(4) - 60;
 
 
             % Add buttons
@@ -211,15 +210,25 @@ classdef sampleSplitter < handle
             end
 
             % Delete stuff
-            fprintf('Deleting ROI: %s\n', obj.hDataTable.Data{obj.selectedRow,6})
+            rowToDelete = obj.selectedRow;
+            fprintf('Deleting ROI: %s at row %d\n', obj.hDataTable.Data{obj.selectedRow,6}, rowToDelete)
 
-            obj.hDataTable.Data(obj.selectedRow,:) = [];
+            % Prepare for deletion by ensuring nothing can have an invalid value
+            % before the row is deleted
+            if size(obj.hDataTable.Data,1)==1
+                % Since after deletion the table will by empty
+                obj.hButton_deleteROI.Enable='Off';
+                obj.selectedRow=[];
+            else
+                % Just set the first ROI
+                obj.selectedRow=1;
+            end
+
+            % TODO: it's not deleting the row I would expect it to
+            obj.hDataTable.Data(rowToDelete,:) = [];
             % Plotted ROI is deleted automatically by obj.updatePlottedBoxes which runs
             % via the listener callback obj.tableModifiedCallback
 
-            if length(obj.hBox)<1
-                obj.hButton_deleteROI.Enable='Off';
-            end
         end % deleteROI
 
 
@@ -286,9 +295,18 @@ classdef sampleSplitter < handle
 
         function tableModifiedCallback(obj,src,evt)
             % This callback runs when the table is modified programatically
-            if isempty(obj.selectedRow) || isempty(obj.hDataTable.Data)
+
+
+            if isempty(obj.hDataTable.Data)
+                % To ensure all plotted boxes are deleted
+                obj.updatePlottedBoxes
                 return
             end
+
+            if isempty(obj.selectedRow)
+                return
+            end
+
             coords = cell2mat(obj.hDataTable.Data(obj.selectedRow ,1:4));
             rotQuantity = obj.hDataTable.Data{obj.selectedRow,5};
             obj.openPreviewView(coords,rotQuantity);

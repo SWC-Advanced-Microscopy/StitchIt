@@ -17,7 +17,7 @@ function openPreviewView(obj,ROIcoords,rotQuantity)
         obj.hPreview.MenuBar = 'none';
         obj.hPreview.ToolBar = 'none';
         obj.hPreview.Color=[1,1,1]*0.1;
-        obj.hPreview.Name = 'Current ROI'
+        obj.hPreview.Name = 'Current ROI';
         obj.hPreview.Position(1) = obj.hMain.Position(1)-obj.hMain.Position(3);
         obj.previewImAxes = axes('Position',[0.025,0.025,0.95,0.95],'Parent',obj.hPreview);
     end
