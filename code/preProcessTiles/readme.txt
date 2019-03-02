@@ -1,0 +1,1 @@
+Functions in this directory are involved with calculating tile stats, average tiles, etc, in preparation for stitching.

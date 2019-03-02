@@ -1,0 +1,1 @@
+These functions and files are for creating and handling the INI file that contains preferences for stitching

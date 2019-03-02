@@ -1,0 +1,1 @@
+Within these class directories are acquisition system dependent files for loading raw data and so forth

@@ -26,7 +26,6 @@ function cropStitched(stitchedDir,targetDir,rect)
 %
 % Notes
 % Deletes existing directory name if it will clash with the one to be produced.
-% Requires Alex Brown's, stitchit.tools.openTiff, which is part of goggleViewer
 %
 %
 % Rob Campbell
