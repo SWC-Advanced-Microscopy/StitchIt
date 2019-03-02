@@ -25,8 +25,9 @@ function downsampleAllChannels(voxelSize)
     mkdir(dsDirName)
   end
 
+  stitchedDataInfo=findStitchedData;
+  chan = stitchedDataInfo.channelsPresent;
 
-  chan = channelsAvailableForStitching;
   fnames={};
   for ii = 1:length(chan)
     tChan = chan(ii);
@@ -40,5 +41,3 @@ function downsampleAllChannels(voxelSize)
     fprintf('Moving %s* to %s\n', fnames{ii}, dsDirName)
     movefile([fnames{ii},'*'], dsDirName)
   end
-  
-  
