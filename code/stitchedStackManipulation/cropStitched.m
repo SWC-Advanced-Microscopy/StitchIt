@@ -5,11 +5,13 @@ function cropStitched(stitchedDir,targetDir,rect)
 %
 %
 % Purpose
-% Take a stitched directory and crop the images, saving in targetDir. 
-% rect is the region to retain. This command is potentially dangerous
-% so we create the cropped images in a separate directory and the user
-% must manually replace the original files with the stitched files if
-% that is what they need.
+% This is a very basic image cropping functions. It takes a directory containing
+% stitched images and crops those images, saving them in targetDir. The input
+% argument "rect" is the region to retain. Since this command is potentially 
+% dangerous, it creates the cropped images in a separate directory and the user
+% must manually replace the original files with the stitched files if that is what 
+% they need. NOTE: This function deletes an existing directory if it will clash 
+% with the one to be produced.
 % 
 % Inputs
 % stitchedDir - string defining stitched data directory
@@ -22,10 +24,6 @@ function cropStitched(stitchedDir,targetDir,rect)
 % crop all files from channel one of the full size images and put the cropped
 % files in to a directory called "cropped_Ch1"
 % cropStitched('stitchedImages_100/1','cropped_Ch1',[5E3,6E3,1E3,1E3])
-%
-%
-% Notes
-% Deletes existing directory name if it will clash with the one to be produced.
 %
 %
 % Rob Campbell
@@ -69,4 +67,4 @@ parfor ii=1:length(tifs)
 end
 
 %log the region we kept
-save([targetDir,filesep,'rect.mat'],'rect')
+save([targetDir,filesep,'cropped_rect_region.mat'],'rect')
