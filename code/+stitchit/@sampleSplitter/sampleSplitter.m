@@ -26,6 +26,7 @@ classdef sampleSplitter < handle
         origImage           % The image upon which we draw ROIs
         splitBrainParams    % A structure containing the ROIs and their orientations 
         micsPerPixel = 25   % scale of the downsampled image fed into this class
+        stitchedDataInfo
     end % properties
 
     properties (Hidden)
@@ -36,7 +37,9 @@ classdef sampleSplitter < handle
         hButton_drawBoxAddROI
         hButton_deleteROI
         hButton_autoFind
+        hButton_previewROI
         hDataTable
+
 
         origViewImAxes % The image axes into which we will put the original image
         previewImAxes % The current preview of the selected area is here
@@ -135,19 +138,27 @@ classdef sampleSplitter < handle
             obj.hButton_deleteROI = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
                 'Enable','off', ...
-                'Position', [90,10,120,35], 'String', 'Delete ROI', ...
+                'Position', [90,10,100,35], 'String', 'Delete ROI', ...
                 'ToolTip', 'Delete a ROI', ...
                 'Callback', @obj.deleteROI,...
                 'Parent', obj.hMain);
 
             obj.hButton_autoFind = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
-                'Enable','on', ...
-                'Position', [210,10,130,35], 'String', 'Auto Find Brains', ...
+                'Position', [190,10,110,35], 'String', 'Auto Find Brains', ...
                 'ToolTip', 'Automatically draw ROIs around brains', ...
                 'Callback', @obj.autoFindBrainsInLoadedImage,...
                 'Parent', obj.hMain);
 
+            obj.hButton_previewROI = uicontrol('Style', 'PushButton', ...
+                'Units', 'Pixels', ...
+                'Enable','off', ...
+                'Position', [300,10,80,35], 'String', 'Preview', ...
+                'ToolTip', 'Crop a section and show a preview on screen', ...
+                'Callback', @obj.showPreview,...
+                'Parent', obj.hMain);
+
+        
             % Add the uitable which will contain ROI info
             obj.hDataTable = uitable('Parent', obj.hMain, ...
                 'Position', [25 50 500 225], ...
@@ -162,6 +173,12 @@ classdef sampleSplitter < handle
 
             % Display the loaded image in a new window
             obj.openOrigView
+
+            obj.stitchedDataInfo=findStitchedData;
+            if isempty(obj.stitchedDataInfo)
+                fprintf('No stitched data present. You can draw ROIs only but not apply them.\n')
+                return
+            end
 
             
         end % sampleSplitter (constructor)
@@ -218,6 +235,7 @@ classdef sampleSplitter < handle
             if size(obj.hDataTable.Data,1)==1
                 % Since after deletion the table will by empty
                 obj.hButton_deleteROI.Enable='Off';
+                obj.hButton_previewROI.Enable='Off';
                 obj.selectedRow=[];
             else
                 % Just set the first ROI
@@ -230,6 +248,11 @@ classdef sampleSplitter < handle
             % via the listener callback obj.tableModifiedCallback
 
         end % deleteROI
+
+        function showPreview(obj,~,~)
+            % hButton_previewROI callback
+            obj.previewROIs
+        end
 
 
         function autoFindBrainsInLoadedImage(obj,~,~)

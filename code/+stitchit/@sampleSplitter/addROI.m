@@ -45,10 +45,11 @@ function addROI(obj, coords)
         obj.hDataTable.Data  = [obj.hDataTable.Data; tmp];
         obj.selectedRow=size(obj.hDataTable.Data,1);
     end
-    
+
     obj.updatePlottedBoxes;
     obj.openPreviewView(coords); %TODO: get this from the data table and the selectedRow?
 
     if size(obj.hDataTable.Data,1);
         obj.hButton_deleteROI.Enable='On';
+        obj.hButton_previewROI.Enable='On';
     end
