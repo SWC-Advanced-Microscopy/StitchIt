@@ -44,5 +44,5 @@ function runCrop(fileList, ROIs, micsPix, chanTargetDir)
         fname = fullfile(fileList.fullPath, fileList.tifNames{ii});
         imToCrop =  stitchit.tools.openTiff(fname);
         croppedImage=stitchit.sampleSplitter.getROIfromImage(imToCrop,micsPix, ROIs);
-        imwrite(croppedImage{1}, fullfile(chanTargetDir,fileList.tifNames{ii}))
+        imwrite(croppedImage{1}, fullfile(chanTargetDir,fileList.tifNames{ii}), 'Compression','none')
     end
