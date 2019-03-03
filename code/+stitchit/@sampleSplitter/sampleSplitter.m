@@ -26,6 +26,7 @@ classdef sampleSplitter < handle
         origImage           % The image upon which we draw ROIs
         splitBrainParams    % A structure containing the ROIs and their orientations 
         micsPerPixel = 25   % scale of the downsampled image fed into this class
+        stitchedDataInfo
     end % properties
 
     properties (Hidden)
@@ -36,6 +37,7 @@ classdef sampleSplitter < handle
         hButton_drawBoxAddROI
         hButton_deleteROI
         hButton_autoFind
+        hButton_previewROI
         hDataTable
 
         origViewImAxes % The image axes into which we will put the original image
@@ -60,7 +62,20 @@ classdef sampleSplitter < handle
             %. 25, unless it can be extracted from the MHD file fname. This valyue
             %. is stored in sampleSplitter.micsPerPixel
 
-
+            % First arg is an MHD file name, stack, or max/median projection.
+            % Second arg (optional) is the number of microns per pixel. If missing,
+            % 25, unless it can be extracted from the MHD file fname. This value
+            % is stored in sampleSplitter.micsPerPixel
+ 
+            %If an instance of sampleSplitter already exists then delete it
+            t=evalin('base','who');
+            for ii=1:length(t)
+                tClasss = evalin('base',sprintf('class(%s)', t{ii} ));
+                if strcmp(tClasss,'stitchit.sampleSplitter')
+                    evalin('base', sprintf('delete(%s);clear(''%s'')', t{ii},t{ii}) )
+                end
+            end
+ 
             if isempty(varargin)
                 fprintf('Please provide an MHD filename, a stack, or an intensity projection\n')
                 obj.delete
@@ -128,24 +143,31 @@ classdef sampleSplitter < handle
             obj.hButton_drawBoxAddROI = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
                 'Position', [10,10,80,35], 'String', 'Add ROI', ...
-                'ToolTip', 'Select a ROI', ...
+                'ToolTip', 'Add a new ROI (draw box then double-click)', ...
                 'Callback', @obj.areaSelector,...
                 'Parent', obj.hMain);
-
+ 
             obj.hButton_deleteROI = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
                 'Enable','off', ...
-                'Position', [90,10,120,35], 'String', 'Delete ROI', ...
-                'ToolTip', 'Delete a ROI', ...
+                'Position', [90,10,80,35], 'String', 'Delete ROI', ...
+                'ToolTip', 'Delete selected ROI', ...
                 'Callback', @obj.deleteROI,...
                 'Parent', obj.hMain);
-
+ 
             obj.hButton_autoFind = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
-                'Enable','on', ...
-                'Position', [210,10,130,35], 'String', 'Auto Find Brains', ...
+                'Position', [170,10,110,35], 'String', 'Auto Find Brains', ...
                 'ToolTip', 'Automatically draw ROIs around brains', ...
                 'Callback', @obj.autoFindBrainsInLoadedImage,...
+                'Parent', obj.hMain);
+ 
+            obj.hButton_previewROI = uicontrol('Style', 'PushButton', ...
+                'Units', 'Pixels', ...
+                'Enable','off', ...
+                'Position', [280,10,80,35], 'String', 'Preview', ...
+                'ToolTip', 'Crop a stitched section TIFF from disk and show a preview on screen', ...
+                'Callback', @obj.showPreview,...
                 'Parent', obj.hMain);
 
             % Add the uitable which will contain ROI info
@@ -163,6 +185,11 @@ classdef sampleSplitter < handle
             % Display the loaded image in a new window
             obj.openOrigView
 
+            obj.stitchedDataInfo=findStitchedData;
+            if isempty(obj.stitchedDataInfo)
+                fprintf('No stitched data present. You can draw ROIs only but not apply them.\n')
+                return
+            end
 
         end % sampleSplitter (constructor)
 
@@ -231,6 +258,10 @@ classdef sampleSplitter < handle
 
         end % deleteROI
 
+        function showPreview(obj,~,~)
+            % hButton_previewROI callback
+            obj.previewROIs
+        end
 
         function autoFindBrainsInLoadedImage(obj,~,~)
             % hButton_autoFind callback

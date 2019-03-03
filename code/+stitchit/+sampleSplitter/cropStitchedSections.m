@@ -10,7 +10,7 @@ s=findStitchedData;
 [okToRun,diskStats]=stitchit.sampleSplitter.checkDiskUsage(ROIs,s);
 if ~okToRun
     fprintf(['Cropped stacks will temporarilty need %0.1f GB.\n',...
-        'Since only %0.1f GB is free we do not proceed\n'],
+        'Since only %0.1f GB is free we do not proceed\n'], ...
         diskStats.totalDiskUsageOfCroppedStackInGB, diskStats.diskUsage.freeGB)
     return
 end
