@@ -20,7 +20,7 @@ for ii=1:length(s)
     cropDirName=['CROP_',s(ii).stitchedBaseDir];
     mkdir(cropDirName)
     for jj=1:length(s(ii).channel)
-        fprintf('Cropping channel %s\n', s(ii).channelsPresent(jj));
+        fprintf('Cropping channel %d\n', s(ii).channelsPresent(jj));
         chanTargetDir = fullfile(cropDirName, num2str(s(ii).channelsPresent(jj)));
         mkdir(chanTargetDir)
         runCrop(s(ii).channel(jj), ROIs, s(ii).micsPerPixel, chanTargetDir)
