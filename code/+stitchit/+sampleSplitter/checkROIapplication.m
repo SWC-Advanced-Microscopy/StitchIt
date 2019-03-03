@@ -58,5 +58,4 @@ function everythingOK = checkROIapplication(stitchedDataStruct, croppedDir)
 
   % Are all files the same size? TODO
 
-  
   everythingOK=true;
