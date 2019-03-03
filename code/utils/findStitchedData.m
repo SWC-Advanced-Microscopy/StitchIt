@@ -1,7 +1,7 @@
-function varargout=findStitchedData
+function varargout=findStitchedData(dataDir)
 % Return information on what data have been stitched: image size, channel, etc
 %
-% OUT = findStitchedData
+% OUT = findStitchedData(dataDir)
 %
 % Purpose
 % Returns what data have been stitched. Information displayed to 
@@ -10,7 +10,12 @@ function varargout=findStitchedData
 % Change to sample directory before running.
 %
 % Inputs
-% None
+% dataDir - optional. By default all stitched directories are searched
+%          based on the field subdir.stitchedDirBaseName from the INI 
+%          file. However, if path to a directory is provided then this
+%          this scanned and the information on the stitched files
+%          within it are returned. This is useful for summarising 
+%          the results of ROI cropping operations.
 %
 % Outputs
 % OUT - optional output structure containing info on stitched data
@@ -22,8 +27,21 @@ function varargout=findStitchedData
 OUT = [];
 
 % Get name of stitched image sub-dir
-sINI=readStitchItINI;
-stitchedDirs = dir([sINI.subdir.stitchedDirBaseName,'*']);
+if nargin<1
+    sINI=readStitchItINI;
+    stitchedDirs = dir([sINI.subdir.stitchedDirBaseName,'*']);
+else
+    if ~ischar(dataDir)
+        fprintf(['findStitchedData - input argument dataDir should be ',...
+            'the relative or absolute path to a data directory\n'])
+        return
+    end
+    if ~exist(dataDir,'dir')
+        fprintf(['findStitchedData - can not find directory %s\n', dataDir)
+        return
+    end
+    stitchedDirs = dir(dataDir);
+end
 
 % Get microns per pixel of raw data
 m=readMetaData2Stitchit;
