@@ -16,6 +16,7 @@ function ROIS=returnROIparams(obj)
         % Make name safe
         ROIS(ii).name = strrep(ROIS(ii).name,' ','_');
         ROIS(ii).micsPerPixel = obj.micsPerPixel;
+        ROIS(ii).areaProportion = prod(ROIS(ii).ROI(3:4)) / prod(size(obj.origImage));
     end
 
 end
