@@ -57,7 +57,8 @@ classdef sampleSplitter < handle
 
     methods
         function obj = sampleSplitter(varargin)
-            % first arg is an MHD file name, stack, or max/median projection
+            % first arg is an MHD file name (recomended), an image stack, or max intensity projection.
+            % Avoid mean intensity projections, you will underestimate brain size.
             % second arg (optional) is the number of microns per pixel. If missing,
             %. 25, unless it can be extracted from the MHD file fname. This valyue
             %. is stored in sampleSplitter.micsPerPixel
@@ -99,7 +100,13 @@ classdef sampleSplitter < handle
                     obj.origImage(n+1:end,n+1:end) = p-rot90(p,1)+flipud(p);
                 elseif ischar(fname) && exist(fname,'file')
                     fprintf('Loading %s\n', fname)
-                    obj.origImage = median(mhd_read(fname),3);
+                    im = mhd_read(fname);
+
+                    fprintf('Filtering image\n')
+                    tmp = imresize3(im,0.5);
+                    tmp = medfilt3(tmp,[3,3,3]);
+                    tmp = imresize(tmp,2);
+                    obj.origImage = max(tmp,[],3);
 
                     %Can we get the number of microns per pixel?
                     tok= regexp(fname,'(\d+)_(\d+)_(\d+)\.[mr]','tokens');

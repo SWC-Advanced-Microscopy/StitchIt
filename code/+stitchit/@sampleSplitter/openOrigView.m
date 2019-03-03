@@ -24,7 +24,8 @@ function openOrigView(obj)
 
     obj.origViewImAxes = axes('Position',[0.025,0.025,0.95,0.95],'Parent',obj.hOrigView);
     imagesc(obj.origImage,'Parent',obj.origViewImAxes);
-
+    c=caxis;
+    caxis([c(1),c(2)*0.10])
     colormap gray
     axis off equal
     hold on

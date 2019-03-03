@@ -28,6 +28,11 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     %Threshold (NOTE: hard-coded. Worry about this only if it presents a problem)
     BW = im>20;
 
+    % Remove crap
+    SE = strel('square',round(150/pixelSize));
+    BW = imerode(BW,SE);
+    BW = imdilate(BW,SE);
+
     % Add a border of 250 microns around each brain
     SE = strel('square',round(250/pixelSize));
     BW = imdilate(BW,SE);
