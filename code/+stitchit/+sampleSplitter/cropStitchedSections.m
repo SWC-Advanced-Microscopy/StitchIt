@@ -25,13 +25,17 @@ for ii=1:length(s)
         mkdir(chanTargetDir)
         runCrop(s(ii).channel(jj), ROIs, s(ii).micsPerPixel, chanTargetDir)
     end
+
+
+    
+    allOK = stitchit.sampleSplitter.checkROIapplication(s(ii), cropDirName);
+    if allOK
+      % TODO: delete original stack and replace it with cropped
+    end
+    
 end
 
-% TODO: Confirm that we have the correct number of files with another function.
-%      If we have all files then we can delete the original sitched images and 
-%      replace them with the cropped stack, thereby freeing up space.
-
-
+ 
 
 function runCrop(fileList, ROIs, micsPix, chanTargetDir)
 

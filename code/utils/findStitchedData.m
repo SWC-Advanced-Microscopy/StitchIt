@@ -37,10 +37,13 @@ else
         return
     end
     if ~exist(dataDir,'dir')
-        fprintf(['findStitchedData - can not find directory %s\n', dataDir)
+        fprintf('findStitchedData - can not find directory %s\n', dataDir)
         return
     end
-    stitchedDirs = dir(dataDir);
+    [stitchedDirs.folder,stitchedDirs.name ] = fileparts(dataDir);
+    if strcmp(stitchedDirs.folder,'.')
+      stitchedDirs.folder = pwd;
+    end
 end
 
 % Get microns per pixel of raw data
