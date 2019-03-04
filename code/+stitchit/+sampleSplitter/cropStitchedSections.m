@@ -23,7 +23,7 @@ if length(ROIs)
     for ii=1:length(ROIs)
         mkdir(ROIs(ii).name)
     end
-end
+end % if length(ROIs)
 
 
 for ii=1:length(s)
@@ -37,36 +37,44 @@ for ii=1:length(s)
     else
         % Multiple samples: make a stitched directory within each sub-directory
         for kk=1:length(ROIs)
-        cropDirName{kk}=fullfile(ROIs(kk).name ,s(ii).stitchedBaseDir);
-        mkdir(cropDirName{kk})
+          cropDirName{kk}=fullfile(ROIs(kk).name ,s(ii).stitchedBaseDir);
+          mkdir(cropDirName{kk})
+        end
     end
 
     for jj=1:length(s(ii).channel)
         fprintf('Cropping channel %d\n', s(ii).channelsPresent(jj));
 
-
+        allOK = zeros(1,length(cropDirName));
         for kk=1:length(cropDirName)
             %Make channel directory
             chanTargetDir{kk} = fullfile(cropDirName{kk}, num2str(s(ii).channelsPresent(jj)));
             mkdir(chanTargetDir{kk})
+            allOK(kk) = stitchit.sampleSplitter.checkROIapplication(s(ii), cropDirName{kk});
         end
 
         runCrop(s(ii).channel(jj), ROIs, s(ii).micsPerPixel, chanTargetDir) %This is where the work is done
     end
 
 
-    allOK = stitchit.sampleSplitter.checkROIapplication(s(ii), cropDirName);
-    if allOK
+
+    if all(allOK)
         atLeastOneWorked=true;
         % Move the original stitched data to the cropped directory
-        movefile(s(ii).stitchedBaseDir, uncroppedDir);
+        fprintf('Moving %s to %s\n',s(ii).stitchedBaseDir, uncroppedDir);
+        %TODO! This seems to not be copying the stithced root dir
+        %only the chan dirs. Don't know why. So make the following
+        %2-step process to sort this out. Check if it works!
+        mkdir(fullfile(uncroppedDir,s(ii).stitchedBaseDir))
+        movefile(s(ii).stitchedBaseDir, fullfile(uncroppedDir,s(ii).stitchedBaseDir))
+
 
         %If necessary, copy meta-data to new sample directories
         if length(ROIs)>1
-            for ii=1:length(ROIs)
+            for kk=1:length(ROIs)
                 %Following copy operation is somewhat hard-coded, but should encompass enough
                 %stuff to work well even we change things around a bit,
-                cellfun(@(x) copyfile(x,cropDirName{kk}), {'*.yml','*.txt','*.mat','*.ini'})
+                cellfun(@(x) copyfile(x,ROIs(kk).name), {'*.yml','*.txt','*.mat','*.ini'})
             end
         end
     end
@@ -75,8 +83,17 @@ end % ii=1:length(s)
 
 
 if atLeastOneWorked
-    movefile('downsampledMHD*',uncroppedDir)
-    downsampleAllChannels %re-build the downsampled stacks
+  movefile('downsampledMHD*',uncroppedDir)
+  cDIR=pwd;
+  for ii=1:length(ROIs)
+    try
+      cd(ROIs(ii).name)
+      downsampleAllChannels %re-build the downsampled stacks
+    catch
+    end
+    cd(cDIR)
+  end
+  
 end
 
 
@@ -93,8 +110,8 @@ function runCrop(fileList, ROIs, micsPix, chanTargetDir)
         imToCrop =  stitchit.tools.openTiff(fname);
 
         croppedImage=stitchit.sampleSplitter.getROIfromImage(imToCrop,micsPix, ROIs);
-        for ii=1:length(croppedImage)
-            imwrite(croppedImage{ii}, fullfile(chanTargetDir{ii},fileList.tifNames{ii}),...
+        for jj=1:length(croppedImage)
+            imwrite(croppedImage{jj}, fullfile(chanTargetDir{jj},fileList.tifNames{ii}),...
                 'Compression','none')
         end
     end

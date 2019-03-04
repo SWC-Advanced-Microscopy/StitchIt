@@ -16,7 +16,7 @@ function downsampleAllChannels(voxelSize)
 
   stitchedDataInfo=findStitchedData;
   if isempty(stitchedDataInfo)
-    fprintf('No stitched data found by %s. Quitting\n', mfile)
+    fprintf('No stitched data found by %s. Quitting\n', mfilename)
     return
   end
 

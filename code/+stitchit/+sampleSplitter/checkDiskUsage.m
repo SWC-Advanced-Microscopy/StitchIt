@@ -49,7 +49,7 @@ function [okToRun,stats]=checkDiskUsage(ROIs,stitchedDataStats)
         finalUsageStr = sprintf('%0.1f GB', dUsage);
     end
 
-    fprintf('ROI splitting will temporaily add %s but finally will save %s.\n\n', ...
+    fprintf('ROI splitting temporarily adds %s but finally will save %s.\n\n', ...
              croppedUsageStr, finalUsageStr);
 
 
