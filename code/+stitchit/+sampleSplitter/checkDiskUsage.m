@@ -22,11 +22,8 @@ function [okToRun,stats]=checkDiskUsage(ROIs,stitchedDataStats)
     end
 
     totalDiskUsageByFullStacks = sum([stitchedDataStats(:).diskSizeInGB]);
-
     areaOfROIs = sum([ROIs.areaProportion]); %assumes non-overlapping ROIs
-
     totalDiskUsageOfCroppedStack = areaOfROIs * totalDiskUsageByFullStacks;
-
     d=stitchit.tools.returnDiskSpace;
 
 
@@ -54,8 +51,6 @@ function [okToRun,stats]=checkDiskUsage(ROIs,stitchedDataStats)
 
     fprintf('ROI splitting will temporaily add %s but finally will save %s.\n\n', ...
              croppedUsageStr, finalUsageStr);
-
-
 
 
     if nargout>1
