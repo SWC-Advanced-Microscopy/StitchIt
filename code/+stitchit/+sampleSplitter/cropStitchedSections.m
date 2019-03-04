@@ -61,12 +61,17 @@ for ii=1:length(s)
     if all(allOK)
         atLeastOneWorked=true;
         % Move the original stitched data to the cropped directory
-        fprintf('Moving %s to %s\n',s(ii).stitchedBaseDir, uncroppedDir);
-        %TODO! This seems to not be copying the stithced root dir
-        %only the chan dirs. Don't know why. So make the following
-        %2-step process to sort this out. Check if it works!
-        mkdir(fullfile(uncroppedDir,s(ii).stitchedBaseDir))
-        movefile(s(ii).stitchedBaseDir, fullfile(uncroppedDir,s(ii).stitchedBaseDir))
+        targetBackUpDir = fullfile(uncroppedDir,s(ii).stitchedBaseDir);
+        fprintf('Making %s\n', targetBackUpDir)
+        mkdir(targetBackUpDir)
+
+        fprintf('Moving %s%s* to %s\n',s(ii).stitchedBaseDir, filesep, targetBackUpDir);
+
+        %TODO! This seemed to not be copying the stitched root dir,
+        %only the chan dirs. Don't know why. So I've made it into a
+        %2-step process to sort this out. Perhaps we'll get funny 
+        %nesting, but hopefully it will not overwrite stuff
+        movefile([s(ii).stitchedBaseDir,filesep,'*'], targetBackUpDir)
 
 
         %If necessary, copy meta-data to new sample directories
@@ -77,24 +82,29 @@ for ii=1:length(s)
                 cellfun(@(x) copyfile(x,ROIs(kk).name), {'*.yml','*.txt','*.mat','*.ini'})
             end
         end
-    end
+    end % if all(allOK)
 
 end % ii=1:length(s)
 
 
 if atLeastOneWorked
-  movefile('downsampledMHD*',uncroppedDir)
-  cDIR=pwd;
-  for ii=1:length(ROIs)
-    try
-      cd(ROIs(ii).name)
-      downsampleAllChannels %re-build the downsampled stacks
-    catch
-    end
-    cd(cDIR)
-  end
+    %
+    movefile('downsampledMHD*',uncroppedDir) %move to the backup directory
+    cDIR=pwd;
+    for ii=1:length(ROIs)
+        % Loop through the new ROI directories and make downsampled data
+        try
+            cd(ROIs(ii).name)
+            downsampleAllChannels %re-build the downsampled stacks
+        catch ME
+            disp(ME.message)
+        end
+        cd(cDIR)
+    end % for ii
   
-end
+    % TODO: rename recipe and acq files and so forth
+
+end % if atLeastOneWorked
 
 
 

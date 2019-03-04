@@ -213,6 +213,46 @@ classdef sampleSplitter < handle
     end % methods
 
 
+
+    methods
+        % The following are short methods or callbacks that we might want exposed to the user        
+        function applyROIsToStitchedData(obj,~,~)
+            % TODO: make button for this callback
+            stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
+        end % applyROIsToStitchedData
+
+
+        function autoFindBrainsInLoadedImage(obj,~,~)
+            % hButton_autoFind callback
+            % Uses +sampleSplitter.autofindBrains to automaticall identify brains in the 
+            % currently loaded image then adds these ROIs
+
+            % Run the algorthm 
+            ROIs = stitchit.sampleSplitter.autofindBrains(obj.origImage,obj.micsPerPixel);
+
+            if isempty(ROIs)
+                fprintf('Oh No! No brains found by +sampleSplitter.autofindBrains.\n')
+                return
+            end
+
+            % Delete existing ROIs
+            for ii=1:size(obj.hDataTable.Data,1)
+                obj.selectedRow=1;
+                obj.deleteROI
+            end
+
+            % Add our ROIs
+            for ii=1:length(ROIs)
+                fprintf('Adding ROI %d\n', ii)
+                obj.addROI(ROIs{ii})
+            end
+
+        end % autoFindBrainsInLoadedImage
+
+    end
+
+
+
     methods (Hidden)
         % The following are short hidden callback functions
 
@@ -269,33 +309,6 @@ classdef sampleSplitter < handle
             % hButton_previewROI callback
             obj.previewROIs
         end
-
-        function autoFindBrainsInLoadedImage(obj,~,~)
-            % hButton_autoFind callback
-            % Uses +sampleSplitter.autofindBrains to automaticall identify brains in the 
-            % currently loaded image then adds these ROIs
-
-            % Run the algorthm 
-            ROIs = stitchit.sampleSplitter.autofindBrains(obj.origImage,obj.micsPerPixel);
-
-            if isempty(ROIs)
-                fprintf('Oh No! No brains found by +sampleSplitter.autofindBrains.\n')
-                return
-            end
-
-            % Delete existing ROIs
-            for ii=1:size(obj.hDataTable.Data,1)
-                obj.selectedRow=1;
-                obj.deleteROI
-            end
-
-            % Add our ROIs
-            for ii=1:length(ROIs)
-                fprintf('Adding ROI %d\n', ii)
-                obj.addROI(ROIs{ii})
-            end
-
-        end % autoFindBrainsInLoadedImage
 
 
         function tableHighlightCallback(obj,src,evt)
