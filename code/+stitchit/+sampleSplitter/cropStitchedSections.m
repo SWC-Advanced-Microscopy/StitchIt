@@ -72,7 +72,10 @@ for ii=1:length(s)
         %2-step process to sort this out. Perhaps we'll get funny 
         %nesting, but hopefully it will not overwrite stuff
         movefile([s(ii).stitchedBaseDir,filesep,'*'], targetBackUpDir)
-
+        if exist(s(ii).stitchedBaseDir,'dir')
+          delete(s(ii).stitchedBaseDir,'s')
+        end
+        
 
         %If necessary, copy meta-data to new sample directories
         if length(ROIs)>1
@@ -88,7 +91,10 @@ end % ii=1:length(s)
 
 
 if atLeastOneWorked
-    %
+
+    % TODO: rename recipe and acq files and so forth. This will (or should)
+    % ensure that downsampled files are named correctly
+    
     movefile('downsampledMHD*',uncroppedDir) %move to the backup directory
     cDIR=pwd;
     for ii=1:length(ROIs)
@@ -101,8 +107,6 @@ if atLeastOneWorked
         end
         cd(cDIR)
     end % for ii
-  
-    % TODO: rename recipe and acq files and so forth
 
 end % if atLeastOneWorked
 

@@ -78,9 +78,14 @@ classdef sampleSplitter < handle
             end
  
             if isempty(varargin)
+              %Look for an MHD file 
+              d=dir('downsampledMHD_25/*.mhd');
+              if isempty(d)
                 fprintf('Please provide an MHD filename, a stack, or an intensity projection\n')
                 obj.delete
                 return
+              end
+              varargin{1} = fullfile(d(end).folder,d(end).name);
             end
 
             if isnumeric(varargin{1}) && ndims(varargin{1}) == 2
@@ -102,11 +107,13 @@ classdef sampleSplitter < handle
                     fprintf('Loading %s\n', fname)
                     im = mhd_read(fname);
 
-                    fprintf('Filtering image\n')
+                    fprintf('Making and filtering max intensity projection\n')
                     tmp = imresize3(im,0.5);
                     tmp = medfilt3(tmp,[3,3,3]);
                     tmp = imresize(tmp,2);
                     obj.origImage = max(tmp,[],3);
+                    fprintf('Image is of size %d x %d\n', ...
+                            size(tmp,1), size(tmp,2));
 
                     %Can we get the number of microns per pixel?
                     tok= regexp(fname,'(\d+)_(\d+)_(\d+)\.[mr]','tokens');
