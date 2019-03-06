@@ -108,9 +108,15 @@ classdef sampleSplitter < handle
                     im = mhd_read(fname);
 
                     fprintf('Making and filtering max intensity projection\n')
-                    tmp = imresize3(im,0.5);
-                    tmp = medfilt3(tmp,[3,3,3]);
-                    tmp = imresize(tmp,2);
+                    if exist('imresize3','file')
+                        tmp = imresize3(im,0.5);
+                        tmp = medfilt3(tmp,[3,3,3]);
+                        tmp = imresize(tmp,2);
+                    else
+                        %Same as above, just slower
+                        tmp = medfilt3(im,[3,3,3]);
+                    end
+
                     obj.origImage = max(tmp,[],3);
                     fprintf('Image is of size %d x %d\n', ...
                             size(tmp,1), size(tmp,2));
