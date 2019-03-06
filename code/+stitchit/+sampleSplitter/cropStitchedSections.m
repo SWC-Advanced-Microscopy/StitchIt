@@ -73,9 +73,9 @@ for ii=1:length(s)
         %nesting, but hopefully it will not overwrite stuff
         movefile([s(ii).stitchedBaseDir,filesep,'*'], targetBackUpDir)
         if exist(s(ii).stitchedBaseDir,'dir')
-          delete(s(ii).stitchedBaseDir,'s')
+          rmdir(s(ii).stitchedBaseDir,'s')
         end
-        
+
 
         %If necessary, copy meta-data to new sample directories
         if length(ROIs)>1
