@@ -3,9 +3,8 @@
 # StitchIt
 
 *StitchIt* is a MATLAB package that was originally built for stitching data from the TissueVision 2-photon tomography system.
-However, *StitchIt* is now sufficiently modular that it can handle other tiled data sets too (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments using [ScanImage](http://scanimage.vidriotechnologies.com/)).
+However, *StitchIt* is sufficiently modular that it can handle other tiled data sets too (e.g. from a slide scanner or tiled images obtained from *in vivo* experiments using [ScanImage](http://scanimage.vidriotechnologies.com/)).
 To get started, please read the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki). 
-Some older information is for now only available in the [PDF user manual](http://mouse.vision/st_manual_161122.pdf).
 There is a [changelog](https://raw.githubusercontent.com/BaselLaserMouse/StitchIt/master/changelog.txt).
 
 ## Features
@@ -25,7 +24,8 @@ There is a [changelog](https://raw.githubusercontent.com/BaselLaserMouse/StitchI
 - Calculating the average tile for illumination correction.
 - Calculating coefficients for correcting for scanning artifacts (experimental).
 - Randomly accessing any tile in the dataset.
-- Techniques for exploring stitching accuracy. 
+- Techniques for exploring stitching accuracy.
+- Cropping stitched datasets or partition a single stitched dataset into multiple ROIs.
 
 
 **Post-stitching functionality**:
