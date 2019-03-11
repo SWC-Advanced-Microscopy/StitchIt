@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/wiki/BaselLaserMouse/StitchIt/images/rgb_brain_example.jpg" />
+<img src="https://raw.githubusercontent.com/wiki/SainsburyWellcomeCentre/StitchIt/images/rgb_brain_example.jpg" />
 
 # StitchIt
 
