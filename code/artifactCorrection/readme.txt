@@ -1,0 +1,1 @@
+The functions in this directory are used during stitching and likely aren't of interest to end users.

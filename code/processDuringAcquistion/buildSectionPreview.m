@@ -16,10 +16,11 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % Also see:
 % syncAndCrunch
 
+
+userConfig = readStitchItINI;
 if nargin<1 || isempty(sectionToPlot)
     sectionToPlot = lastCompletedSection; 
 else
-    userConfig = readStitchItINI;
     rawDataDir = userConfig.subdir.rawDataDir;
     baseName = sprintf('%s%s%s', rawDataDir, filesep, directoryBaseName);
     sectionToPlot = sprintf('%s%04d',baseName,sectionToPlot);
@@ -37,6 +38,27 @@ end
 
 verbose=1; %Used to diagnose a MATLAB segfault that occurs at some point during image production
 
+
+% Don't proceed if there a a lock file in the web-subirectory
+if ~exist(userConfig.subdir.WEBdir,'dir')
+    mkdir(userConfig.subdir.WEBdir)
+end
+
+lockfile=fullfile(userConfig.subdir.WEBdir,'LOCK');
+
+
+if exist(lockfile,'file')
+    fprintf('%s found lockfile. aborting\n',mfilename)
+    varargout={};
+    return
+else
+    fclose(fopen(lockfile,'w')); %make the lock file
+end
+
+tidyUp = onCleanup(@() thisCleanup(lockfile));
+
+
+
 [~,thisSectionDir]=fileparts(sectionToPlot);
 generateTileIndex(thisSectionDir,[],0);
 
@@ -45,7 +67,6 @@ tok=regexp(sectionToPlot,'.*-(\d+)','tokens');
 ind=str2num(tok{1}{1});
 
 
-userConfig=readStitchItINI;
 rescaleThresh=userConfig.syncAndCrunch.rescaleThresh;
 
 if rescaleThresh>1
@@ -75,10 +96,6 @@ end
 %rescale and save
 F=figure('visible','off');
 
-
-if ~exist(userConfig.subdir.WEBdir,'dir')
-    mkdir(userConfig.subdir.WEBdir)
-end
 
 if verbose
     fprintf('Creating main image\n')
@@ -242,3 +259,7 @@ function [im,thresh]=rescaleImage(im,thresh)
 
     im = im * (2^8-1);
     im = uint8(im);
+
+
+function thisCleanup(lockfile)
+    delete(lockfile)

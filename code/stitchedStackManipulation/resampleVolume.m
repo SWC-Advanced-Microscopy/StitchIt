@@ -43,23 +43,35 @@ function varargout=resampleVolume(channel,targetDims,fileFormat)
 %
 % Also see: rescaleStitched
 
-if ~exist('stitchedImages_100','dir')
-  fprintf('Can not find a stitchedImages_100 directory in the current directory. See the examples in the function help\n')
+
+% Find a stitched image directory
+stitchedDataInfo=findStitchedData;
+if isempty(stitchedDataInfo)
+  fprintf('resampleVolume.m Finds no stitched data to resample.\n')
   return
 end
 
-origDataDir = sprintf('stitchedImages_100%s%d%s',filesep,channel,filesep);
+stitchedDataInd=1;
+stitchedDir = stitchedDataInfo(stitchedDataInd).stitchedBaseDir;
 
-files=dir([origDataDir,'sec*.tif']);
-if isempty(files)
-  error('No tiffs found in %s',origDataDir)
+origDataDir = fullfile(stitchedDir, num2str(channel));
+if ~exist(origDataDir)
+  fprintf('resampleVolume.m can not find directory %s\n', origDataDir)
+  return
 end
 
+files=dir(fullfile(origDataDir,'sec*.tif'));
+if isempty(files)
+  error('resampleVolume.m finds no tiffs found in %s',origDataDir)
+end
+
+% Handle the target dimensions argument
 if ~isnumeric(targetDims)
   error('input argument targetDims should be numeric')
 end
 
 if length(targetDims)==1
+  % Make isometric volume if user supplied a scalar for targetDims
   targetDims = repmat(targetDims,1,2);
 end
 
@@ -68,6 +80,7 @@ if length(targetDims) ~= 2
 end
 
 if nargin<3
+  % MHD output files by defaul
   fileFormat = 'mhd';
 end
 
@@ -81,25 +94,21 @@ if isempty(strmatch(fileFormat,{'tiff','mhd'}))
 end
 
 
-if length(targetDims) ~= 2
-  error('targetDims should have a length of 2')
-end
-
 %Calculate the original image size
 M=readMetaData2Stitchit;
-z=M.voxelSize.Z;
+z=stitchedDataInfo(stitchedDataInd).zSpacingInMicrons;
 
 if z==0
   fprintf('** Z voxel size reported as zero. This is not right. Correct meta-data file and re-run %s **\n', mfilename)
   return
 end
 
-xy=mean([M.voxelSize.X,M.voxelSize.Y]);
+xy=stitchedDataInfo(stitchedDataInd).micsPerPixel;
 origDims = [xy,z];
 fprintf('original resolution %0.2f um in x/y and %0.1f um in z\n', xy, z)
 
 
-info=imfinfo([origDataDir,files(1).name]);
+info=imfinfo(fullfile(origDataDir,files(1).name));
 imSizeInMegs = (info.Width*info.Height*2)/1024^2;
 
 
@@ -171,14 +180,14 @@ msg=sprintf('Loading and down-sampling x/y by %0.3f\n',1/xyRescaleFactor);
 fprintf(msg)
 fprintf(fid,msg);
 
-vol=stitchit.tools.openTiff([origDataDir,filesep,files(1).name]);
+vol=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
 vol=imresize(vol,xyRescaleFactor);
 vol(:,:,2:end)=nan;
 vol=repmat(vol,[1,1,length(files)]);
 
 parfor ii=1:length(files)
   fprintf('Resampling %03d\n', ii)
-  im=stitchit.tools.openTiff([origDataDir,files(ii).name]);
+  im=stitchit.tools.openTiff(fullfile(origDataDir,files(ii).name));
   vol(:,:,ii)=imresize(im,xyRescaleFactor);
 end
 
@@ -219,7 +228,7 @@ try
   if strcmp('tiff',fileFormat)
     save3Dtiff(vol,downsampledFname)
   elseif strcmp('mhd',fileFormat)
-    mhd_write(vol,downsampledFname,[1,1,1])
+    stitchit.tools.mhd_write(vol,downsampledFname,[1,1,1])
   else
     %This should *never* execute as we've already checked the file format string 
     %at the start of the function. Nonetheless, we leave this code "just in case"
@@ -229,7 +238,7 @@ try
   end
 
 catch
-  msg=sprintf('resampleVolume failed to save: ensure you have mhd_write or save3Dtiff in your path\n');
+  msg=sprintf('resampleVolume failed to save: double-check you have mhd_write or save3Dtiff in your path\n');
   fprintf(msg)
   fprintf(fid,msg);
   disp(lasterror)

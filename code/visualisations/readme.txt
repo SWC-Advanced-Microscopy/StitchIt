@@ -1,0 +1,1 @@
+These functions implement the ability to create simple preview stitched images from raw data.

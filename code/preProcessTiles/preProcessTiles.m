@@ -35,7 +35,7 @@ function varargout=preProcessTiles(sectionsToProcess, varargin)
 %    all available directories. This is the only way to start with a fresh average image
 % 3) If sectionsToProcess is a vector or a scalar >0 then we analyse only these 
 %    these section directories AND we over-write existing coefficient files in all 
-%    channels.
+%    channels (i.e. same as -1).
 %
 %
 % INPUTS (optional param/value pairs)
@@ -159,6 +159,7 @@ elseif length(sectionsToProcess)>1 || sectionsToProcess(1)>0
     fprintf('Looping through a user-defined subset of directories\n')
     sectionDirectories=struct;
     for ii=1:length(sectionsToProcess)
+        % Skip missing directories
         thisDirName=sprintf('%s%04d',baseName,sectionsToProcess(ii));
         if ~exist(fullfile(userConfig.subdir.rawDataDir,thisDirName),'dir'), continue, end
         sectionDirectories(sectionsToProcess(ii)).name=thisDirName;
@@ -187,14 +188,33 @@ chansToLoad = unique([illumChans,combCorChans, channelsToProcess]);
 % remove 0. The value for 'no channel' in combCorChans or illumChans
 chansToLoad = chansToLoad(chansToLoad~=0);
 
+%Set up a cleanup function that will delete the section directory lock file if present
+currentLockFileTemp = [tempname,'_preProcessTilesLockFileLocation.mat'];
+lockfile='';
+save(currentLockFileTemp,'lockfile')
+tidyUp = onCleanup(@() thisCleanup(currentLockFileTemp));
+
 %Loop through sections with a regular for loop and conduct
 %analyses in parallel
 
-for thisDir = 1:length(sectionDirectories)
+for thisDir = 1:length(sectionDirectories) %Loop through section directories
 
     if isempty(sectionDirectories(thisDir).name)
         continue %Is only executed if user defined specific directories to process
     end
+
+
+    % We will make a lock file in the directory 
+    thisSectionDirName = fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name);
+    lockfile = fullfile(thisSectionDirName, 'preProcessFilesLOCK');
+
+    if exist(lockfile,'file')
+        fprintf('** preProcessTiles finds a lock file at %s. Skipping. ** \n', lockfile)
+        continue
+    end
+
+    fclose(fopen(lockfile,'w')); %make the lock file
+    save(currentLockFileTemp,'lockfile'); %update the mat file containing the lock file location
 
     % StitchIt will produce various statistics for stitching to proceed and will place these
     % in this directory: 
@@ -229,7 +249,7 @@ for thisDir = 1:length(sectionDirectories)
                 statsToLoad(end+1) = chan;
             end
         end
-    end
+    end %if sectionsToProcess < 0
 
     % load data needed for tileStat creation
     [imStack, tileIndex, loadError] = load_imstack([], [], param, sectionDirectories(thisDir).name, chanToStats, MAXCHANS);
@@ -238,7 +258,7 @@ for thisDir = 1:length(sectionDirectories)
                 fprintf('Error loading the data in directory %s. Skipping.\n', sectionDirectories(thisDir).name)
         end
         continue
-    end
+    end %if loadError
 
     % write statsFile for chans where it's needed
     tileStatsAllChan = cell([MAXCHANS, 1]);
@@ -274,7 +294,7 @@ for thisDir = 1:length(sectionDirectories)
             writeCombCorCoefs(imStack, sectionStatsDirName, combCorChans)
             analysesPerformed.combCor=1;
         end
-    end
+    end %if combCorChans
 
     %Do illumination correction if the user asked for it
     %Handle existing average files: wipe if necessary or load them in order to add to them. 
@@ -299,7 +319,9 @@ for thisDir = 1:length(sectionDirectories)
             calcAverageMatFiles(imStack, tileIndex, sectionStatsDirName, illumChans, tileStatsAllChan)
             analysesPerformed.illumCor=1;
         end
-    end
+    end %illumChans
+
+    delete(lockfile) %Delete the lock file
 
 end %for thisDir = 1:length(sectionDirectories)
 
@@ -310,12 +332,14 @@ if timeIt>180
     fprintf('Total time: %d minutes.\n',round(timeIt/60))
 else
     fprintf('Total time: %d seconds.\n',round(timeIt))
-end
+end %if timeIt>180
 
 if nargout>0
     varargout{1}=analysesPerformed;
-end
-end
+end %if nargout>0
+
+
+end %preProcessTiles
 
 function [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, param, sectionDirectory, chansToLoad, maxChans)
 % Function to load the channel and add them to imStack and tileIndex
@@ -353,5 +377,26 @@ function [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, para
             imStack{thisChan,thisLayer}=thisImStack;
             tileIndex{thisChan,thisLayer}=thisTileIndex;
         end
+    end %for thisChan = chansToLoad
+end
+
+
+% The cleanup function will tidy up the lock file should preProcessTiles end violently
+function thisCleanup(currentLockFileTemp)
+
+    if ~exist(currentLockFileTemp,'file')
+        fprintf('Unable to find MAT file containing lock file location at %s.\n', currentLockFileTemp)
+        return
     end
+
+    load(currentLockFileTemp) %adds "lockfile" to function scope
+    delete(currentLockFileTemp)
+
+    if isempty(lockfile) || ~exist(lockfile,'file')
+        return
+    end
+
+    fprintf('preProcessTiles is deleting orphan lock file at %s\n', lockfile)
+    delete(lockfile)
+
 end

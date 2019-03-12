@@ -16,7 +16,7 @@ if nargin<3
 end
 
 %Read the TissueCyte mosaic file
-rawOut=yaml.ReadYaml(fname,verbose);
+rawOut=stitchit.yaml.ReadYaml(fname,verbose);
 
 if isstruct(rawOut)
     sucessfulRead=true;
@@ -44,7 +44,9 @@ out.sample.acqStartTime= raw.Acquisition.acqStartTime;
 out.sample.activeChannels = raw.ScannerSettings.activeChannels;
 out.mosaic = raw.mosaic;
 out.tile =raw.Tile;
+
 out.voxelSize=raw.StitchingParameters.VoxelSize; %Read from the user-tweaked settings.
+out.voxelSize.Z=raw.VoxelSize.Z; % The z is not tweaked
 out.lensDistort=raw.StitchingParameters.lensDistort;
 if isempty(out.lensDistort)
     out.lensDistort.rows=0;
