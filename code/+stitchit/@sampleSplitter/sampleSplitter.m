@@ -230,6 +230,7 @@ classdef sampleSplitter < handle
     methods
         % The following are short methods or callbacks that we might want exposed to the user        
         function applyROIsToStitchedData(obj,~,~)
+            % Split up sample based on the current ROIs
             % TODO: make button for this callback
             stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
         end % applyROIsToStitchedData

@@ -67,7 +67,9 @@ function previewROIs(obj,plane,channel)
     for ii=1:length(splitIms)
         subplot(p(1),p(2),ii)
         thisWidth = size(splitIms{ii},2);
-        imagesc( imresize(splitIms{ii}, figWidth/thisWidth) )
+        tImage = imresize(splitIms{ii}, figWidth/thisWidth);
+        tImage = medfilt2(tImage,[5,5]);
+        imagesc(tImage)
         c=caxis;
         caxis([c(1),c(2)*0.5]) %make the image brighter
         axis equal off
