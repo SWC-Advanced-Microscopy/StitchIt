@@ -92,15 +92,13 @@ end % ii=1:length(s)
 
 if atLeastOneWorked
 
-    % TODO: rename recipe and acq files and so forth. This will (or should)
-    % ensure that downsampled files are named correctly
-    
     movefile('downsampledMHD*',uncroppedDir) %move to the backup directory
     cDIR=pwd;
     for ii=1:length(ROIs)
         % Loop through the new ROI directories and make downsampled data
         try
             cd(ROIs(ii).name)
+            renameSample(ROIs(ii).name)
             downsampleAllChannels %re-build the downsampled stacks
         catch ME
             disp(ME.message)
