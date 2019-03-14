@@ -19,7 +19,7 @@ uncroppedDir = ['UncroppedStacks_', datestr(now,'yymmdd_HHMM'),'_DELETE_ME_DELET
 atLeastOneWorked=false; % True if at least one of the full size image stacks cropped successfully
 
 % There are multiple ROIs we assume there are multiple samples so set it up as such
-if length(ROIs)
+if length(ROIs)>1
     for ii=1:length(ROIs)
         mkdir(ROIs(ii).name)
     end
@@ -45,19 +45,23 @@ for ii=1:length(s)
     for jj=1:length(s(ii).channel)
         fprintf('Cropping channel %d\n', s(ii).channelsPresent(jj));
 
-        allOK = zeros(1,length(cropDirName));
+
         for kk=1:length(cropDirName)
             %Make channel directory
             chanTargetDir{kk} = fullfile(cropDirName{kk}, num2str(s(ii).channelsPresent(jj)));
+            fprintf('Making directory %s\n', chanTargetDir{kk})
             mkdir(chanTargetDir{kk})
-            allOK(kk) = stitchit.sampleSplitter.checkROIapplication(s(ii), cropDirName{kk});
         end
 
         runCrop(s(ii).channel(jj), ROIs, s(ii).micsPerPixel, chanTargetDir) %This is where the work is done
     end
 
-
-
+    %Check if everything worked
+    allOK = zeros(1,length(cropDirName));
+    for kk=1:length(cropDirName)
+        allOK(kk) = stitchit.sampleSplitter.checkROIapplication(s(ii), cropDirName{kk});
+    end
+    
     if all(allOK)
         atLeastOneWorked=true;
         % Move the original stitched data to the cropped directory
@@ -94,7 +98,9 @@ if atLeastOneWorked
 
     movefile('downsampledMHD*',uncroppedDir) %move to the backup directory
     cDIR=pwd;
-    for ii=1:length(ROIs)
+    
+    if length(ROIs)>1
+      for ii=1:length(ROIs)
         % Loop through the new ROI directories and make downsampled data
         try
             cd(ROIs(ii).name)
@@ -104,7 +110,20 @@ if atLeastOneWorked
             disp(ME.message)
         end
         cd(cDIR)
-    end % for ii
+      end % for ii
+    else
+      %Rename cropped dirs
+       d=dir('CROP_*');
+       for ii=1:length(d)
+         if ~d(ii).isdir)
+           continue
+         end
+         movefile(d(ii).name,strrep(d(ii).name,'CROP_',''));
+       end
+       
+       downsampleAllChannels %re-build the downsampled stacks
+    end
+    
 
 end % if atLeastOneWorked
 

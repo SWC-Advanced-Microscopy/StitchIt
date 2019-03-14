@@ -38,6 +38,7 @@ classdef sampleSplitter < handle
         hButton_deleteROI
         hButton_autoFind
         hButton_previewROI
+        hButton_applyROIs
         hDataTable
 
         origViewImAxes % The image axes into which we will put the original image
@@ -190,6 +191,15 @@ classdef sampleSplitter < handle
                 'Callback', @obj.showPreview,...
                 'Parent', obj.hMain);
 
+            obj.hButton_applyROIs = uicontrol('Style', 'PushButton', ...
+                'Units', 'Pixels', ...
+                'Enable','off', ...
+                'Position', [360,10,80,35], 'String', 'Apply ROIs', ...
+                'ToolTip', 'Apply ROIs to stack', ...
+                'Callback', @obj.applyROIsToStitchedData,...
+                'Parent', obj.hMain);
+
+
             % Add the uitable which will contain ROI info
             obj.hDataTable = uitable('Parent', obj.hMain, ...
                 'Position', [25 50 500 225], ...
@@ -230,8 +240,9 @@ classdef sampleSplitter < handle
     methods
         % The following are short methods or callbacks that we might want exposed to the user        
         function applyROIsToStitchedData(obj,~,~)
+            % hButton_applyROIs callback
             % Split up sample based on the current ROIs
-            % TODO: make button for this callback
+            q = questdlg(springf('Really apply these ROIs?'))
             stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
         end % applyROIsToStitchedData
 
@@ -306,6 +317,8 @@ classdef sampleSplitter < handle
             if size(obj.hDataTable.Data,1)==1
                 % Since after deletion the table will by empty
                 obj.hButton_deleteROI.Enable='Off';
+                obj.hButton_previewROI.Enable='Off';
+                obj.hButton_addROIs.Enable='Off';
                 obj.selectedRow=[];
             else
                 % Just set the first ROI
