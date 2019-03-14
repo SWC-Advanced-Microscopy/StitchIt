@@ -1,5 +1,9 @@
 StitchIt Change Log
 
+02/01/19
+- Tidy files to make discovery of StitchIt features easier for users.
+- DEVELOPER: New function "findStitchedData" to aid more flexible handling of already stitched data. 
+
 04/01/19
 - MAJOR: syncAndCrunch runs the web preview as a background task so it keeps up better with high bandwidth acquisitions.
          You can now change which channel is being sent to the web by editing the file at /tmp/buildSectionRunnerTargetChannel so you you could do: echo "3" > /tmp/buildSectionRunnerTargetChannel

@@ -14,6 +14,12 @@ function downsampleAllChannels(voxelSize)
 % Rob Campbell - SWC, 2018
   
 
+  stitchedDataInfo=findStitchedData;
+  if isempty(stitchedDataInfo)
+    fprintf('No stitched data found by %s. Quitting\n', mfilename)
+    return
+  end
+
   if nargin<1
     voxelSize=25;
   end
@@ -26,7 +32,8 @@ function downsampleAllChannels(voxelSize)
   end
 
 
-  chan = channelsAvailableForStitching;
+  chan = stitchedDataInfo.channelsPresent;
+
   fnames={};
   for ii = 1:length(chan)
     tChan = chan(ii);
@@ -40,5 +47,3 @@ function downsampleAllChannels(voxelSize)
     fprintf('Moving %s* to %s\n', fnames{ii}, dsDirName)
     movefile([fnames{ii},'*'], dsDirName)
   end
-  
-  

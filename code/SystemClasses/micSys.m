@@ -26,12 +26,14 @@ classdef (Abstract) micSys
           %Get section directory base name from the parameter file name
         directoryBaseName(obj)
 
-        %Extract section number from directory name
+        % Extract section number from directory name
         sectionDirName2sectionNum(obj,sectionDirName)
 
-        %Determine which channels are available
+        % Determine which channels are available
         channelsAvailableForStitching(obj)
 
+        % Rename samples
+        renameSample(obj,newSampleName)
     end
 
 end

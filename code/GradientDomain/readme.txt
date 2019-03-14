@@ -1,0 +1,1 @@
+These functions implement a seam remover for tile boundaries.

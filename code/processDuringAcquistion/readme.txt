@@ -1,0 +1,1 @@
+These functions implement "syncAndCrunch" for pulling data onto an analysis machine from an acquisition machine during acquisition.
