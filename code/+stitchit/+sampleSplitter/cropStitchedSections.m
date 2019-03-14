@@ -114,7 +114,7 @@ end % if atLeastOneWorked
 
 %--------------------------------------------------------------------------------
 function runCrop(fileList, ROIs, micsPix, chanTargetDir)
-
+    % This function runs the crop operation in parallel on one channel
 
     parfor ii = 1:length(fileList.tifNames)
         % Load the image
