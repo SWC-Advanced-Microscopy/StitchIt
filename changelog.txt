@@ -1,5 +1,8 @@
 StitchIt Change Log
 
+15/03/19
+- USER: Add GUI for breaking up acquisitions with two brains into two separate sample folders. Also allows cropping of a               single brain. GUI not heavily tested yet but it works.
+
 02/01/19
 - Tidy files to make discovery of StitchIt features easier for users.
 - DEVELOPER: New function "findStitchedData" to aid more flexible handling of already stitched data. 
