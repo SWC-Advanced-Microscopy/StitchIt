@@ -16,7 +16,8 @@ function varargout=peekSection(section,channel,resize)
 %                   3) a cell array that's {tileStack, tileIndex}
 %
 % channel - scalar defining the channel to show. By default this is the first 
-%           available channel.
+%           available channel. If channel is the string 'rgb', then peekSection
+%           loads all available channels and assembles them into an RGB image.
 %
 % resize - a number from 0 to 1 that defines by how much we should 
 %          re-scale the brain. optional. 
@@ -59,6 +60,30 @@ else
     end
 end
 
+
+% Build an RGB image. 
+if ischar(channel) && strcmpi(channel,'rgb')
+    channel = channelsAvailableForStitching;
+    if length(channel)==1
+        [section, imStack, coords] = peekSection(section,channel,resize);
+    else
+        for ii=1:length(channel)
+            [imData{ii},imStack,coords]=peekSection(section,channel(ii),resize);
+        end
+        %Build RGB image (TODO: GENERALISE IT. HACK NOW FOR CHAN ORDERE)
+        section = zeros(size(imData));
+        channel = channel-1; % This is the hack
+        channel(channel<1)=1; %So red and far red are both red
+        for ii=1:length(channel)
+            section(:,:,channel(ii)) = section(:,:,channel(ii)) + imData{ii};
+        end
+        % Get mean of more than one red channel if needed
+        if length(find(channel==1))>1
+            section(:,:,1) = section(:,:,1) / length(find(channel==1));
+        end
+    end
+    varargout = parseOutputArgs(nargin);
+end
 
 
 
@@ -144,26 +169,34 @@ if verbose
 end
 
 
+varargout = parseOutputArgs(nargin);
 
 
 
-%-----------------------------------------------------------------------
-%Output data if requested. 
-if nargout>0
-    varargout{1}=stitchedImage;
+
+function varargout = parseOutputArgs(outerFunctNargout)
+    %-----------------------------------------------------------------------
+    %Output data if requested. 
+    if outerFunctNargout>0
+        varargout{1}=stitchedImage;
+    end
+
+    if outerFunctNargout>1
+        varargout{2}=im;
+    end
+
+    if outerFunctNargout>2
+        varargout{3}=tileIndex;
+    end
+
+    %If no output is requested we plot 
+    if outerFunctNargout==0
+        imagesc(stitchedImage)
+        axis equal off
+        colormap gray
+    end
 end
 
-if nargout>1
-    varargout{2}=im;
 end
 
-if nargout>2
-    varargout{3}=tileIndex;
-end
 
-%If no output is requested we plot 
-if nargout==0
-    imagesc(stitchedImage)
-    axis equal off
-    colormap gray
-end
