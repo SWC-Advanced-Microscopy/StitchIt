@@ -207,7 +207,7 @@ sliceThicknessInMicrons =  params.mosaic.sliceThickness;
 details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
     sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 
-endTime=estimateEndTime;
+
 
 if params.mosaic.numOpticalPlanes>1
     indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];
@@ -218,8 +218,15 @@ if params.mosaic.numOpticalPlanes>1
 else
     indexDetails = details;
 end
-indexDetails = sprintf('%s\n<br />\nChannel: %d ; %s\n\n',...
-    indexDetails, channel,endTime.finishingString);
+indexDetails = sprintf('%s\n<br />\nChannel: %d ', indexDetails, channel);
+
+% add end time if possible
+endTime=estimateEndTime;
+if ~isempty(endTime)
+    indexDetails = sprintf('%s; %s\n\n', indexDetails, endTime.finishingString);
+else
+    indexDetails = sprintf('%s\n\n', indexDetails);
+end
 
 detailsFile='details.txt';
 system(sprintf('echo ''%s'' > %s',indexDetails,[userConfig.subdir.WEBdir,filesep,detailsFile]));
@@ -233,8 +240,11 @@ fclose(fidM);
 
 progressFname = 'progress.ini';
 fidP=fopen([userConfig.subdir.WEBdir,filesep,progressFname], 'w');
-fprintf(fidP,'%scurrentSection:%d\nexpectedEndTime:%s\nlastWebUpdate:%s\nwebImThres:%d\n',...
-    contents,currentSecNum,endTime.finishingString,currentTime,rescaleThresh);
+fprintf(fidP,'%scurrentSection:%d\nlastWebUpdate:%s\nwebImThres:%d\n',...
+    contents,currentSecNum,currentTime,rescaleThresh);
+if ~isempty(endTime)
+    fprintf(fidP,'expectedEndTime:%s\n', endTime.finishingString);
+end
 fclose(fidP);
 
 
