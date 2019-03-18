@@ -3,10 +3,19 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 %
 % function lastDir=buildSectionPreview(sectionToPlot,channel)
 %
+% Purpose
+% This function builds a low-res preview image of the first depth, a montage
+% of all depths, and a historgram (currently not used) of the first depth.
+% This is optionally sent to a webserver. If there is more than one channel,
+% the main preview image is RGB. The montage image is one channel only: the 
+% channel selected by the user as the second input argument. If missing, the
+% channel is chosen automatically as the first available. 
+%
 % INPUTS
 % sectionToPlot - If empty plot the last completed section as per the trigger file
 %                 sectionToPlot can also be a directory index to plot
-% channel - the channel to plot. By default (or if empty) the first available channel. 
+% channel - the channel to plot in montage image. By default (or if empty) the 
+%           first available channel.
 %
 %
 % NOTES
@@ -69,10 +78,12 @@ ind=str2num(tok{1}{1});
 
 rescaleThresh=userConfig.syncAndCrunch.rescaleThresh;
 
-if rescaleThresh>1
-  fprintf('Thresholding at a pixel value of %d\n',rescaleThresh)
-elseif rescaleThresh<1
+if rescaleThresh<1
   fprintf('Thresholding at %d percent\n',rescaleThresh*100)
+elseif rescaleThresh<10
+  fprintf('Thresholding at %d times the mean\n',rescaleThresh)
+else
+  fprintf('Thresholding at a pixel value of %d\n',rescaleThresh)
 end
 
 
@@ -83,9 +94,17 @@ if rSize>1
     rSize=1;
 end
 
+% Here we build the main image that is sent to the web. The montage of all depths
+% is created later in the function
 opticalSection=1;
 fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
-im=peekSection([ind,opticalSection],channel,rSize);
+if length(chans)==1
+    im=peekSection([ind,opticalSection],channel,rSize);
+elseif length(chans)>1
+    % Attempt to make an RGB image to send to the web
+    im=peekSection([ind,opticalSection],'rgb',rSize);
+end
+
 if isempty(im)
     fprintf('%s: Failed to load data. Quitting\n ',mfilename);
     return
@@ -239,8 +258,16 @@ end
 
 
 function [im,thresh]=rescaleImage(im,thresh)
+    % Re-scale the stitched image look up table so it is visible on screen and saves nicely
     if nargin<2
         thresh=1;
+    end
+
+    im = single(im);
+
+    if thresh<10
+        % The threshold is a multiple of the mean (length 3 for rgb images)
+        thresh = squeeze(mean(mean(im,1),2)) * thresh;
     end
 
     if thresh<1 
@@ -251,9 +278,16 @@ function [im,thresh]=rescaleImage(im,thresh)
         %thresh is a pixel intensity value
     end
 
-    im = single(im);
+    if length(thresh)==1
+        %Handles RGB images with a single threshold for all chans
+        thresh = repmat(thresh,1,size(im,3));
+    end
+
+
     if ~isempty(thresh)
-        im = im ./ thresh;
+        for ii=1:length(thresh)
+            im(:,:,ii) = im(:,:,ii) ./ thresh(ii);
+        end
         im(im>1)=1;
     end
 

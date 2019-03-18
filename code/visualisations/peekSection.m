@@ -16,7 +16,8 @@ function varargout=peekSection(section,channel,resize)
 %                   3) a cell array that's {tileStack, tileIndex}
 %
 % channel - scalar defining the channel to show. By default this is the first 
-%           available channel.
+%           available channel. If channel is the string 'rgb', then peekSection
+%           loads all available channels and assembles them into an RGB image.
 %
 % resize - a number from 0 to 1 that defines by how much we should 
 %          re-scale the brain. optional. 
@@ -60,6 +61,32 @@ else
 end
 
 
+% Build an RGB image using a recursive function call
+if ischar(channel) && ( strcmpi(channel,'rgb') || strcmpi(channel,'fratzl') )
+    channel = channelsAvailableForStitching;
+    if length(channel)==1
+        [stitchedImage, im, tileIndex] = peekSection(section,channel,resize);
+    else
+        for ii=1:length(channel)
+            [imData{ii},im,tileIndex]=peekSection(section,channel(ii),resize);
+        end
+        %Build RGB image (TODO: GENERALISE IT. HACK NOW FOR CHAN ORDERE)
+        stitchedImage = zeros([size(imData{1}),3],class(imData{1}));
+        channel = channel-1; % This is the hack
+        channel(channel<1)=1; %So red and far red are both red
+        for ii=1:length(channel)
+            stitchedImage(:,:,channel(ii)) = stitchedImage(:,:,channel(ii)) + imData{ii};
+        end
+        % Get mean of more than one red channel if needed
+        if length(find(channel==1))>1
+            stitchedImage(:,:,1) = stitchedImage(:,:,1) / length(find(channel==1));
+        end
+
+    parseOutputArgs(nargout);
+    return
+    end % if length(channel)==1
+end %If doing RGB
+
 
 
 %Load data if needed 
@@ -80,6 +107,7 @@ if ~iscell(section)
     if verbose
         fprintf('Loading tiles from section %d/%d channel %d\n',section,channel)
     end
+
 
     [im,tileIndex]=tileLoad([section,0,0,channel],'doIlluminationCorrection', doIlumCor);
 
@@ -127,11 +155,6 @@ end
 
 stitchedImage = medfilt2(stitchedImage);
 if nargout==0 %Adjust the image only if we'll be displaying locally
-    if verbose
-        fprintf('; ')
-    end
-    fprintf('adjusting image intensity')
-
     stitchedImage =imadjust(stitchedImage);
 end
 
@@ -144,26 +167,56 @@ if verbose
 end
 
 
+parseOutputArgs(nargout);
 
 
 
-%-----------------------------------------------------------------------
-%Output data if requested. 
-if nargout>0
-    varargout{1}=stitchedImage;
-end
 
-if nargout>1
-    varargout{2}=im;
-end
+function parseOutputArgs(outerFunctNargout)
+    %-----------------------------------------------------------------------
+    %Output data if requested. 
+    if outerFunctNargout>0
+        varargout{1}=stitchedImage;
+    end
 
-if nargout>2
-    varargout{3}=tileIndex;
-end
+    if outerFunctNargout>1
+        varargout{2}=im;
+    end
 
-%If no output is requested we plot 
-if nargout==0
-    imagesc(stitchedImage)
-    axis equal off
-    colormap gray
-end
+    if outerFunctNargout>2
+        varargout{3}=tileIndex;
+    end
+
+    %If no output is requested we plot 
+    if outerFunctNargout==0
+        if size(stitchedImage,3)==1
+            imagesc(stitchedImage)
+            colormap gray
+        elseif size(stitchedImage,3)==3
+
+            % Normalise
+            stitchedImage = single(stitchedImage);
+            for ii=1:size(stitchedImage,3)
+                mx = stitchedImage(:,:,ii);
+                mx = max(mx(:));
+                if mx==0, continue, end
+                stitchedImage(:,:,ii) = stitchedImage(:,:,ii) ./ mx;
+            end
+
+            % Scale each channel
+            scaleFact = squeeze(mean(mean(stitchedImage,1),2)) * 4;
+            for ii=1:3
+                mx = scaleFact(ii);
+                if mx==0, continue, end
+                stitchedImage(:,:,ii) = stitchedImage(:,:,ii)/mx;
+            end
+
+            imshow(stitchedImage)
+        end % size(stitchedImage,3)==1
+        axis equal off
+    end % outerFunct
+
+end % function
+
+
+end % peekSection
