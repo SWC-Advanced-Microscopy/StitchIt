@@ -97,11 +97,13 @@ end
 % Here we build the main image that is sent to the web. The montage of all depths
 % is created later in the function
 opticalSection=1;
-fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
+
 if length(chans)==1
+    fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
     im=peekSection([ind,opticalSection],channel,rSize);
 elseif length(chans)>1
     % Attempt to make an RGB image to send to the web
+    fprintf('\nBuilding main image with %s: section %d, opticalSection %d, all channels\n',mfilename,ind,opticalSection)
     im=peekSection([ind,opticalSection],'rgb',rSize);
 end
 
