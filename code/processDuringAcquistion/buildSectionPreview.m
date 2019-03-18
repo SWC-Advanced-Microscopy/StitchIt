@@ -6,7 +6,7 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % INPUTS
 % sectionToPlot - If empty plot the last completed section as per the trigger file
 %                 sectionToPlot can also be a directory index to plot
-% channel - the channel to plot. By default (or if empty) the first available channel. 
+% channel - the channel to plot. By default (or if empty) the first available channel.
 %
 %
 % NOTES
@@ -83,9 +83,17 @@ if rSize>1
     rSize=1;
 end
 
+% Here we build the main image that is sent to the web. The montage of all depths
+% is created later in the function
 opticalSection=1;
 fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
-im=peekSection([ind,opticalSection],channel,rSize);
+if length(chans)==1
+    im=peekSection([ind,opticalSection],channel,rSize);
+elseif length(chans)>1
+    % Attempt to make an RGB image to send to the web
+    im=peekSection([ind,opticalSection],'rgb',rSize);
+end
+
 if isempty(im)
     fprintf('%s: Failed to load data. Quitting\n ',mfilename);
     return
@@ -239,6 +247,7 @@ end
 
 
 function [im,thresh]=rescaleImage(im,thresh)
+    % Re-scale the stitched image look up table so it is visible on screen and saves nicely
     if nargin<2
         thresh=1;
     end

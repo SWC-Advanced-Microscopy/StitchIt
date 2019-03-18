@@ -82,14 +82,6 @@ if ischar(channel) && ( strcmpi(channel,'rgb') || strcmpi(channel,'fratzl') )
             stitchedImage(:,:,1) = stitchedImage(:,:,1) / length(find(channel==1));
         end
 
-        % Scale each channel
-        stitchedImage = single(stitchedImage);
-        for ii=1:size(stitchedImage,3)
-            mx = stitchedImage(:,:,ii);
-            mx = max(mx(:));
-            if mx==0, continue, end
-            stitchedImage(:,:,ii) = stitchedImage(:,:,ii) ./ mx;
-        end
     parseOutputArgs(nargout);
     return
     end % if length(channel)==1
@@ -201,12 +193,24 @@ function parseOutputArgs(outerFunctNargout)
             imagesc(stitchedImage)
             colormap gray
         elseif size(stitchedImage,3)==3
+
+            % Normalise
+            stitchedImage = single(stitchedImage);
+            for ii=1:size(stitchedImage,3)
+                mx = stitchedImage(:,:,ii);
+                mx = max(mx(:));
+                if mx==0, continue, end
+                stitchedImage(:,:,ii) = stitchedImage(:,:,ii) ./ mx;
+            end
+
+            % Scale each channel
             scaleFact = squeeze(mean(mean(stitchedImage,1),2)) * 4;
             for ii=1:3
                 mx = scaleFact(ii);
                 if mx==0, continue, end
                 stitchedImage(:,:,ii) = stitchedImage(:,:,ii)/mx;
             end
+
             imshow(stitchedImage)
         end % size(stitchedImage,3)==1
         axis equal off
