@@ -35,8 +35,9 @@ else
     sectionToPlot = sprintf('%s%04d',baseName,sectionToPlot);
 end
 
+chans=channelsAvailableForStitching;
+
 if nargin<2 || isempty(channel)
-    chans=channelsAvailableForStitching;
     if isempty(chans)
         fprintf('%s finds no channels available for plotting\n',mfilename)
         return

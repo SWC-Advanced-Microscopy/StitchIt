@@ -74,7 +74,7 @@ if ischar(channel) && ( strcmpi(channel,'rgb') || strcmpi(channel,'fratzl') )
         stitchedImage = zeros([size(imData{1}),3],class(imData{1}));
         channel = channel-1; % This is the hack
         channel(channel<1)=1; %So red and far red are both red
-        for ii=1:3
+        for ii=1:length(channel)
             stitchedImage(:,:,channel(ii)) = stitchedImage(:,:,channel(ii)) + imData{ii};
         end
         % Get mean of more than one red channel if needed
