@@ -35,8 +35,9 @@ else
     sectionToPlot = sprintf('%s%04d',baseName,sectionToPlot);
 end
 
+chans=channelsAvailableForStitching;
+
 if nargin<2 || isempty(channel)
-    chans=channelsAvailableForStitching;
     if isempty(chans)
         fprintf('%s finds no channels available for plotting\n',mfilename)
         return
@@ -78,10 +79,8 @@ ind=str2num(tok{1}{1});
 
 rescaleThresh=userConfig.syncAndCrunch.rescaleThresh;
 
-if rescaleThresh<1
-  fprintf('Thresholding at %d percent\n',rescaleThresh*100)
-elseif rescaleThresh<10
-  fprintf('Thresholding at %d times the mean\n',rescaleThresh)
+if rescaleThresh<10
+  fprintf('Thresholding at %0.2f times the mean of the area with brain\n',rescaleThresh)
 else
   fprintf('Thresholding at a pixel value of %d\n',rescaleThresh)
 end
@@ -93,15 +92,17 @@ rSize=320/params.tile.nRows;
 if rSize>1
     rSize=1;
 end
-
+pixSize = params.voxelSize.X/rSize;
 % Here we build the main image that is sent to the web. The montage of all depths
 % is created later in the function
 opticalSection=1;
-fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
+
 if length(chans)==1
+    fprintf('\nBuilding main image with %s: section %d, opticalSection %d, channel %d\n',mfilename,ind,opticalSection,channel)
     im=peekSection([ind,opticalSection],channel,rSize);
 elseif length(chans)>1
     % Attempt to make an RGB image to send to the web
+    fprintf('\nBuilding main image with %s: section %d, opticalSection %d, all channels\n',mfilename,ind,opticalSection)
     im=peekSection([ind,opticalSection],'rgb',rSize);
 end
 
@@ -120,7 +121,7 @@ if verbose
     fprintf('Creating main image\n')
 end
 
-[im,threshLevel]=rescaleImage(im,rescaleThresh);
+[im,threshLevel]=rescaleImage(im,rescaleThresh,pixSize);
 
 lastSection='LastCompleteSection.jpg';
 imwrite(im,[userConfig.subdir.WEBdir,filesep,lastSection],'bitdepth',8)
@@ -144,25 +145,22 @@ set(F,'paperposition',[0,0,6,3],'InvertHardCopy','off')
 print('-dpng','-r100',[userConfig.subdir.WEBdir,filesep,'hist.png']);
 close(F);
 
-
-
 %Now loop through all depths and make a montage
 F=figure('visible','off');
 fprintf('Building montage images')
 
 %Decide how much to resize montage based on tile size
-params=readMetaData2Stitchit;
 rSize=120/params.tile.nRows; 
 if rSize>1
     rSize=1;
 end
-
+pixSize = params.voxelSize.X/rSize;
 if params.mosaic.numOpticalPlanes>1
-    mos=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh);
+    mos=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh,pixSize);
     mos=repmat(mos,[1,1,params.mosaic.numOpticalPlanes]);
     for ii=1:params.mosaic.numOpticalPlanes
         fprintf('.')
-        mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),rescaleThresh);
+        mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),rescaleThresh,pixSize);
     end
     monFname=[userConfig.subdir.WEBdir,filesep,'montage.jpg'];
     mos=permute(mos,[1,2,4,3]);
@@ -205,7 +203,7 @@ sliceThicknessInMicrons =  params.mosaic.sliceThickness;
 details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
     sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 
-endTime=estimateEndTime;
+
 
 if params.mosaic.numOpticalPlanes>1
     indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];
@@ -216,8 +214,15 @@ if params.mosaic.numOpticalPlanes>1
 else
     indexDetails = details;
 end
-indexDetails = sprintf('%s\n<br />\nChannel: %d ; %s\n\n',...
-    indexDetails, channel,endTime.finishingString);
+indexDetails = sprintf('%s\n<br />\nChannel: %d ', indexDetails, channel);
+
+% add end time if possible
+endTime=estimateEndTime;
+if ~isempty(endTime)
+    indexDetails = sprintf('%s; %s\n\n', indexDetails, endTime.finishingString);
+else
+    indexDetails = sprintf('%s\n\n', indexDetails);
+end
 
 detailsFile='details.txt';
 system(sprintf('echo ''%s'' > %s',indexDetails,[userConfig.subdir.WEBdir,filesep,detailsFile]));
@@ -231,8 +236,11 @@ fclose(fidM);
 
 progressFname = 'progress.ini';
 fidP=fopen([userConfig.subdir.WEBdir,filesep,progressFname], 'w');
-fprintf(fidP,'%scurrentSection:%d\nexpectedEndTime:%s\nlastWebUpdate:%s\nwebImThres:%d\n',...
-    contents,currentSecNum,endTime.finishingString,currentTime,rescaleThresh);
+fprintf(fidP,'%scurrentSection:%d\nlastWebUpdate:%s\nwebImThres:%d\n',...
+    contents,currentSecNum,currentTime,rescaleThresh);
+if ~isempty(endTime)
+    fprintf(fidP,'expectedEndTime:%s\n', endTime.finishingString);
+end
 fclose(fidP);
 
 
@@ -257,7 +265,7 @@ end
 
 
 
-function [im,thresh]=rescaleImage(im,thresh)
+function [im,thresh]=rescaleImage(im,thresh,pixSize)
     % Re-scale the stitched image look up table so it is visible on screen and saves nicely
     if nargin<2
         thresh=1;
@@ -267,16 +275,20 @@ function [im,thresh]=rescaleImage(im,thresh)
 
     if thresh<10
         % The threshold is a multiple of the mean (length 3 for rgb images)
-        thresh = squeeze(mean(mean(im,1),2)) * thresh;
+        imFindBrain=mean(im,3);
+        imFindBrain(imFindBrain<10)=0;
+        imFindBrain = medfilt2(imFindBrain,[3,3]);
+        numPixInImage =  prod(size(imFindBrain));
+        POS=stitchit.sampleSplitter.autofindBrains(imFindBrain,pixSize,0);
+        if ~isempty(POS)
+            numPixelsInBrainBox = prod(POS{1}(3:4));
+        else % no brain found
+            numPixelsInBrainBox = numPixInImage; % use whole image
+        end
+        scaleFact = (numPixInImage / numPixelsInBrainBox) * thresh;
+        thresh = squeeze(mean(mean(im,1),2)) * scaleFact;
     end
 
-    if thresh<1 
-        thresh=thresh*2^16;
-    elseif thresh==1
-        thresh=max(im(:));
-    else
-        %thresh is a pixel intensity value
-    end
 
     if length(thresh)==1
         %Handles RGB images with a single threshold for all chans

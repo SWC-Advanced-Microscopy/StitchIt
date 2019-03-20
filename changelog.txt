@@ -1,8 +1,10 @@
 StitchIt Change Log
 
-18/03/19
+20/03/19
 - USER: Main web preview image is RGB.
 - USER: New adaptive option for setting web preview threshold (see default INI file) 
+SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the new comment text is 
+                added in from the default INI file. 
 
 15/03/19
 - USER: Add GUI for breaking up acquisitions with two brains into two separate sample folders. Also allows cropping of a 
