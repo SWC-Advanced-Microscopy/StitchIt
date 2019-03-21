@@ -273,7 +273,7 @@ classdef sampleSplitter < handle
         function applyROIsToStitchedData(obj,~,~)
             % hButton_applyROIs callback
             % Split up sample based on the current ROIs
-            q = questdlg(springf('Really apply these ROIs?'))
+            q = questdlg(sprintf('Really apply these ROIs?'))
             stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
         end % applyROIsToStitchedData
 
@@ -349,7 +349,7 @@ classdef sampleSplitter < handle
                 % Since after deletion the table will by empty
                 obj.hButton_deleteROI.Enable='Off';
                 obj.hButton_previewROI.Enable='Off';
-                obj.hButton_addROIs.Enable='Off';
+                obj.hButton_applyROIs.Enable='Off';
                 obj.selectedRow=[];
             else
                 % Just set the first ROI
