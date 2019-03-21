@@ -115,7 +115,7 @@ if atLeastOneWorked
       %Rename cropped dirs
        d=dir('CROP_*');
        for ii=1:length(d)
-         if ~d(ii).isdir)
+         if ~d(ii).isdir
            continue
          end
          movefile(d(ii).name,strrep(d(ii).name,'CROP_',''));

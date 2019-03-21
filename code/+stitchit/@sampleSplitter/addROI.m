@@ -52,5 +52,5 @@ function addROI(obj, coords)
     if size(obj.hDataTable.Data,1)>0;
         obj.hButton_deleteROI.Enable='On';
         obj.hButton_previewROI.Enable='On';
-        obj.hButton_addROIs.Enable='On';
+        obj.hButton_applyROIs.Enable='On';
     end
