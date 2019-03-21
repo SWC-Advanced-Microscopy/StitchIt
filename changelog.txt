@@ -1,13 +1,17 @@
 StitchIt Change Log
 
+
+
 20/03/19
 - USER: Main web preview image is RGB.
 - USER: New adaptive option for setting web preview threshold (see default INI file) 
 SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the new comment text is 
                 added in from the default INI file. 
+- USER: stitchit.sampleSplitter ready for beta use by users
 
 15/03/19
-- USER: Add GUI for breaking up acquisitions with two brains into two separate sample folders. Also allows cropping of a 
+- USER: Add GUI (stitchit.sampleSplitter) for breaking up acquisitions with two brains into two separate 
+        folders. Also allows cropping of a 
  single brain. GUI not heavily tested yet but it works.
 
 02/01/19

@@ -10,12 +10,43 @@ classdef sampleSplitter < handle
     % 
     % Usage
     % - cd to sample directory
-    % - run stitchit.sampleSplitter with first input arg being one of:
+    % - run stitchit.sampleSplitter without input arguments. This will search for
+    %   downsampled data in downsampledMHD_25/*.mhd and load it. If this is 
+    %   missing you will need to either make it or supply an input argument (see below)
+    % - GUI appears with max intensity projection of brains.
+    % - Hit "Auto Find Brains" to draw boxes around brains.
+    % - If boxes are too big or wrong, select their row in the table and delete. 
+    %   Highlighted table rows are associated with red boundary in image.
+    % - Hit "Add" to draw your own box.
+    % - Once happy with boxses, name the samples using the last column. Avoid
+    %   weird characters (although the GUI should replace these anyway).
+    % - Once happy, hit "Apply ROIs to stack". There is a confirmation. 
+    % - ROIs are applied with progress messages on console
+    %
+    % Advanced use: remote without GUI
+    % - Download the downsampled MHD directory stack and recipe file to a local
+    %   directory on your PC. Then S=stitchit.sampleSplitter as above
+    % - Go through all the above but don't apply the ROIs
+    % - Run "myParams = S.returnROIparams"
+    % - Save that as a .mat file. e.g. save myParams myParams
+    % - scp that to the remote machine with the data and load it into a local
+    %   MATLAB instance on that machine. 
+    % - cd to the data directory (if not there already) and run:
+    %   stitchit.sampleSplitter.cropStitchedSections(myParams)
+    % - This will initiate the process on the remote machine. 
+    %
+    % CLEANING UP
+    % Once finishes, you should delete original data in the trash directory as needed.
+    %
+    %
+    % Optional input arguments:
+    % First argument
     %    a) Path to downsampled MHD stack of this sample
     %    b) Loaded image stack from (a)
     %    c) A 2D image that is the median or max intensity projection of that stack
     %
-    % - Optionally a second input argument defines the number of microns per pixel. 
+    % Second arguments
+    %   The second optional input argument defines the number of microns per pixel. 
     %   If missing, this is either "25" or, if available, derived from the MHD name.
     % 
     % 
