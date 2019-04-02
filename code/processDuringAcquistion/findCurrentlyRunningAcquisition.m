@@ -100,6 +100,12 @@ function dirDetails = getDirDetails(dirStruct)
         end
 
         load(fullfile(pathToDir,'scanSettings.mat'));
-        dirDetails.chanToDisplay = ...
-                scanSettings.hChannels.channelDisplay(1);
+        if ~isempty(scanSettings.hChannels.channelDisplay)
+          dirDetails.chanToDisplay = ...
+              scanSettings.hChannels.channelDisplay(1);
+        else
+          dirDetails.chanToDisplay = ...
+              scanSettings.hChannels.channelsActive(1);
+        end
+        
     end
