@@ -215,7 +215,7 @@ if exist('scanSettings.mat','file')
         avFrames = [num2str(avFrames), ' frames'];
     end
 
-    details = sprintf('%s\nlaser power: %d%%; averaging: %s', ...
+    details = sprintf('%s\n<br />laser power: %d%%; averaging: %s', ...
         details, round(laserPower), avFrames);
 end
 
