@@ -204,6 +204,21 @@ details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
     sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 
 
+if exist('scanSettings.mat','file')
+    load('scanSettings.mat')
+    %TODO: also pull out wavelength
+    laserPower = scanSettings.hBeams.powers(1);
+    avFrames = scanSettings.hDisplay.displayRollingAverageFactor;
+    if avFrames==1
+        avFrames='none';
+    else
+        avFrames = [num2str(avFrames), ' frames'];
+    end
+
+    details = sprintf('%s\nlaser power: %d%%; averaging: %s', ...
+        details, round(laserPower), avFrames);
+end
+
 
 if params.mosaic.numOpticalPlanes>1
     indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];

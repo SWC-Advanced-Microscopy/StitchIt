@@ -70,7 +70,7 @@ if ischar(channel) && ( strcmpi(channel,'rgb') || strcmpi(channel,'fratzl') )
         for ii=1:length(channel)
             [imData{ii},im,tileIndex]=peekSection(section,channel(ii),resize);
         end
-        %Build RGB image (TODO: GENERALISE IT. HACK NOW FOR CHAN ORDERE)
+        %Build RGB image (TODO: GENERALISE IT. HACK NOW FOR CHAN ORDER)
         stitchedImage = zeros([size(imData{1}),3],class(imData{1}));
         channel = channel-1; % This is the hack
         channel(channel<1)=1; %So red and far red are both red
