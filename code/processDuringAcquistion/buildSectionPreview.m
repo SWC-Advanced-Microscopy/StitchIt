@@ -221,7 +221,7 @@ end
 
 
 if params.mosaic.numOpticalPlanes>1
-    indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];
+    indexDetails = sprintf('%s - <a href="./montage.shtml">Chan %d MONTAGE</a>',details,channel);
     montageDetails = [details,' - <a href="./index.shtml">BACK</a>'];
     montageDetailsFile='details_montage.txt';
     system(sprintf('echo ''%s'' > %s',montageDetails,[userConfig.subdir.WEBdir,filesep,montageDetailsFile]));
@@ -229,7 +229,6 @@ if params.mosaic.numOpticalPlanes>1
 else
     indexDetails = details;
 end
-indexDetails = sprintf('%s\n<br />\nChannel: %d ', indexDetails, channel);
 
 % add end time if possible
 endTime=estimateEndTime;
