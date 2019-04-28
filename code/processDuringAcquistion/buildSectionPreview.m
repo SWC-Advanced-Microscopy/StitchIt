@@ -127,23 +127,6 @@ lastSection='LastCompleteSection.jpg';
 imwrite(im,[userConfig.subdir.WEBdir,filesep,lastSection],'bitdepth',8)
 close(F);
 
-%Write histogram to disk
-if verbose
-    fprintf('Setting up non-visible histogram figure\n')
-end
-F=figure('visible','off');
-
-if verbose
-    fprintf('Running sectionHist\n')
-end
-sectionHist(im,threshLevel)
-
-if verbose
-    fprintf('Set paper size, invert hard copy, save\n')
-end
-set(F,'paperposition',[0,0,6,3],'InvertHardCopy','off')
-print('-dpng','-r100',[userConfig.subdir.WEBdir,filesep,'hist.png']);
-close(F);
 
 %Now loop through all depths and make a montage
 F=figure('visible','off');
