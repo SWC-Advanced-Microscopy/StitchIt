@@ -290,16 +290,28 @@ function [im,thresh]=rescaleImage(im,thresh,pixSize)
     if thresh<10
         % The threshold is a multiple of the mean (length 3 for rgb images)
         imFindBrain=mean(im,3);
-        imFindBrain(imFindBrain<10)=0;
         imFindBrain = medfilt2(imFindBrain,[3,3]);
         numPixInImage =  prod(size(imFindBrain));
-        POS=stitchit.sampleSplitter.autofindBrains(imFindBrain,pixSize,0);
-        if ~isempty(POS)
-            numPixelsInBrainBox = prod(POS{1}(3:4));
-        else % no brain found
-            numPixelsInBrainBox = numPixInImage; % use whole image
+
+        %Find how many pixels are present in the brain
+        BW = imFindBrain<20; %hardcode this threshold
+
+        % Remove crap
+        SE = strel('square',round(150/pixSize));
+        BW = imerode(BW,SE);
+        BW = imdilate(BW,SE);
+
+        % Add a border of 250 microns around each brain (or bit of brain)
+        SE = strel('square',round(250/pixSize));
+        BW = imdilate(BW,SE);
+
+        [L,indexedBW]=bwboundaries(BW,'noholes');
+        numPixelsInBrain = sum(indexedBW(:));
+        if numPixelsInBrain<1 %if nothing was found
+            numPixelsInBrain = round(numPixInImage/2); %Choose something arbitrary
         end
-        scaleFact = (numPixInImage / numPixelsInBrainBox) * thresh;
+
+        scaleFact = (numPixInImage / numPixelsInBrain) * thresh;
         thresh = squeeze(mean(mean(im,1),2)) * scaleFact;
     end
 
