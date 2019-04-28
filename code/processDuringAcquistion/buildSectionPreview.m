@@ -79,7 +79,7 @@ ind=str2num(tok{1}{1});
 
 rescaleThresh=userConfig.syncAndCrunch.rescaleThresh;
 
-if rescaleThresh<10
+if rescaleThresh<25
   fprintf('Thresholding at %0.2f times the mean of the area with brain\n',rescaleThresh)
 else
   fprintf('Thresholding at a pixel value of %d\n',rescaleThresh)
@@ -287,7 +287,7 @@ function [im,thresh]=rescaleImage(im,thresh,pixSize)
 
     im = single(im);
 
-    if thresh<10
+    if thresh<25
         % The threshold is a multiple of the mean (length 3 for rgb images)
         imFindBrain=mean(im,3);
         imFindBrain = medfilt2(imFindBrain,[3,3]);
