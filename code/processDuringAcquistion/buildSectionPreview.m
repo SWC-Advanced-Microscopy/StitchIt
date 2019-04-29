@@ -79,7 +79,7 @@ ind=str2num(tok{1}{1});
 
 rescaleThresh=userConfig.syncAndCrunch.rescaleThresh;
 
-if rescaleThresh<10
+if rescaleThresh<25
   fprintf('Thresholding at %0.2f times the mean of the area with brain\n',rescaleThresh)
 else
   fprintf('Thresholding at a pixel value of %d\n',rescaleThresh)
@@ -127,23 +127,6 @@ lastSection='LastCompleteSection.jpg';
 imwrite(im,[userConfig.subdir.WEBdir,filesep,lastSection],'bitdepth',8)
 close(F);
 
-%Write histogram to disk
-if verbose
-    fprintf('Setting up non-visible histogram figure\n')
-end
-F=figure('visible','off');
-
-if verbose
-    fprintf('Running sectionHist\n')
-end
-sectionHist(im,threshLevel)
-
-if verbose
-    fprintf('Set paper size, invert hard copy, save\n')
-end
-set(F,'paperposition',[0,0,6,3],'InvertHardCopy','off')
-print('-dpng','-r100',[userConfig.subdir.WEBdir,filesep,'hist.png']);
-close(F);
 
 %Now loop through all depths and make a montage
 F=figure('visible','off');
@@ -204,9 +187,24 @@ details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
     sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 
 
+if exist('scanSettings.mat','file')
+    load('scanSettings.mat')
+    %TODO: also pull out wavelength
+    laserPower = scanSettings.hBeams.powers(1);
+    avFrames = scanSettings.hDisplay.displayRollingAverageFactor;
+    if avFrames==1
+        avFrames='none';
+    else
+        avFrames = [num2str(avFrames), ' frames'];
+    end
+
+    details = sprintf('%s\n<br />laser power: %d%%; averaging: %s', ...
+        details, round(laserPower), avFrames);
+end
+
 
 if params.mosaic.numOpticalPlanes>1
-    indexDetails = [details,' - <a href="./montage.shtml">MONTAGE</a>'];
+    indexDetails = sprintf('%s - <a href="./montage.shtml">Chan %d MONTAGE</a>',details,channel);
     montageDetails = [details,' - <a href="./index.shtml">BACK</a>'];
     montageDetailsFile='details_montage.txt';
     system(sprintf('echo ''%s'' > %s',montageDetails,[userConfig.subdir.WEBdir,filesep,montageDetailsFile]));
@@ -214,7 +212,6 @@ if params.mosaic.numOpticalPlanes>1
 else
     indexDetails = details;
 end
-indexDetails = sprintf('%s\n<br />\nChannel: %d ', indexDetails, channel);
 
 % add end time if possible
 endTime=estimateEndTime;
@@ -273,19 +270,31 @@ function [im,thresh]=rescaleImage(im,thresh,pixSize)
 
     im = single(im);
 
-    if thresh<10
+    if thresh<25
         % The threshold is a multiple of the mean (length 3 for rgb images)
         imFindBrain=mean(im,3);
-        imFindBrain(imFindBrain<10)=0;
         imFindBrain = medfilt2(imFindBrain,[3,3]);
         numPixInImage =  prod(size(imFindBrain));
-        POS=stitchit.sampleSplitter.autofindBrains(imFindBrain,pixSize,0);
-        if ~isempty(POS)
-            numPixelsInBrainBox = prod(POS{1}(3:4));
-        else % no brain found
-            numPixelsInBrainBox = numPixInImage; % use whole image
+
+        %Find how many pixels are present in the brain
+        BW = imFindBrain<20; %hardcode this threshold
+
+        % Remove crap
+        SE = strel('square',round(150/pixSize));
+        BW = imerode(BW,SE);
+        BW = imdilate(BW,SE);
+
+        % Add a border of 250 microns around each brain (or bit of brain)
+        SE = strel('square',round(250/pixSize));
+        BW = imdilate(BW,SE);
+
+        [L,indexedBW]=bwboundaries(BW,'noholes');
+        numPixelsInBrain = sum(indexedBW(:));
+        if numPixelsInBrain<1 %if nothing was found
+            numPixelsInBrain = round(numPixInImage/2); %Choose something arbitrary
         end
-        scaleFact = (numPixInImage / numPixelsInBrainBox) * thresh;
+
+        scaleFact = (numPixInImage / numPixelsInBrain) * thresh;
         thresh = squeeze(mean(mean(im,1),2)) * scaleFact;
     end
 
