@@ -58,7 +58,7 @@ else
     % We have TissueVision
     fname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')];
 end
-fname = [fname,'.tiff'];
+fname = sprintf('%s_chan_%02d.tiff',fname,channel);
 
 im=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
 options={'compression','none'};
