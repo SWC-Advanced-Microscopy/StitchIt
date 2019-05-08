@@ -53,10 +53,10 @@ end
 paramFile=getTiledAcquisitionParamFile;
 if startsWith(paramFile, 'recipe')
     % We have BakingTray Data
-    fname = strcat('ds', paramFile(8:end-4));
+    fname = strcat(paramFile(8:end-4));
 else
     % We have TissueVision
-    fname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')];
+    fname = [regexprep(paramFile(1:end-4),'Mosaic_','')];
 end
 fname = sprintf('%s_chan_%02d.tiff',fname,channel);
 
