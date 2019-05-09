@@ -20,6 +20,9 @@ function createPlaneListTxt(stitchedDir,targetDir, prefix)
 %
 %
 % Antonin Blot
+%
+% See Also: generate_MaSIV_list
+
 
 if strcmp(stitchedDir(end),filesep)
     stitchedDir(end)=[];
