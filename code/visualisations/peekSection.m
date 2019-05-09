@@ -72,8 +72,14 @@ if ischar(channel) && ( strcmpi(channel,'rgb') || strcmpi(channel,'fratzl') )
         end
         %Build RGB image (TODO: GENERALISE IT. HACK NOW FOR CHAN ORDER)
         stitchedImage = zeros([size(imData{1}),3],class(imData{1}));
-        channel = channel-1; % This is the hack
-        channel(channel<1)=1; %So red and far red are both red
+        if length(channel)==4 
+          channel = channel-1; % This is the hack
+          channel(channel<1)=1; %So red and far red are both red
+        else
+          channel = 1:length(channel);
+        end
+        
+        
         for ii=1:length(channel)
             stitchedImage(:,:,channel(ii)) = stitchedImage(:,:,channel(ii)) + imData{ii};
         end

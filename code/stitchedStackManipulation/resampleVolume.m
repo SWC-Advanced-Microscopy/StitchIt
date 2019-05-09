@@ -116,7 +116,7 @@ imSizeInMegs = (info.Width*info.Height*2)/1024^2;
 origVol   = origDims(1)^2 * origDims(2);
 targetVol = targetDims(1)^2 * targetDims(2); %should be bigger because we're down-sampling
 
-if origVol >targetVol
+if origVol > targetVol
   error('up-sampling not permitted')
 end
 
@@ -141,6 +141,7 @@ else
     % We have TissueVision
     downsampledFname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')];
 end
+
 if mod(targetDims(1),1)==0
     downsampledFname=[downsampledFname, sprintf('_%d',targetDims(1))];
 else
