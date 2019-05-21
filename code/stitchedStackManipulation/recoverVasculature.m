@@ -22,7 +22,7 @@ function minProj = recoverVasculature(imStack, thresh, filtSize)
 % image stack. Since this is slow, the result is cached. If you wish
 % re-use the last cached filtered stack supply an empty array as the
 % first input argument. e.g.
-% >> myImStack = mhd_read('downsampledMHD_25/dsRC_LR09_190311_125513_25_25_02.mhd');
+% >> myImStack = stitchit.tools.mhd_read('downsampledMHD_25/dsRC_LR09_190311_125513_25_25_02.mhd');
 % >> mp = recoverVasculature(myImStack);
 % >> mp = recoverVasculature([],200); % Repeat with a non-default threshold value
 %
