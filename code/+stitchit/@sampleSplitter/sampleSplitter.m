@@ -273,8 +273,10 @@ classdef sampleSplitter < handle
         function applyROIsToStitchedData(obj,~,~)
             % hButton_applyROIs callback
             % Split up sample based on the current ROIs
-            q = questdlg(sprintf('Really apply these ROIs?'))
-            stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
+            q = questdlg(sprintf('Really apply these ROIs?'));
+            if strcmp(q,'Yes')
+                stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
+            end
         end % applyROIsToStitchedData
 
 
