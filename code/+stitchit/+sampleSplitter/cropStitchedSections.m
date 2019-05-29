@@ -1,7 +1,12 @@
 function cropStitchedSections(ROIs)
 % Make cropped stitched image series with one or more ROIs
 %
-% cropStitchedSections(ROIs)
+% stitchit.sampleSplitter.cropStitchedSections(ROIs)
+%
+% Inputs
+% ROIs - this is the output of stitchit.sampleSplitter.returnParams
+%.       see help stitchit.sampleSplitter for a use case
+
 
 
 s=findStitchedData;

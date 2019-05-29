@@ -137,7 +137,7 @@ classdef sampleSplitter < handle
                     obj.origImage(n+1:end,n+1:end) = p-rot90(p,1)+flipud(p);
                 elseif ischar(fname) && exist(fname,'file')
                     fprintf('Loading %s\n', fname)
-                    im = mhd_read(fname);
+                    im = stitchit.tools.mhd_read(fname);
 
                     fprintf('Making and filtering max intensity projection\n')
                     if exist('imresize3','file')
@@ -273,8 +273,10 @@ classdef sampleSplitter < handle
         function applyROIsToStitchedData(obj,~,~)
             % hButton_applyROIs callback
             % Split up sample based on the current ROIs
-            q = questdlg(sprintf('Really apply these ROIs?'))
-            stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
+            q = questdlg(sprintf('Really apply these ROIs?'));
+            if strcmp(q,'Yes')
+                stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
+            end
         end % applyROIsToStitchedData
 
 
