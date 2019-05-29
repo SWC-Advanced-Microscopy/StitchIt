@@ -1,6 +1,10 @@
 StitchIt Change Log
 
 
+28/04/19
+- USER: The auto-threshold algorithm is tweaked to deal with small brain areas. 
+    **Involves a small change in the threshold parameter** You will need to use
+    larger values and the cut-off before absolyte thresholding is now 25 not 10. 
 
 20/03/19
 - USER: Main web preview image is RGB.

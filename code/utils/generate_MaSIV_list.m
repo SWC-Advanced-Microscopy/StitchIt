@@ -30,6 +30,8 @@ function varargout=generate_MaSIV_list(stitchedDir,overide)
 % Produces file with unix file seps on all platforms. Windows
 % MATLAB seems OK about using these paths. Windows fileseps 
 % mess up the fprintf.
+%
+% See Also: createPlaneListTxt
 
 if nargin<2
     overide=0;

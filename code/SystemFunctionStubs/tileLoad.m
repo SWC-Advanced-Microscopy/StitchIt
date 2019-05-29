@@ -70,7 +70,7 @@ end
 IN = inputParser;
 IN.CaseSensitive = false;
 
-valChk = @(x) islogical(x) || x==0 || x==1 || isempty(x);
+valChk = @(x) islogical(x) || x==0 || x==1 || isempty(x) || x==-1;
 IN.addParamValue('doIlluminationCorrection', [], valChk);
 IN.addParamValue('doCrop', [], valChk);
 IN.addParamValue('doCombCorrection', [], valChk);

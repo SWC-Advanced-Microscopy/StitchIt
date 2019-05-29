@@ -12,7 +12,7 @@ if isempty(sectionDirs)
     return
 end
 
-pathToTiff = fullfile(config.subdir.rawDataDir,sectionDirs(1).name);
+pathToTiff = fullfile(config.subdir.rawDataDir,sectionDirs(end).name);
 tifs=dir(fullfile(pathToTiff,'*.tif'));
 
 imINFO=imfinfo(fullfile(pathToTiff,tifs(1).name));

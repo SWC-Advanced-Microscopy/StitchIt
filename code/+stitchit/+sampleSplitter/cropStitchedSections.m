@@ -1,7 +1,12 @@
 function cropStitchedSections(ROIs)
 % Make cropped stitched image series with one or more ROIs
 %
-% cropStitchedSections(ROIs)
+% stitchit.sampleSplitter.cropStitchedSections(ROIs)
+%
+% Inputs
+% ROIs - this is the output of stitchit.sampleSplitter.returnParams
+%.       see help stitchit.sampleSplitter for a use case
+
 
 
 s=findStitchedData;
@@ -115,7 +120,7 @@ if atLeastOneWorked
       %Rename cropped dirs
        d=dir('CROP_*');
        for ii=1:length(d)
-         if ~d(ii).isdir)
+         if ~d(ii).isdir
            continue
          end
          movefile(d(ii).name,strrep(d(ii).name,'CROP_',''));
