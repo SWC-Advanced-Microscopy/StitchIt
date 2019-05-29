@@ -157,14 +157,6 @@ if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
 end
 
 
-%Perform any required image manipulations
-LD = param.lensDistort;
-im = stitchit.tools.lensdistort(im, [LD.rows, LD.cols],'affineMat',param.affineMat);
-
-
-%Rotate if needed to allow for stitching
-im = rot90(im,userConfig.tile.tileRotate); 
-
 
 
 %---------------
@@ -185,6 +177,9 @@ index(:,4) = abs(colInd - max(colInd))+1;
 %---------------
 %/BT
 
+if doIlluminationCorrection==-1
+    return
+end
 
 
 %--------------------------------------------------------------------
@@ -225,6 +220,14 @@ end
 if doIlluminationCorrection 
     im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,index,verbose);
 end
+
+%Perform any required image manipulations
+LD = param.lensDistort;
+im = stitchit.tools.lensdistort(im, [LD.rows, LD.cols],'affineMat',param.affineMat);
+
+
+%Rotate if needed to allow for stitching
+im = rot90(im,userConfig.tile.tileRotate); 
 
 
 %Crop if requested to do so

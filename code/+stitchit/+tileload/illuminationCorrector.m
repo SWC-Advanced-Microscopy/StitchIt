@@ -109,5 +109,3 @@ function avData = loadBruteForceMeanAveFile(coords,userConfig)
         avData=[];
         fprintf('%s Can not find average template file %s\n',mfilename,fname)
     end
-
-
