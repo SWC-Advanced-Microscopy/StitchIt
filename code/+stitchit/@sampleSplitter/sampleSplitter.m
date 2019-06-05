@@ -112,8 +112,13 @@ classdef sampleSplitter < handle
             if isempty(varargin)
               %Look for an MHD file 
               d=dir('downsampledMHD_25/*.mhd');
+              %If that fails search for a tiff stack
               if isempty(d)
-                fprintf('Please provide an MHD filename, a stack, or an intensity projection\n')
+                d=dir('downsampledStacks_25/*.tif');
+              end
+
+              if isempty(d)
+                fprintf('Please provide a downsampled MHD or tiff stack filename, a stack, or an intensity projection\n')
                 obj.delete
                 return
               end
@@ -137,7 +142,13 @@ classdef sampleSplitter < handle
                     obj.origImage(n+1:end,n+1:end) = p-rot90(p,1)+flipud(p);
                 elseif ischar(fname) && exist(fname,'file')
                     fprintf('Loading %s\n', fname)
-                    im = stitchit.tools.mhd_read(fname);
+                    [~,~,ext] = fileparts(fname);
+                    switch ext
+                        case '.mhd'
+                            im = stitchit.tools.mhd_read(fname);
+                        case '.tif'
+                            im = stitchit.tools.loadTiffStack(fname);
+                    end
 
                     fprintf('Making and filtering max intensity projection\n')
                     if exist('imresize3','file')
