@@ -15,7 +15,7 @@ function varargout=resampleVolume(channel,targetDims,fileFormat)
 % channel - which channel to resize (e.g. 1, 2, or 3)
 % targetDims - vector of length 2 defining the pixel resolution in [xy,z] of data in resample
 %              if the user enters a scalar (e.g. 25) then this is expanded to a vector of length 2
-% fileFormat - [optional] by default is 'mhd'. Can also be 'tiff' This determines which
+% fileFormat - [optional] by default is 'tiff'. Can also be 'mhd' This determines which
 %            output format is used for the saved stack.
 %
 %
@@ -80,8 +80,8 @@ if length(targetDims) ~= 2
 end
 
 if nargin<3
-  % MHD output files by defaul
-  fileFormat = 'mhd';
+  % TIFF output files by default
+  fileFormat = 'tiff';
 end
 
 fileFormat = lower(fileFormat);
@@ -227,13 +227,13 @@ vol=uint16(vol);
 try
   fprintf('Saving to %s\n',downsampledFname)
   if strcmp('tiff',fileFormat)
-    save3Dtiff(vol,downsampledFname)
+    stitchit.tools.save3Dtiff(vol,downsampledFname)
   elseif strcmp('mhd',fileFormat)
     stitchit.tools.mhd_write(vol,downsampledFname,[1,1,1])
   else
     %This should *never* execute as we've already checked the file format string 
     %at the start of the function. Nonetheless, we leave this code "just in case"
-    msg = fprintf('NOT SAVING IMAGE STACK: file format %s unknown\n',fileFormat)
+    msg = fprintf('NOT SAVING IMAGE STACK: file format %s unknown\n',fileFormat);
     fprintf(msg)
     fprintf(fid,msg);
   end

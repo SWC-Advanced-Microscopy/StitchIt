@@ -1,5 +1,8 @@
 StitchIt Change Log
 
+05/06/19
+- USER: downsampleAllChannels makes TIFF files by default since
+Elastix is now happy with these.
 
 28/04/19
 - USER: The auto-threshold algorithm is tweaked to deal with small brain areas. 
