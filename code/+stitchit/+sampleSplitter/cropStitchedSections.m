@@ -101,7 +101,7 @@ end % ii=1:length(s)
 
 if atLeastOneWorked
 
-    movefile('downsampledMHD*',uncroppedDir) %move to the backup directory
+    movefile('downsampled*',uncroppedDir) %move to the backup directory
     cDIR=pwd;
     
     if length(ROIs)>1

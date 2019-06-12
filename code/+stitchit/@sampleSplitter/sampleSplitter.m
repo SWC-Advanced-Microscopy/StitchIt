@@ -11,7 +11,7 @@ classdef sampleSplitter < handle
     % Usage
     % - cd to sample directory
     % - run stitchit.sampleSplitter without input arguments. This will search for
-    %   downsampled data in downsampledMHD_25/*.mhd and load it. If this is 
+    %   downsampled data in downsampled*_25/ and load it. If this is 
     %   missing you will need to either make it or supply an input argument (see below)
     % - GUI appears with max intensity projection of brains.
     % - Hit "Auto Find Brains" to draw boxes around brains.
@@ -24,7 +24,7 @@ classdef sampleSplitter < handle
     % - ROIs are applied with progress messages on console
     %
     % Advanced use: remote without GUI
-    % - Download the downsampled MHD directory stack and recipe file to a local
+    % - Download the downsampled data directory stack and recipe file to a local
     %   directory on your PC. Then S=stitchit.sampleSplitter as above
     % - Go through all the above but don't apply the ROIs
     % - Run "myParams = S.returnROIparams"
@@ -41,7 +41,7 @@ classdef sampleSplitter < handle
     %
     % Optional input arguments:
     % First argument
-    %    a) Path to downsampled MHD stack of this sample
+    %    a) Path to downsampled stack of this sample
     %    b) Loaded image stack from (a)
     %    c) A 2D image that is the median or max intensity projection of that stack
     %
