@@ -24,7 +24,7 @@ function out=estimateEndTimeBT
 
     finishedTimes=[];
     while 1
-        tok=regexp(tline,' completed in (\d+) min (\d+) sec','tokens');
+        tok=regexp(tline,' completed in (\d+) mins? (\d+) secs?','tokens');
         if ~isempty(tok)
             m=str2num(tok{1}{1});
             s=str2num(tok{1}{2});
@@ -39,7 +39,6 @@ function out=estimateEndTimeBT
     end
 
     fclose(fid);
-    
     secondsPerDirectory = round(mean(finishedTimes));
     out.hoursPerDirectory=secondsPerDirectory/60^2;
 
@@ -50,6 +49,14 @@ function out=estimateEndTimeBT
 
     hoursLeft = totalHours - sum(finishedTimes)/60^2;
 
+
+    % Fail gracefully if something went wrong earlier
+    if isnan(hoursLeft)
+        out.finishingString = 'estimateEndTimeBT failed to calculate end time';
+        return
+    end
+
+    % Otherwise build a nice string
     if hoursLeft<1
         out.finishingString='FINISHING SOON';
     else
