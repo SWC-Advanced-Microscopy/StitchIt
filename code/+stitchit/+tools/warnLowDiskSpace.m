@@ -52,7 +52,7 @@ if spaceUsed.percentUsed>percent
     else
         hostname=[];
     end
-    msg=sprintf('Warning free space %s is LOW: %0.1f%%\n',['on ' ,hostname(1:end-1)],spaceUsed.percentUsed);
+    msg=sprintf('Warning free space %s is LOW: currently drive is %0.1f%% full\n',['on ' ,hostname(1:end-1)],spaceUsed.percentUsed);
     stitchit.tools.notify(msg)
 end
 
