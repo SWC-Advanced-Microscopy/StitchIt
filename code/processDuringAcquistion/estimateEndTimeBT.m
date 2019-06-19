@@ -1,11 +1,21 @@
 function out=estimateEndTimeBT
     % Estimate time left for a BT acquisition
     %
-    % This is a temporary function 
-    
+    % This is a temporary function. It's crappy to have a 
+    % a separate function just for BakingTray. This ought
+    % to be in the BakingTray class. At least at the moment
+    % this function is automatically called by estimateEndTime
+    %
+    % Rob Campbell - SWC 
+      
+    % Find the acquisition log file
     d=dir('acqLog_*.txt');
 
-
+    verbose=false;
+    if verbose
+      fprintf('\n%s verbose mode set to TRUE\n', mfilename)
+    end
+    
     out=[];
     if isempty(d)
         fprintf('Failed to find acq log.\n');
@@ -17,17 +27,25 @@ function out=estimateEndTimeBT
         return
     end
 
-
+    
+    % Open the acq log file and read it in line by line
     fid=fopen(d.name,'r');
 
     tline=fgetl(fid);
 
     finishedTimes=[];
     while 1
-        tok=regexp(tline,' completed in (\d+) mins? (\d+) secs?','tokens');
+        % Extract lines that contain section completion time
+        % information. The following regex copes with the scenario
+        % where the "secs" is missing.        
+        tok=regexp(tline,' completed in (\d+) mins? *(\d+)?(?: secs)?','tokens');
         if ~isempty(tok)
             m=str2num(tok{1}{1});
             s=str2num(tok{1}{2});
+            if isempty(s)
+              s=0;
+            end
+            
             finishedTimes(end+1)=(m*60)+s;
         end
         tline=fgetl(fid);
@@ -37,17 +55,31 @@ function out=estimateEndTimeBT
         end
 
     end
-
     fclose(fid);
+
+
+    % Process this information
     secondsPerDirectory = round(mean(finishedTimes));
     out.hoursPerDirectory=secondsPerDirectory/60^2;
+    if verbose
+      fprintf('On average %d seconds per directory (%0.3f hours)\n', ...
+              round(secondsPerDirectory), out.hoursPerDirectory)
+    end
 
-
+    
     M=readMetaData2Stitchit;
-
     totalHours = out.hoursPerDirectory * M.mosaic.numSections;
-
+    if verbose
+      fprintf('Acquisition consists of %d sections, which will take a total of %0.1f hours.\n', ...
+              M.mosaic.numSections, totalHours)
+    end
+    
     hoursLeft = totalHours - sum(finishedTimes)/60^2;
+    
+    if verbose
+      fprintf('There are %0.2f hours left\n', hoursLeft)
+    end
+    
 
 
     % Fail gracefully if something went wrong earlier
