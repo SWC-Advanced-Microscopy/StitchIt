@@ -183,7 +183,7 @@ currentTime = datestr(now,'YYYY/mm/dd HH:MM:SS');
 sliceThicknessInMicrons =  params.mosaic.sliceThickness;
 
 
-details = sprintf('Sample: %s (%d/%d) &mdash; %d &micro;m cuts &mdash; (%s)',...
+details = sprintf('Sample: %s (%d/%d) &mdash; %0.1f &micro;m cuts &mdash; (%s)',...
     sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 
 
