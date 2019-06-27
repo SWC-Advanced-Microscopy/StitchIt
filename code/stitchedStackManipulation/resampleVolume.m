@@ -162,9 +162,9 @@ fid = fopen([downsampledFname,'.txt'],'w');
 metaData = readMetaData2Stitchit(paramFile);
 fprintf(fid,'Downsampling %s\nAcquired on: %s\nDownsampled: %s\n', metaData.sample.ID, metaData.sample.acqStartTime, datestr(now));
 if strcmp('tiff',fileFormat)
-  downsampledFname=[downsampledFname,'.tif'];
+  fprintf(fid,'downsample file name: %s.tif\n',downsampledFname);
 end
-fprintf(fid,'downsample file name: %s\n',downsampledFname);
+
 
 %report what we will do
 xyRescaleFactor = origDims(1)/targetDims(1);
@@ -227,7 +227,7 @@ vol=uint16(vol);
 try
   fprintf('Saving to %s\n',downsampledFname)
   if strcmp('tiff',fileFormat)
-    stitchit.tools.save3Dtiff(vol,downsampledFname)
+    stitchit.tools.save3Dtiff(vol,[downsampledFname,'.tif'])
   elseif strcmp('mhd',fileFormat)
     stitchit.tools.mhd_write(vol,downsampledFname,[1,1,1])
   else
