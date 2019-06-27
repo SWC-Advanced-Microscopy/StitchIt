@@ -489,8 +489,8 @@ while 1
 
     %Wait until the last section is completed before quitting
     if length(indexPresent)==(numSections+params.mosaic.sectionStartNum-1) && indexPresent(end) %Will fail if final section is missing a tile
-        fprintf('\n** All sections have been acquired. Beginning to stitch **\n')
-        unix('touch FINISHED');
+        fprintf('\n** All sections have been acquired. Waiting for FINISHED file from BakingTray**\n')
+        %unix('touch FINISHED');
 
         if ~all(indexPresent)
             unix('touch ORIG_DATA_HAD_MISSING_TILES');
