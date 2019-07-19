@@ -221,6 +221,7 @@ if doIlluminationCorrection
     im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,index,verbose);
 end
 
+
 %Perform any required image manipulations
 LD = param.lensDistort;
 im = stitchit.tools.lensdistort(im, [LD.rows, LD.cols],'affineMat',param.affineMat);
@@ -228,6 +229,10 @@ im = stitchit.tools.lensdistort(im, [LD.rows, LD.cols],'affineMat',param.affineM
 
 %Rotate if needed to allow for stitching
 im = rot90(im,userConfig.tile.tileRotate); 
+
+if userConfig.tile.tileFlipLR==1
+  im = fliplr(im);
+end
 
 
 %Crop if requested to do so
