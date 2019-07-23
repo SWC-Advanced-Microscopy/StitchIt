@@ -222,6 +222,14 @@ if doIlluminationCorrection
 end
 
 
+bidihack=false;
+if bidihack
+  d = im(1:2:end,:,:);
+  d = circshift(d,[0,-1,0]);
+  im(1:2:end,:,:)=d;
+end
+
+
 %Perform any required image manipulations
 LD = param.lensDistort;
 im = stitchit.tools.lensdistort(im, [LD.rows, LD.cols],'affineMat',param.affineMat);
