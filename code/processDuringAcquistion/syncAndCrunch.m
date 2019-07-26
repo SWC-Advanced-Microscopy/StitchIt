@@ -65,7 +65,7 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Rob Campbell - Basel 2015, 2016, 2018
 %                SWC 2019
 %
-    
+
 
 if nargin==0
     ACQ=findCurrentlyRunningAcquisition;
@@ -222,7 +222,9 @@ end
 
 % Copy meta-data files and so forth but no experiment data yet.
 % We do this just to make the directory and ensure that all is working
-exitStatus = unix(sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir)); %copies everything not a directory
+CMD=sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir);
+fprintf('Initial rsync with %s\n', CMD)
+exitStatus = unix(CMD); %copies everything not a directory
 if exitStatus ~= 0
     msg=sprintf('Initial rsync failed. QUITTING\n');
     writeLineToLogFile(logFileName,msg)
