@@ -204,8 +204,7 @@ end
 
 
 % expDir is the path to the local directory where we will be copying data
-expDir = fullfile(landingDir,expName,extension); %we add extension just in case the user put a "." in the file name
-
+expDir = fullfile(landingDir,[expName,extension]); %we add extension just in case the user put a "." in the file name
 
 % Attempt to kill any pre-existing syncer or rsync processes for this sample. 
 % It's unlikely this will be the case, but just in case...
