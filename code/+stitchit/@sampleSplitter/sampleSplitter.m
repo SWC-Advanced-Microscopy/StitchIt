@@ -150,19 +150,10 @@ classdef sampleSplitter < handle
                             im = stitchit.tools.loadTiffStack(fname);
                     end
 
-                    fprintf('Making and filtering max intensity projection\n')
-                    if exist('imresize3','file')
-                        tmp = imresize3(im,0.5);
-                        tmp = medfilt3(tmp,[3,3,3]);
-                        tmp = imresize(tmp,2);
-                    else
-                        %Same as above, just slower
-                        tmp = medfilt3(im,[3,3,3]);
-                    end
+                    obj.origImage = stitchit.sampleSplitter.filterAndProjectStack(im);
 
-                    obj.origImage = max(tmp,[],3);
                     fprintf('Image is of size %d x %d\n', ...
-                            size(tmp,1), size(tmp,2));
+                            size(obj.origImage,1), size(obj.origImage,2));
 
                     %Can we get the number of microns per pixel?
                     tok= regexp(fname,'(\d+)_(\d+)_(\d+)\.[mr]','tokens');

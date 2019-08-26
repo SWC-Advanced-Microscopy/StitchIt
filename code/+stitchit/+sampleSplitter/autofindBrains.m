@@ -17,6 +17,15 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     % Rob Campbell - SWC, 2019
 
 
+    if ~isnumeric(im)
+        fprintf('%s - First input argument must be an image\n',mfilename)
+        return
+    end
+
+    if size(im,3)> 1
+        im = stitchit.sampleSplitter.filterAndProjectStack(im);
+    end
+
     if nargin<2 || isempty(pixelSize)
         pixelSize = 25; 
     end
@@ -25,8 +34,10 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     end
 
 
-    %Threshold (NOTE: hard-coded. Worry about this only if it presents a problem)
-    BW = im>20;
+    % Find threshold based on graythesh
+    maxIm = max(im(:));
+    tThresh = graythresh(im./maxIm) * maxIm;
+    BW = im>tThresh;
 
     % Remove crap
     SE = strel('square',round(150/pixelSize));
@@ -54,12 +65,12 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     end
 
     % Optionally display image with calculated boxes
-    if doPlot
+    if doPlot && ~isempty(L)
         %Make figure window if needed
         f=findobj('Tag',mfilename);
 
         if isempty(f)
-            f=figure
+            f=figure;
             set(f,'Tag',mfilename);
         end
 
@@ -74,6 +85,7 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
         colormap gray
 
         hold on 
+
         for ii=1:length(L)
             tL = L{ii};
             xP = [min(tL(:,2)), max(tL(:,2))];
@@ -82,6 +94,8 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
             plot([xP(1), xP(2), xP(2), xP(1), xP(1)], ...
                  [yP(1), yP(1), yP(2), yP(2), yP(1)], ...
                  '-r', 'Parent', ax)
+
+            plot(tL(:,2),tL(:,1), '--', 'color', [0.2, 0.5, 1])
         end
         hold(ax,'off')
         axis equal off
@@ -100,5 +114,9 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
             OUT{ii} = [xP(1), yP(1), xP(2)-xP(1), yP(2)-yP(1)];
         end
         varargout{1}=OUT;
+    end
+
+    if nargout>1
+        varargout{2}=im;
     end
 
