@@ -35,23 +35,26 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
 
 
     % Find threshold based on graythesh
+    im = log10(im);
     maxIm = max(im(:));
     tThresh = graythresh(im./maxIm) * maxIm;
     BW = im>tThresh;
+
 
     % Remove crap
     SE = strel('square',round(150/pixelSize));
     BW = imerode(BW,SE);
     BW = imdilate(BW,SE);
 
-    % Add a border of 250 microns around each brain
-    SE = strel('square',round(250/pixelSize));
+    % Add a border of 200 microns around each brain
+    SE = strel('square',round(200/pixelSize));
     BW = imdilate(BW,SE);
 
 
-
     %Look for objects at that occupy least 15% of the image area
-    sizeThresh = prod(size(im)) * 0.15;
+    minSize=0.15;
+    nBrains=1;
+    sizeThresh = prod(size(im)) * (minSize / nBrains);
     [L,indexedBW]=bwboundaries(BW,'noholes');
     for ii=length(L):-1:1
         thisN = length(find(indexedBW == ii));
