@@ -34,10 +34,9 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     end
 
 
-    % Find threshold based on graythesh
+    % Find threshold based on graythresh/multithresh
     im = log10(im);
-    maxIm = max(im(:));
-    tThresh = graythresh(im./maxIm) * maxIm;
+    tThresh=multithresh(im);
     BW = im>tThresh;
 
 
