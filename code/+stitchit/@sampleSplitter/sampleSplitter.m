@@ -122,7 +122,8 @@ classdef sampleSplitter < handle
                 obj.delete
                 return
               end
-              varargin{1} = fullfile(d(end).folder,d(end).name);
+              %Otherwise it's auto-found and we load all available stacks
+              varargin{1} = cellfun(@(x) fullfile(d(end).folder,x),{d.name},'UniformOutput',false);
             end
 
             if isnumeric(varargin{1}) && ndims(varargin{1}) == 2
@@ -131,7 +132,7 @@ classdef sampleSplitter < handle
             elseif isnumeric(varargin{1}) && ndims(varargin{1}) == 3
                 obj.origImage = median(varargin{1},3); %median intensity projection
                 fprintf('Getting median intensity projection from supplied stack\n')
-            elseif ischar(varargin{1})
+            elseif ischar(varargin{1}) || iscell(varargin{1})
                 fname = varargin{1};
                 if strcmp(fname,'demo')
                     % Make a testing image
@@ -140,15 +141,17 @@ classdef sampleSplitter < handle
                     obj.origImage = repmat(p,2,2);
                     obj.origImage(1:n,1:n) = p+rot90(p,2);
                     obj.origImage(n+1:end,n+1:end) = p-rot90(p,1)+flipud(p);
-                elseif ischar(fname) && exist(fname,'file')
-                    fprintf('Loading %s\n', fname)
-                    [~,~,ext] = fileparts(fname);
-                    switch ext
-                        case '.mhd'
-                            im = stitchit.tools.mhd_read(fname);
-                        case '.tif'
-                            im = stitchit.tools.loadTiffStack(fname);
-                    end
+                elseif ischar(fname) && exist(fname,'file') || iscell(fname)
+                    if isstr(fname)
+                        fprintf('Loading %s\n', fname)
+                        im = stitchit.tools.loadTiffStack(fname);
+                    elseif iscell(fname)
+                        for ii=1:length(fname)
+                            fprintf('loading %s\n', fname{ii})
+                            im(:,:,:,ii) = stitchit.tools.loadTiffStack(fname{ii});
+                        end %for ii
+                        im = mean(im,4);
+                    end %if isstr
 
                     obj.origImage = stitchit.sampleSplitter.filterAndProjectStack(im);
 
@@ -156,6 +159,10 @@ classdef sampleSplitter < handle
                             size(obj.origImage,1), size(obj.origImage,2));
 
                     %Can we get the number of microns per pixel?
+                    if iscell(fname)
+                        fname = fname{1};
+                    end
+
                     tok= regexp(fname,'(\d+)_(\d+)_(\d+)\.[mr]','tokens');
                     if ~isempty(tok)
                         n=cellfun(@str2num,tok{1});
