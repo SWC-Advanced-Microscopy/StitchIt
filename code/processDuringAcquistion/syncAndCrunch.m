@@ -444,7 +444,8 @@ while 1
     % Check the background web preview is still running and re-start it if not. 
     fprintf('About to test whether web preview is running\n')
     if chanToPlot~=0 && ~exist('FINISHED','file')
-        webPreviewLogLocation = '/tmp/webPreviewLogFile';
+        micName = strrep(params.System.ID,' ','_');
+        webPreviewLogLocation = ['/tmp/webPreviewLogFile_',params.System.ID];
         fprintf('Testing whether web preview is still running\n')
         if ~exist(webPreviewLogLocation)
             msg=sprintf('No web preview log file at %s. Not making any web preview images.\n', webPreviewLogLocation);
@@ -592,8 +593,10 @@ function startBackgroundWebPreview(chanToPlot,config)
     nSecRun = which('buildSectionRunner');
 
     % The script file name we will build to run the background task
-    pathToBSfile = fullfile(tempdir,'webPreviewBootstrap.m');
-    logFilePath = fullfile(tempdir,'webPreviewLogFile');
+    params = readMetaData2Stitchit;
+    micName = strrep(params.System.ID,' ','_');
+    pathToBSfile = fullfile(tempdir,['webPreviewBootstrap_',micName,',.m']);
+    logFilePath = fullfile(tempdir,['webPreviewLogFile_',micName]);
     
     % Before proceeding, let's kill any currently running background web previews
     PIDs=stitchit.tools.findProcesses(pathToBSfile);

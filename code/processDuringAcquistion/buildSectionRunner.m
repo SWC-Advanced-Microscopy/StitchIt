@@ -54,8 +54,15 @@ function buildSectionRunner(chan,runInPath)
     end
 
 
+    % All log files will have the microscope name appended in case we process from different systems at once
+    M=readMetaData2Stitchit;
+    microscopeName = M.System.ID;
+    microscopeName = strrep(microscopeName,' ','_');
+
     %Write this to a text file that will be read on each pass through the loop
-    chanFname=fullfile(tempdir,'buildSectionRunnerTargetChannel');
+    chanFname=fullfile(tempdir,['buildSectionRunnerTargetChannel_',microscopeName]);
+
+
     createTmpChanFile
 
 
