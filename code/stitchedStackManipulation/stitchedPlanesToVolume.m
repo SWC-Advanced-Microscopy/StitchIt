@@ -8,7 +8,7 @@ function varargout=stitchedPlanesToVolume(channel)
 % For larger datasets see resampleVolume.m
 %
 %
-% INPUTS
+% INPUTS (optional)
 % channel - which channel to resize (e.g. 1, 2, or 3)
 %
 %
@@ -17,13 +17,20 @@ function varargout=stitchedPlanesToVolume(channel)
 % 
 %
 % EXAMPLES
+% * Convert channel 2 to a tiff stack
 % cd /path/to/experiment/root/dir
 % stitchedPlanesToVolume(2)
+%
+%
+% * Convert all available channels to a tiff stack
+% cd /path/to/experiment/root/dir
+% stitchedPlanesToVolume
 %
 %
 % Rob Campbell - SWC 2019
 %
 % Also see: rescaleStitched, resampleVolume
+
 
 
 % Find a stitched image directory
@@ -36,6 +43,18 @@ end
 stitchedDataInd=1;
 stitchedDir = stitchedDataInfo(stitchedDataInd).stitchedBaseDir;
 
+% If no inputs provided, loop through all available channels with a
+% recursive function call
+if nargin<1 || isempty(channel)
+  tChans = stitchedDataInfo.channelsPresent;
+  for ii=1:length(tChans)
+    fprintf('Converting channel %d to a TIFF stack\n',tChans(ii))
+    stitchedPlanesToVolume(tChans(ii));
+  end
+  return
+end
+
+
 origDataDir = fullfile(stitchedDir, num2str(channel));
 if ~exist(origDataDir)
   fprintf('%s can not find directory %s\n', mfilename,origDataDir)
@@ -47,6 +66,12 @@ if isempty(files)
   error('%s finds no tiffs found in %s',mfilename,origDataDir)
 end
 
+% Do not proceed if the final stack will hit the bigtiff
+totalGB = (files(1).bytes * length(files)) / 1028^3;
+if totalGB>4
+  fprintf('Final stack will be %0.2f GB and so exceed the 4GB TIFF limit.\n', totalGB)
+  return
+end
 
 
 %Create file name
@@ -60,9 +85,12 @@ else
 end
 fname = sprintf('%s_chan_%02d.tiff',fname,channel);
 
+
 im=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
 options={'compression','none'};
 imwrite(im,fname,'tiff','writemode','overwrite',options{:})  
+
+
 for ii=2:length(files)
   fprintf('.')
   im=stitchit.tools.openTiff(fullfile(origDataDir,files(ii).name));
