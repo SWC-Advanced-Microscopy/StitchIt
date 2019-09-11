@@ -66,12 +66,21 @@ if isempty(files)
   error('%s finds no tiffs found in %s',mfilename,origDataDir)
 end
 
-% Do not proceed if the final stack will hit the bigtiff
+% Do not proceed if the final stack will hit the bigtiff limit 
 totalGB = (files(1).bytes * length(files)) / 1028^3;
 if totalGB>4
   fprintf('Final stack will be %0.2f GB and so exceed the 4GB TIFF limit.\n', totalGB)
   return
 end
+
+% Do not proceed if the final stack can not be loaded into RAM
+freeGB = (stitchit.tools.systemMemStats/1024^2);
+if totalGB > freeGB
+  fprintf('Final stack will take up %0.2f GB of RAM and only %0.2f GB are free. Not proceeding.\n', totalGB,freeGB)
+  return
+end
+
+
 
 
 %Create file name
