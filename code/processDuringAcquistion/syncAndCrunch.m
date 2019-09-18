@@ -65,7 +65,7 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Rob Campbell - Basel 2015, 2016, 2018
 %                SWC 2019
 %
-    
+
 
 if nargin==0
     ACQ=findCurrentlyRunningAcquisition;
@@ -204,8 +204,7 @@ end
 
 
 % expDir is the path to the local directory where we will be copying data
-expDir = fullfile(landingDir,expName,extension); %we add extension just in case the user put a "." in the file name
-
+expDir = fullfile(landingDir,[expName,extension]); %we add extension just in case the user put a "." in the file name
 
 % Attempt to kill any pre-existing syncer or rsync processes for this sample. 
 % It's unlikely this will be the case, but just in case...
@@ -222,7 +221,9 @@ end
 
 % Copy meta-data files and so forth but no experiment data yet.
 % We do this just to make the directory and ensure that all is working
-exitStatus = unix(sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir)); %copies everything not a directory
+CMD=sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir);
+fprintf('Initial rsync with %s\n', CMD)
+exitStatus = unix(CMD); %copies everything not a directory
 if exitStatus ~= 0
     msg=sprintf('Initial rsync failed. QUITTING\n');
     writeLineToLogFile(logFileName,msg)
@@ -279,19 +280,13 @@ tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir)); %First ensure we can t
 pathToScript=fileparts(which(mfilename));
 pathToScript=fullfile(pathToScript,'syncer.sh');
 
-% TODO
-% 1) Should this script use the "landing directory" or the full path to the local experiment directory?
-%    I think I prefer the latter. It makes the script less flexible other uses but that's OK, I reckon. 
-% 2) I was doing two rsyncs before in the while loop: one for raw data and one for files with extensions. 
-%    Should I keep doing this?
-%    [returnStatus,~]=unix(sprintf('rsync %s %s%s*.* %s', config.syncAndCrunch.rsyncFlag, serverDir,filesep, expDir)); %files with extensions copied to experiment dir
-%    [returnStatus,~]=unix(sprintf('rsync %s %s%s %s', config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir));
-% 3) Test that the syncer will stop when a ctrl-c quits syncAndCrunch
-unix(sprintf('%s -r %s -s %s -l %s &', ...
+CMD = sprintf('%s -r %s -s %s -l %s &', ...
     pathToScript, ...
     config.syncAndCrunch.rsyncFlag, ...
     serverDir, ...
-    fileparts(expDir)) ); %This is a hack to use the landing directory
+    fileparts(expDir)); %This is a hack to use the landing directory
+fprintf('Calling syncer with: %s\n', CMD)
+unix(CMD);
 
 % The shell script is now running in the background and we proceed with pre-processing
 %%% - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - -  - - - - - - - -
@@ -449,7 +444,8 @@ while 1
     % Check the background web preview is still running and re-start it if not. 
     fprintf('About to test whether web preview is running\n')
     if chanToPlot~=0 && ~exist('FINISHED','file')
-        webPreviewLogLocation = '/tmp/webPreviewLogFile';
+        micName = strrep(params.System.ID,' ','_');
+        webPreviewLogLocation = ['/tmp/webPreviewLogFile_',params.System.ID];
         fprintf('Testing whether web preview is still running\n')
         if ~exist(webPreviewLogLocation)
             msg=sprintf('No web preview log file at %s. Not making any web preview images.\n', webPreviewLogLocation);
@@ -597,8 +593,10 @@ function startBackgroundWebPreview(chanToPlot,config)
     nSecRun = which('buildSectionRunner');
 
     % The script file name we will build to run the background task
-    pathToBSfile = fullfile(tempdir,'webPreviewBootstrap.m');
-    logFilePath = fullfile(tempdir,'webPreviewLogFile');
+    params = readMetaData2Stitchit;
+    micName = strrep(params.System.ID,' ','_');
+    pathToBSfile = fullfile(tempdir,['webPreviewBootstrap_',micName,'.m']);
+    logFilePath = fullfile(tempdir,['webPreviewLogFile_',micName]);
     
     % Before proceeding, let's kill any currently running background web previews
     PIDs=stitchit.tools.findProcesses(pathToBSfile);

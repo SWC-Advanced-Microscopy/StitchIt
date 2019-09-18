@@ -1,4 +1,4 @@
-function stitchSection(section, channel, varargin)
+function varargout=stitchSection(section, channel, varargin)
 % Stitch one or more sections of data from one channel
 %
 % function stitchSection(section, channel, 'param', 'val', ... )
@@ -37,8 +37,11 @@ function stitchSection(section, channel, varargin)
 %                 to diagnose stitching quality) 
 %
 %
-% OUTPUTS
-% none
+% OUTPUTS (optional)
+% stitchedPlane - If only one section was requested to be stitched then it's possible to return it
+%                 it as an output instead of saving to disk. If an output is requested nothing is
+%                 is written to disk.
+% metaData - the meta-data from the acquisition system used to stitch the image. Includes stitching inParams.
 %
 %
 % EXAMPLES
@@ -89,16 +92,16 @@ end
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 %Parse optional arguments
-params = inputParser;
-params.CaseSensitive = false;
-params.addParamValue('stitchedSize', 100, @(x) isnumeric(x));
-params.addParamValue('overwrite', false, @(x) islogical(x) || x==0 || x==1);
-params.addParamValue('chessboard', false, @(x) islogical(x) || x==0 || x==1);
-params.parse(varargin{:});
+inParams = inputParser;
+inParams.CaseSensitive = false;
+inParams.addParamValue('stitchedSize', 100, @(x) isnumeric(x));
+inParams.addParamValue('overwrite', false, @(x) islogical(x) || x==0 || x==1);
+inParams.addParamValue('chessboard', false, @(x) islogical(x) || x==0 || x==1);
+inParams.parse(varargin{:});
 
-stitchedSize=params.Results.stitchedSize;
-overwrite=params.Results.overwrite;
-doChessBoard=params.Results.chessboard;
+stitchedSize=inParams.Results.stitchedSize;
+overwrite=inParams.Results.overwrite;
+doChessBoard=inParams.Results.chessboard;
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
@@ -152,29 +155,40 @@ end
 fprintf('--------------------------------\n\n')
 
 
+if nargout>0 
+    if size(section,1)==1
+        outputMatrixOnly=true;
+    else
+        fprintf('Only one section can be returned as an output at the moment\n')
+        return
+    end
+else
+    outputMatrixOnly=false;
+end
+
 %Create directories we will use for saving the stitched data
 for ii=1:length(stitchedSize)
+
     thisSize = stitchedSize(ii);
     reducedSizeDir{ii} = sprintf('%s_%03d', userConfig.subdir.stitchedDirBaseName, thisSize);
+    if outputMatrixOnly, continue, end
     if ~exist(reducedSizeDir{ii},'dir')
         fprintf('Creating empty stitched data directory tree: %s\n', reducedSizeDir{ii})
         mkdir(reducedSizeDir{ii})
     end
         thisChan=sprintf('%s%s%d',reducedSizeDir{ii},filesep,channel);
 
-        %The details directory stores tile position files
-        if ~exist([thisChan,filesep,'details'],'dir')
+    %The details directory stores tile position files
+    if ~exist([thisChan,filesep,'details'],'dir')
         mkdir([thisChan,filesep,'details']) 
     end
-
-
 end
 
 
 
 numStitched=0; %The number of images stitched. This is just used for error checking
 
-parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
+for ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     %Explicitly clear these variables so as not get annoying warnings
@@ -239,7 +253,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     [stitched,tilePosInPixels]=stitcher(imStack,pixelPos,fusionWeight);
 
     %If the user has asked for stage positions then we need trim back the image in order to avoid different
-    %sections being different sizes
+    %sections being different sizes (TODO -- hard-coded values)
     if doStageCoords
         if tileSize<1E3
             trimPixels = 5;
@@ -261,7 +275,11 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
     %Save full and reduced size planes
     for thisR = 1:length(reducedSizeDir)
-        if filesExist(thisR), continue, end
+        % Don't save if files exist or the user asked for an output argument
+        if filesExist(thisR) || outputMatrixOnly
+            continue
+        end
+
         sectionDir = sprintf('.%s%s%s%d%s',filesep,reducedSizeDir{thisR},filesep, channel, filesep);
         sectionFname = sprintf('%ssection_%03d_%02d.tif',sectionDir,thisSection);
 
@@ -281,6 +299,16 @@ if numStitched==0
     return
 end
 
+if outputMatrixOnly
+    if nargout>0
+        varargout{1}=stitched;
+    end
+    if nargout>1
+        varargout{2}=param;
+    end
+    return
+end
+
 %Report back if image sizes aren't all equal for the largest images
 [~,ind]=max(stitchedSize);
 sectionDir = sprintf('.%s%s%s%d%s',filesep,reducedSizeDir{ind},filesep, channel, filesep);
@@ -294,7 +322,7 @@ end
 iniFileContents=showStitchItConf(-1,fullPathToINIfile);
 
 for thisR = 1:length(reducedSizeDir)
-        fname = sprintf('.%s%s%s%d%sstitchingParams.ini',...
+        fname = sprintf('.%s%s%s%d%sstitchinginParams.ini',...
                                 filesep,reducedSizeDir{thisR},filesep, channel, filesep);
 
         fprintf('Logging stitching parameters to %s\n',fname)
