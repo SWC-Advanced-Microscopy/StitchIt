@@ -222,6 +222,8 @@ if doIlluminationCorrection
 end
 
 
+
+% This is a super simple way for correcting bidirectional scanning artifacts with a resonant scanner.
 bidihack=false;
 if bidihack
   d = im(1:2:end,:,:);

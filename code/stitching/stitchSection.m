@@ -41,6 +41,7 @@ function varargout=stitchSection(section, channel, varargin)
 % stitchedPlane - If only one section was requested to be stitched then it's possible to return it
 %                 it as an output instead of saving to disk. If an output is requested nothing is
 %                 is written to disk.
+% metaData - the meta-data from the acquisition system used to stitch the image. Includes stitching inParams.
 %
 %
 % EXAMPLES
@@ -91,16 +92,16 @@ end
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 %Parse optional arguments
-params = inputParser;
-params.CaseSensitive = false;
-params.addParamValue('stitchedSize', 100, @(x) isnumeric(x));
-params.addParamValue('overwrite', false, @(x) islogical(x) || x==0 || x==1);
-params.addParamValue('chessboard', false, @(x) islogical(x) || x==0 || x==1);
-params.parse(varargin{:});
+inParams = inputParser;
+inParams.CaseSensitive = false;
+inParams.addParamValue('stitchedSize', 100, @(x) isnumeric(x));
+inParams.addParamValue('overwrite', false, @(x) islogical(x) || x==0 || x==1);
+inParams.addParamValue('chessboard', false, @(x) islogical(x) || x==0 || x==1);
+inParams.parse(varargin{:});
 
-stitchedSize=params.Results.stitchedSize;
-overwrite=params.Results.overwrite;
-doChessBoard=params.Results.chessboard;
+stitchedSize=inParams.Results.stitchedSize;
+overwrite=inParams.Results.overwrite;
+doChessBoard=inParams.Results.chessboard;
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
@@ -299,7 +300,12 @@ if numStitched==0
 end
 
 if outputMatrixOnly
-    varargout{1}=stitched;
+    if nargout>0
+        varargout{1}=stitched;
+    end
+    if nargout>1
+        varargout{2}=param;
+    end
     return
 end
 
@@ -316,7 +322,7 @@ end
 iniFileContents=showStitchItConf(-1,fullPathToINIfile);
 
 for thisR = 1:length(reducedSizeDir)
-        fname = sprintf('.%s%s%s%d%sstitchingParams.ini',...
+        fname = sprintf('.%s%s%s%d%sstitchinginParams.ini',...
                                 filesep,reducedSizeDir{thisR},filesep, channel, filesep);
 
         fprintf('Logging stitching parameters to %s\n',fname)
