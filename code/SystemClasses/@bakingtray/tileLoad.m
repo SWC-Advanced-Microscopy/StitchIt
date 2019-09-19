@@ -45,9 +45,6 @@ if ~exist(sectionDir,'dir')
 end
 
 
-
-
-
 %Load tile index file or bail out gracefully if it doesn't exist. 
 tileIndexFile=fullfile(sectionDir,'tileIndex');
 if ~exist(tileIndexFile,'file')
