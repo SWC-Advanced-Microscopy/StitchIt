@@ -113,6 +113,7 @@ param=readMetaData2Stitchit;
 %TODO: the following assumes a regular grid of tiles. 
 %if data weren't acquired this way, send a warning to screen.
 bytesPerTile = param.tile.nRows * param.tile.nColumns * 2; %assume 16 bit images
+bytesPerTile = bytesPerTile * (stitchedSize/100)^2; %Scale by the resize ratio
 MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
 
 %Calculate GB to be used based on number of sections
