@@ -113,6 +113,7 @@ param=readMetaData2Stitchit;
 %TODO: the following assumes a regular grid of tiles. 
 %if data weren't acquired this way, send a warning to screen.
 bytesPerTile = param.tile.nRows * param.tile.nColumns * 2; %assume 16 bit images
+bytesPerTile = bytesPerTile * (stitchedSize/100)^2; %Scale by the resize ratio
 MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
 
 %Calculate GB to be used based on number of sections
@@ -188,7 +189,7 @@ end
 
 numStitched=0; %The number of images stitched. This is just used for error checking
 
-for ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
+parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     %Explicitly clear these variables so as not get annoying warnings
