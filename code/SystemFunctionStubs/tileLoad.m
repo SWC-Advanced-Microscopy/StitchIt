@@ -15,7 +15,7 @@ function [im,index]=tileLoad(coords,varargin)
 %
 % All indecies start at 1. If yID or xID is zero we load the optical slice. 
 % e.g. To load all tiles from section 10, optical section 3, channel 1 we do:
-%    zID 10 we do: [10,3,0,0,1]. Note that if you have only one optical section
+%    [10,3,0,0,1]. Note that if you have only one optical section
 %    per physical section then you still need to do: [10,1,0,0,1]
 %
 %
