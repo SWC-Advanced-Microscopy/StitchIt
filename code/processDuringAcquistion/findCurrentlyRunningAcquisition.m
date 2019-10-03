@@ -1,4 +1,4 @@
-function [currentAcq,dirDetails] = findCurrentlyRunningAcquisition
+function [currentAcq,dirDetails] = findCurrentlyRunningAcquisition(systemID)
 % Finds the currently running acquisition on the system mount point.
 %
 % Purpose
@@ -22,9 +22,10 @@ function [currentAcq,dirDetails] = findCurrentlyRunningAcquisition
 % Rob Campbell - SWC 2019
 
 
+
 currentAcq = [];
 
-config=readStitchItINI('systemType','brainsaw');
+config=readStitchItINI('systemType',systemID);
 MP = config.syncAndCrunch.acqMountPoint;
 
 if MP==0
