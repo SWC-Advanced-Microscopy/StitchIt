@@ -72,7 +72,7 @@ if nargin==0
     return
 end
 
-if ~exist(serverDir,'file')
+if  ~exist(serverDir,'file')
     systemID = serverDir; % Rename variable for clarity of purpose
     ACQ=findCurrentlyRunningAcquisition(systemID);
 
@@ -92,6 +92,7 @@ end
 curDir=pwd;
 try
     cd(serverDir)
+  
     config=readStitchItINI;
 
     if config.syncAndCrunch.landingDirectory == 0 

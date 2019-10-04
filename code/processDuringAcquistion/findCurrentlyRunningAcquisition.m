@@ -1,6 +1,8 @@
 function [currentAcq,dirDetails] = findCurrentlyRunningAcquisition(systemID)
 % Finds the currently running acquisition on the system mount point.
 %
+% function [currentAcq,dirDetails] = findCurrentlyRunningAcquisition(systemID)
+%
 % Purpose
 % This function searches the acquisition system mount, which must be defined
 % in the INI file, for an acquisition that is currently under way. It does this
