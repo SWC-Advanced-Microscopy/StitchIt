@@ -17,12 +17,11 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 %
 %
 % Inputs
-% If run with no input arguments, syncAndCrunch looks for a current
-% acquisition on the acquisition system mount point and runs on
-% this using the channel the user is currently viewing as that to
-% send to the web. 
-%
-% serverDir - the full path to data directory on the server
+% serverDir - EITHER: the name of the acquisition machine 
+%             OR: the full path to data directory on the server
+%             If the former, looks for a current acquisition on the acquisition system mount
+%             point and runs on this using the channel the user is currently viewing as that 
+%             to send to the web. 
 % chanToPlot - Which channel to send to web (if missing, this is the first available 
 %              channel). If zero, don't do the web plots. 
 %
@@ -64,28 +63,37 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 %
 % Rob Campbell - Basel 2015, 2016, 2018
 %                SWC 2019
-%
+
 
 
 if nargin==0
-    ACQ=findCurrentlyRunningAcquisition;
+    fprintf('** Please specify either the name of the acquisition system or the full path to the acquisition directory\n\n')
+    help(mfilename)
+    return
+end
+
+if  ~exist(serverDir,'file')
+    systemID = serverDir; % Rename variable for clarity of purpose
+    ACQ=findCurrentlyRunningAcquisition(systemID);
 
     if isempty(ACQ)
-      config=readStitchItINI('systemType','brainsaw');
+      config=readStitchItINI('systemType',systemID);
       MP = config.syncAndCrunch.acqMountPoint;
       fprintf('Can not find any currently running acquisitions at %s\n',MP)
       return
     end
 
+    % Recursive call
     syncAndCrunch(ACQ.samplePath,ACQ.chanToDisplay);
-    return
+    return % <-- bail out of this instance
 end
-    
+
 % Read the INI file  (Initial INI file read)
 curDir=pwd;
 try
     cd(serverDir)
-    config=readStitchItINI; 
+  
+    config=readStitchItINI;
 
     if config.syncAndCrunch.landingDirectory == 0 
     fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
