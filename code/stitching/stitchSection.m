@@ -117,7 +117,7 @@ bytesPerTile = bytesPerTile * (stitchedSize/100)^2; %Scale by the resize ratio
 MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
 
 %Calculate GB to be used based on number of sections
-nSections = length(section);
+nSections = size(section,1);
 GBrequired= nSections * MBPerPlane / 1024;
 
 fprintf('Producing %d stitched images from channel %d. This will consume %0.2f GB of disk space.\n',...
