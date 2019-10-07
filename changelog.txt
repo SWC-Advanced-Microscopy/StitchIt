@@ -1,13 +1,28 @@
 StitchIt Change Log
 
+
+07/10/19
+- USER: Add "chessboardStitch.m" and "exploreChessboard.m" for assisting with stitching parameter tweaking.
+
+03/10/19
+- USER: syncAndCrunch now *requires* the name of the acquisition system as an input argument 
+        so we can handle multiple microscopes at once from one analysis PC.
+
+
+26/09/19
+- USER: Slightly improve appearance of montage images in web preview. 
+
+
 05/06/19
 - USER: downsampleAllChannels makes TIFF files by default since
 Elastix is now happy with these.
+
 
 28/04/19
 - USER: The auto-threshold algorithm is tweaked to deal with small brain areas. 
     **Involves a small change in the threshold parameter** You will need to use
     larger values and the cut-off before absolyte thresholding is now 25 not 10. 
+
 
 20/03/19
 - USER: Main web preview image is RGB.
@@ -16,10 +31,12 @@ SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the 
                 added in from the default INI file. 
 - USER: stitchit.sampleSplitter ready for beta use by users
 
+
 15/03/19
 - USER: Add GUI (stitchit.sampleSplitter) for breaking up acquisitions with two brains into two separate 
         folders. Also allows cropping of a 
  single brain. GUI not heavily tested yet but it works.
+
 
 02/01/19
 - Tidy files to make discovery of StitchIt features easier for users.
@@ -31,12 +48,15 @@ SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the 
          You can now change which channel is being sent to the web by editing the file at /tmp/buildSectionRunnerTargetChannel so you you could do: echo "3" > /tmp/buildSectionRunnerTargetChannel
 - mhd_write and the YAML reader are integrated into the repo, making instalation easier.
 
+
 04/08/18
 - Bugfix: was failing to read z voxel size correctly.
 - Now reads the most recent BakingTray recipe file, even if there are multiple.
 
+
 13/07/18
 - MAJOR: syncAndCrunch has new call system! See "help syncAndCrunch" and note you need to edit your INI file. See the default INI file and https://github.com/BaselLaserMouse/StitchIt/wiki/Setting-up-syncAndCrunch
+
 
 18/06/18
 - MAJOR - BakingTray tiles can be manipulated (undistorted and affine transformed) to allow for better stitching. User must edit StitchingParameters.VoxelSize in recipe to tweak mics per pixel if needed.
@@ -51,6 +71,7 @@ need changing.
 17/12/10 
 - preProcessTiles now takes paramater/value pairs as input arguments
 - Image offset is read from ScanImage file header and is not calculated. 
+
 
 17/10/16
 - MAJOR: stitching-related parameters (including average images) are now stored in a separate location 

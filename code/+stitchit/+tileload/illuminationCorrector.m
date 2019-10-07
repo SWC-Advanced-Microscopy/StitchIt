@@ -59,6 +59,19 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
         fprintf('Doing %s illumination correction\n',userConfig.tile.illumCorType)
     end
 
+
+    % The following stops the average template from containing negative numbers
+    % It's a bit of a hack to deal with https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145
+    correctIllumOffset=true;
+    if correctIllumOffset
+        m=min(aveTemplate.pooledRows(:));
+        if m>0
+            m=0;
+        end
+    else
+        m=0;
+    end
+
     switch userConfig.tile.illumCorType
         case 'split'
             
@@ -66,18 +79,18 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
                 fprintf('*** ERROR in tileLoad.illuminationCorrector: split illumination requested but tile index not provided. Not correcting\n')
             end
 
-            %Divide by the template. Separate odd and even rows as needed       
+            %Divide by the template. Separate odd and even rows as needed
             oddRows=find(mod(index(:,5),2));
             if ~isempty(oddRows)
-                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows); 
+                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows-m); 
             end
 
             evenRows=find(~mod(index(:,5),2)); 
             if ~isempty(evenRows)
-                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows);
+                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows-m);
             end
         case 'pool'
-            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows);
+            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows - m);
         otherwise
             fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
     end

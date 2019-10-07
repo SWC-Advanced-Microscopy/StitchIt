@@ -19,7 +19,7 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 %
 %
 % NOTES
-% builds last completed directory as judged by the last trigger file
+% Builds last completed directory as judged by the last trigger file
 % the clipping level is set via the INI file.
 %
 % Also see:
@@ -139,12 +139,14 @@ if rSize>1
 end
 pixSize = params.voxelSize.X/rSize;
 if params.mosaic.numOpticalPlanes>1
-    mos=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh,pixSize);
+    [mos,mosThresh]=rescaleImage(peekSection([ind,1],channel,rSize),rescaleThresh,pixSize);
     mos=repmat(mos,[1,1,params.mosaic.numOpticalPlanes]);
-    for ii=1:params.mosaic.numOpticalPlanes
+
+    for ii=2:params.mosaic.numOpticalPlanes
         fprintf('.')
-        mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),rescaleThresh,pixSize);
+        mos(:,:,ii)=rescaleImage(peekSection([ind,ii],channel,rSize),mosThresh,pixSize);
     end
+
     monFname=[userConfig.subdir.WEBdir,filesep,'montage.jpg'];
     mos=permute(mos,[1,2,4,3]);
     H=montage_noimshow(mos);

@@ -17,6 +17,15 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     % Rob Campbell - SWC, 2019
 
 
+    if ~isnumeric(im)
+        fprintf('%s - First input argument must be an image\n',mfilename)
+        return
+    end
+
+    if size(im,3)> 1
+        im = stitchit.sampleSplitter.filterAndProjectStack(im);
+    end
+
     if nargin<2 || isempty(pixelSize)
         pixelSize = 25; 
     end
@@ -25,22 +34,26 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     end
 
 
-    %Threshold (NOTE: hard-coded. Worry about this only if it presents a problem)
-    BW = im>20;
+    % Find threshold based on graythresh/multithresh
+    im = log10(im);
+    tThresh=multithresh(im);
+    BW = im>tThresh;
+
 
     % Remove crap
     SE = strel('square',round(150/pixelSize));
     BW = imerode(BW,SE);
     BW = imdilate(BW,SE);
 
-    % Add a border of 250 microns around each brain
-    SE = strel('square',round(250/pixelSize));
+    % Add a border of 200 microns around each brain
+    SE = strel('square',round(200/pixelSize));
     BW = imdilate(BW,SE);
 
 
-
     %Look for objects at that occupy least 15% of the image area
-    sizeThresh = prod(size(im)) * 0.15;
+    minSize=0.15;
+    nBrains=1;
+    sizeThresh = prod(size(im)) * (minSize / nBrains);
     [L,indexedBW]=bwboundaries(BW,'noholes');
     for ii=length(L):-1:1
         thisN = length(find(indexedBW == ii));
@@ -54,12 +67,12 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     end
 
     % Optionally display image with calculated boxes
-    if doPlot
+    if doPlot && ~isempty(L)
         %Make figure window if needed
         f=findobj('Tag',mfilename);
 
         if isempty(f)
-            f=figure
+            f=figure;
             set(f,'Tag',mfilename);
         end
 
@@ -74,6 +87,7 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
         colormap gray
 
         hold on 
+
         for ii=1:length(L)
             tL = L{ii};
             xP = [min(tL(:,2)), max(tL(:,2))];
@@ -82,6 +96,8 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
             plot([xP(1), xP(2), xP(2), xP(1), xP(1)], ...
                  [yP(1), yP(1), yP(2), yP(2), yP(1)], ...
                  '-r', 'Parent', ax)
+
+            plot(tL(:,2),tL(:,1), '--', 'color', [0.2, 0.5, 1])
         end
         hold(ax,'off')
         axis equal off
@@ -100,5 +116,9 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
             OUT{ii} = [xP(1), yP(1), xP(2)-xP(1), yP(2)-yP(1)];
         end
         varargout{1}=OUT;
+    end
+
+    if nargout>1
+        varargout{2}=im;
     end
 
