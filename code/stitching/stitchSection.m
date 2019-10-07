@@ -188,7 +188,8 @@ end
 
 
 numStitched=0; %The number of images stitched. This is just used for error checking
-
+varargout=cell(1,1); %Declare outside parfor so they are returned correctly
+nout=nargout;
 parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -292,6 +293,11 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     end
 
     numStitched=numStitched+1;
+
+    % This needs to be here so we return "stitched" from the parfor loop
+    if outputMatrixOnly && nout>0
+        varargout{ii}=stitched;
+    end
 end
 
 
@@ -301,12 +307,10 @@ if numStitched==0
 end
 
 if outputMatrixOnly
-    if nargout>0
-        varargout{1}=stitched;
-    end
     if nargout>1
         varargout{2}=param;
     end
+    % Returns regardless of whether nargout == 1 or == 2
     return
 end
 
