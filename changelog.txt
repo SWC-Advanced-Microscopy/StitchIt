@@ -1,5 +1,7 @@
 StitchIt Change Log
 
+23/01/20
+- USER: Sample splitter tidies away meta-data in sample root directory when finished. 
 
 07/10/19
 - USER: Add "chessboardStitch.m" and "exploreChessboard.m" for assisting with stitching parameter tweaking.

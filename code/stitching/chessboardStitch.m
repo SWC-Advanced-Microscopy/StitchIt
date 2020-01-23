@@ -25,7 +25,7 @@ function varargout=chessboardStitch(planeToStitch,channel,params)
 %
 % Example
 % Stitch physical section 2, optical plane 1, channel 1:
-%   >> IM=chessboardStitch([3,1],1);
+% >> IM=chessboardStitch([3,1],1);
 %
 % Now visualise this:
 % >> exploreChessBoard(IM) % (mouse wheel zooms, right-drag to pan )
