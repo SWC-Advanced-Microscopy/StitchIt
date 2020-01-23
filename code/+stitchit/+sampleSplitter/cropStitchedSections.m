@@ -21,6 +21,12 @@ if ~okToRun
 end
 
 uncroppedDir = ['UncroppedStacks_', datestr(now,'yymmdd_HHMM'),'_DELETE_ME_DELETE_ME']; %things we crop successfully go here
+
+%The following cell array defines globs associated with meta-data that we want to move to the new sample folder
+%directories and also out of the sample root. This is somewhat hard-coded, but should encompass enough
+%stuff to work well even we change things around a bit,
+metaDataFilesToMove = {'*.yml','*.txt','*.mat','*.ini'};
+
 atLeastOneWorked=false; % True if at least one of the full size image stacks cropped successfully
 
 % There are multiple ROIs we assume there are multiple samples so set it up as such
@@ -69,7 +75,7 @@ for ii=1:length(s)
     
     if all(allOK)
         atLeastOneWorked=true;
-        % Move the original stitched data to the cropped directory
+        % Move the original stitched data out to the back up directory
         targetBackUpDir = fullfile(uncroppedDir,s(ii).stitchedBaseDir);
         fprintf('Making %s\n', targetBackUpDir)
         mkdir(targetBackUpDir)
@@ -86,13 +92,12 @@ for ii=1:length(s)
         end
 
 
-        %If necessary, copy meta-data to new sample directories
+        %If necessary, copy meta-data to new sample directories and then move out to back-up dir
         if length(ROIs)>1
             for kk=1:length(ROIs)
-                %Following copy operation is somewhat hard-coded, but should encompass enough
-                %stuff to work well even we change things around a bit,
-                cellfun(@(x) copyfile(x,ROIs(kk).name), {'*.yml','*.txt','*.mat','*.ini'})
+                cellfun(@(x) copyfile(x,ROIs(kk).name), metaDataFilesToMove)
             end
+            cellfun(@(x) movefile(x, uncroppedDir), metaDataFilesToMove)
         end
     end % if all(allOK)
 
@@ -117,7 +122,7 @@ if atLeastOneWorked
         cd(cDIR)
       end % for ii
     else
-      %Rename cropped dirs
+       %Rename cropped dirs
        d=dir('CROP_*');
        for ii=1:length(d)
          if ~d(ii).isdir
