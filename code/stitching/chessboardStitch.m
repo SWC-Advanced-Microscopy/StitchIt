@@ -1,7 +1,7 @@
-function varargout=chessboardStitch(planeToStich,channel,params)
+function varargout=chessboardStitch(planeToStitch,channel,params)
 % Chessboard stitch a defined optical plane and channel to test stitching quality. 
 %
-% function imData = chessboardStitch(planeToStich,channel,params)
+% function imData = chessboardStitch(planeToStitch,channel,params)
 %
 % Purpose
 % Stitching quality is easiest to assess when "chessboard stitching" the image:
@@ -34,7 +34,7 @@ function varargout=chessboardStitch(planeToStich,channel,params)
 % Notice something we want change:
 % >> IM(2) = IM;
 % >> IM(2).params.affineMat = affineMatGen('rot', -0.4); %This function is in BakingTray
-% >> IM(2) = chessboardStitch([3,1],1,IM(2)); %To use new parameters
+% >> IM(2) = chessboardStitch([3,1],1,IM(2).params); %To use new parameters
 %
 % Compare the two stitching results side by side:
 % >> exploreChessBoard(IM,2000)
@@ -78,7 +78,7 @@ end
 
 
 try
-    [im,p]=stitchSection(planeToStich,channel,'ChessBoard',true);
+    [im,p]=stitchSection(planeToStitch,channel,'ChessBoard',true);
     if isstruct(params)
        delete(newFname)
     end
