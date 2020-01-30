@@ -25,7 +25,17 @@ uncroppedDir = ['UncroppedStacks_', datestr(now,'yymmdd_HHMM'),'_DELETE_ME_DELET
 %The following cell array defines globs associated with meta-data that we want to move to the new sample folder
 %directories and also out of the sample root. This is somewhat hard-coded, but should encompass enough
 %stuff to work well even we change things around a bit,
-metaDataFilesToMove = {'*.yml','*.txt','*.mat','*.ini','FINISHED'};
+metaDataFilesToMove = {'*.yml','*.txt','*.mat','*.ini','*FINISHED*'};
+
+% Remove any of the meta-data files that don't exist from the list,
+% otherwise we get an error when trying to copy or move them.
+for ii=length(metaDataFilesToMove):-1:1
+  tmpD = dir(metaDataFilesToMove{ii});
+  if isempty(tmpD)
+    metaDataFilesToMove(ii)=[];
+  end
+end
+
 
 atLeastOneWorked=false; % True if at least one of the full size image stacks cropped successfully
 
