@@ -27,7 +27,7 @@ end
 
 if nargin<1 || isempty(voxelSize)
     % Choose pyramid to make based upon the resolution
-    if stitchedDataInfo.micsPerPixel<4 && zSpacingInMicrons<=10
+    if stitchedDataInfo.micsPerPixel<4 && stitchedDataInfo.zSpacingInMicrons<=10
         voxelSize=[50,25,10];
     else
         voxelSize=[50,25];

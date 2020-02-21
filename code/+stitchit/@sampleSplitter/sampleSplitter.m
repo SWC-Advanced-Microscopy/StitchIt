@@ -111,10 +111,10 @@ classdef sampleSplitter < handle
  
             if isempty(varargin)
               %Look for an MHD file 
-              d=dir('downsampledMHD_25/*.mhd');
+              d=dir('downsampled_stacks/050_micron/*.mhd');
               %If that fails search for a tiff stack
               if isempty(d)
-                d=dir('downsampledStacks_25/*.tif');
+                d=dir('downsampled_stacks/050_micron/*.tif');
               end
 
               if isempty(d)
