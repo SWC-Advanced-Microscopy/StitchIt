@@ -11,7 +11,7 @@ classdef sampleSplitter < handle
     % Usage
     % - cd to sample directory
     % - run stitchit.sampleSplitter without input arguments. This will search for
-    %   downsampled data in downsampled*_25/ and load it. If this is 
+    %   downsampled data in downsampled_stacks/050_micron and load it. If this is 
     %   missing you will need to either make it or supply an input argument (see below)
     % - GUI appears with max intensity projection of brains.
     % - Hit "Auto Find Brains" to draw boxes around brains.
@@ -56,7 +56,7 @@ classdef sampleSplitter < handle
     properties
         origImage           % The image upon which we draw ROIs
         splitBrainParams    % A structure containing the ROIs and their orientations 
-        micsPerPixel = 25   % scale of the downsampled image fed into this class
+        micsPerPixel = 50   % scale of the downsampled image fed into this class
         stitchedDataInfo
     end % properties
 
@@ -92,12 +92,12 @@ classdef sampleSplitter < handle
             % first arg is an MHD file name (recomended), an image stack, or max intensity projection.
             % Avoid mean intensity projections, you will underestimate brain size.
             % second arg (optional) is the number of microns per pixel. If missing,
-            %. 25, unless it can be extracted from the MHD file fname. This valyue
-            %. is stored in sampleSplitter.micsPerPixel
+            % 50, unless it can be extracted from the MHD file fname. This valyue
+            % is stored in sampleSplitter.micsPerPixel
 
             % First arg is an MHD file name, stack, or max/median projection.
             % Second arg (optional) is the number of microns per pixel. If missing,
-            % 25, unless it can be extracted from the MHD file fname. This value
+            % 50, unless it can be extracted from the MHD file fname. This value
             % is stored in sampleSplitter.micsPerPixel
  
             %If an instance of sampleSplitter already exists then delete it
