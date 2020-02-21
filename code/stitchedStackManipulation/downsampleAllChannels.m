@@ -13,43 +13,36 @@ function downsampleAllChannels(voxelSize,fileFormat)
 %
 %
 % Rob Campbell - SWC, 2018
-  
 
-  stitchedDataInfo=findStitchedData;
-  if isempty(stitchedDataInfo)
+
+stitchedDataInfo=findStitchedData;
+if isempty(stitchedDataInfo)
     fprintf('No stitched data found by %s. Quitting\n', mfilename)
     return
-  end
+end
 
-  if nargin<1 || isempty(voxelSize)
+if nargin<1 || isempty(voxelSize)
     voxelSize=25;
-  end
-  
-  if nargin<2 || isempty(fileFormat)
+end
+
+if nargin<2 || isempty(fileFormat)
       fileFormat='tiff';
-  end
-
-  dsDirName=sprintf('downsampledStacks_%d', round(voxelSize));
+end
 
 
-  if ~exist(dsDirName,'dir')
+dsDirName=sprintf('downsampledStacks_%d', round(voxelSize));
+
+
+if ~exist(dsDirName,'dir')
     mkdir(dsDirName)
-  end
+end
 
-  % Which channels are available?
-  chan = stitchedDataInfo.channelsPresent;
+% Which channels are available?
+chan = stitchedDataInfo.channelsPresent;
 
-  % Downsample those channels
-  fnames={};
-  for ii = 1:length(chan)
+% Downsample those channels
+for ii = 1:length(chan)
     tChan = chan(ii);
     fprintf('Making downsampled volume for channel %d\n', tChan)
-    [~,tFname]=resampleVolume(tChan,voxelSize,fileFormat); %Downsample
-    fnames{ii} = tFname;
-  end
-
-  % Now move all files to the destination directory
-  for ii = 1:length(fnames)
-    fprintf('Moving %s* to %s\n', fnames{ii}, dsDirName)
-    movefile([fnames{ii},'*'], dsDirName)
-  end
+    resampleVolume(tChan,voxelSize,fileFormat,dsDirName); %Downsample
+end
