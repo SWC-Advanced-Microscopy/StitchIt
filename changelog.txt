@@ -1,10 +1,16 @@
 StitchIt Change Log
 
+21/02/20
+- USER: New folder structure for downsampled stacks. *MAY BREAK BEHAVIOR OF DOWNSTREAM CODE*
+
+
 23/01/20
 - USER: Sample splitter tidies away meta-data in sample root directory when finished. 
 
+
 07/10/19
 - USER: Add "chessboardStitch.m" and "exploreChessboard.m" for assisting with stitching parameter tweaking.
+
 
 03/10/19
 - USER: syncAndCrunch now *requires* the name of the acquisition system as an input argument 

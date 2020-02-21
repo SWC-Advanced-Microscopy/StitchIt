@@ -7,10 +7,14 @@ function downsampleAllChannels(voxelSize,fileFormat)
 % all to a single directory. 
 %
 % Inputs
-% voxelSize - a scalar (25 by default) defining the target voxel
-%             size of the resample operation.
+% voxelSize - a scalar or vector(25 by default) defining the target voxel
+%             size of the resample operation. If a vector it makes downsampled
+%             stacks at each voxel size
 % fileFormat - 'MHD' or 'TIFF'. TIFF by default
 %
+%
+% Example
+% 
 %
 % Rob Campbell - SWC, 2018
 
@@ -22,7 +26,12 @@ if isempty(stitchedDataInfo)
 end
 
 if nargin<1 || isempty(voxelSize)
-    voxelSize=25;
+    % Choose pyramid to make based upon the resolution
+    if stitchedDataInfo.micsPerPixel<4 && zSpacingInMicrons<=10
+        voxelSize=[50,25,10];
+    else
+        voxelSize=[50,25];
+    end
 end
 
 if nargin<2 || isempty(fileFormat)
@@ -30,12 +39,24 @@ if nargin<2 || isempty(fileFormat)
 end
 
 
-dsDirName=sprintf('downsampledStacks_%d', round(voxelSize));
-
-
-if ~exist(dsDirName,'dir')
-    mkdir(dsDirName)
+coreDownsampleDir = 'downsampled_stacks';
+if ~exist(coreDownsampleDir,'dir')
+    mkdir(coreDownsampleDir)
+    fprintf('Making %s\n', coreDownsampleDir)
 end
+
+% Make sub-directories to hold downsampled stacks of a particular size
+dsDirName={};
+for ii=1:length(voxelSize)
+    tDir = fullfile(coreDownsampleDir,sprintf('%03d_micron',voxelSize(ii)));
+    if ~exist(tDir,'dir')
+        fprintf('Making %s\n', tDir)
+        mkdir(tDir)
+    end
+    dsDirName{ii}=tDir;
+end
+
+
 
 % Which channels are available?
 chan = stitchedDataInfo.channelsPresent;
@@ -44,5 +65,7 @@ chan = stitchedDataInfo.channelsPresent;
 for ii = 1:length(chan)
     tChan = chan(ii);
     fprintf('Making downsampled volume for channel %d\n', tChan)
-    resampleVolume(tChan,voxelSize,fileFormat,dsDirName); %Downsample
+    for jj=1:length(voxelSize)
+        resampleVolume(tChan,voxelSize(jj),fileFormat,dsDirName{jj}); %Downsample
+    end
 end

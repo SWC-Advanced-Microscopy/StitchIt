@@ -146,7 +146,7 @@ end
 paramFile=getTiledAcquisitionParamFile;
 if startsWith(paramFile, 'recipe')
       % We have BakingTray Data
-      downsampledFname = strcat('ds', paramFile(8:end-4));
+      downsampledFname = strcat('ds_', paramFile(8:end-4));
 else
       % We have TissueVision
       downsampledFname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')];
@@ -164,7 +164,7 @@ else
       downsampledFname=[downsampledFname, sprintf('_%0.1f',targetDims(2))];
 end
 
-downsampledFname=[downsampledFname, sprintf('_%02d',channel)];
+downsampledFname=[downsampledFname, sprintf('_ch%02d',channel)];
 
 %place file in the correct directory
 downsampledFname = fullfile(savePath,downsampledFname);
