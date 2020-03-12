@@ -563,11 +563,13 @@ if exist(config.subdir.WEBdir,'dir')
 end
 
 
+stitchit.tools.notify('syncAndCrunch finished')
+
 % Change back to the landing directory. Avoids the rare situation where MATLAB ends up in a path 
 % that no longer exists (if user deletes last sample too quickly).
 cd(landingDir)
 
-stitchit.tools.notify('syncAndCrunch finished')
+
 
 
 
