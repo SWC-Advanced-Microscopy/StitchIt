@@ -66,8 +66,9 @@ if isempty(files)
   error('%s finds no tiffs found in %s',mfilename,origDataDir)
 end
 
-% Do not proceed if the final stack will hit the bigtiff limit 
+% Do not proceed if the final stack will hit the bigtiff limit
 totalGB = (files(1).bytes * length(files)) / 1028^3;
+totalGB = totalGB * 1.1; %Fudge factor because it seems the above underestimates slightly
 if totalGB>4
   bigtiff=true;
 else
