@@ -2,6 +2,7 @@ StitchIt Change Log
 
 20/03/2020
 - USER: Downsampled stacks now contain the channel name (as a string -- "red" or "green") in the file name.
+- USER: stitchedPlanesToVolume produces stacks that contain the channel name the file name.
 
 21/02/20
 - USER: New folder structure for downsampled stacks. *MAY BREAK BEHAVIOR OF DOWNSTREAM CODE*

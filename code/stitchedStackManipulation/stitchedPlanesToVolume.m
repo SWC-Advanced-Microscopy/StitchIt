@@ -87,7 +87,8 @@ else
     % We have TissueVision
     stackFname = [regexprep(paramFile(1:end-4),'Mosaic_','')];
 end
-stackFname = sprintf('%s_chan_%02d.tiff',stackFname,channel);
+chName=getChanNames(channel);
+stackFname = sprintf('%s_chan_%02d%s.tiff',stackFname,channel,chName);
 
 
 % Do the file write
@@ -96,6 +97,23 @@ if bigtiff
 else
     writeRegularTiff
 end
+
+
+
+
+% Internal functions follow
+function chName = getChanNames(channel)
+    % Obtain the channel name from the scan settings file
+    if exist('scanSettings.mat','file')
+        S=load('scanSettings');
+        % Process channel name to ready it for insertion into file name
+        chName = lower(S.scanSettings.hPmts.names{channel});
+        chName = strrep(chName,' ','_');
+        chName = ['_',chName];
+    else
+        chName=''
+    end
+end %function getChanNames
 
 
 
