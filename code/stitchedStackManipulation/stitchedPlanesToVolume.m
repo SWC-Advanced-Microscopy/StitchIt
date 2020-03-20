@@ -36,8 +36,8 @@ function varargout=stitchedPlanesToVolume(channel)
 % Find a stitched image directory
 stitchedDataInfo=findStitchedData;
 if isempty(stitchedDataInfo)
-  fprintf('%s Finds no stitched data to resample.\n',mfilename)
-  return
+    fprintf('%s Finds no stitched data to resample.\n',mfilename)
+    return
 end
 
 stitchedDataInd=1;
@@ -46,33 +46,33 @@ stitchedDir = stitchedDataInfo(stitchedDataInd).stitchedBaseDir;
 % If no inputs provided, loop through all available channels with a
 % recursive function call
 if nargin<1 || isempty(channel)
-  tChans = stitchedDataInfo.channelsPresent;
-  for ii=1:length(tChans)
-    fprintf('Converting channel %d to a TIFF stack\n',tChans(ii))
-    stitchedPlanesToVolume(tChans(ii));
-  end
-  return
+    tChans = stitchedDataInfo.channelsPresent;
+    for ii=1:length(tChans)
+        fprintf('Converting channel %d to a TIFF stack\n',tChans(ii))
+        stitchedPlanesToVolume(tChans(ii));
+    end
+    return
 end
 
 
 origDataDir = fullfile(stitchedDir, num2str(channel));
 if ~exist(origDataDir)
-  fprintf('%s can not find directory %s\n', mfilename,origDataDir)
-  return
+    fprintf('%s can not find directory %s\n', mfilename,origDataDir)
+    return
 end
 
 files=dir(fullfile(origDataDir,'sec*.tif'));
 if isempty(files)
-  error('%s finds no tiffs found in %s',mfilename,origDataDir)
+    error('%s finds no tiffs found in %s',mfilename,origDataDir)
 end
 
 % Do not proceed if the final stack will hit the bigtiff limit
 totalGB = (files(1).bytes * length(files)) / 1028^3;
 totalGB = totalGB * 1.1; %Fudge factor because it seems the above underestimates slightly
 if totalGB>4
-  bigtiff=true;
+    bigtiff=true;
 else
-  bigtiff=false;
+    bigtiff=false;
 end
 
 
@@ -92,39 +92,39 @@ stackFname = sprintf('%s_chan_%02d.tiff',stackFname,channel);
 
 % Do the file write
 if bigtiff
-  writeBigTiff
+    writeBigTiff
 else
-  writeRegularTiff
+    writeRegularTiff
 end
 
 
 
 function writeRegularTiff
-  imR=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
-  optionsR={'compression','none'};
-  imwrite(imR,stackFname,'tiff','writemode','overwrite',optionsR{:})  
+    imR=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
+    optionsR={'compression','none'};
+    imwrite(imR,stackFname,'tiff','writemode','overwrite',optionsR{:})  
 
-  for iiR=2:length(files)
-    if mod(iiR,5)==0, fprintf('.'), end
-    imR=stitchit.tools.openTiff(fullfile(origDataDir,files(iiR).name));
-    imwrite(imR,stackFname,'tiff','writemode','append',optionsR{:})
-  end
-  fprintf('\n')
+    for iiR=2:length(files)
+        if mod(iiR,5)==0, fprintf('.'), end
+        imR=stitchit.tools.openTiff(fullfile(origDataDir,files(iiR).name));
+        imwrite(imR,stackFname,'tiff','writemode','append',optionsR{:})
+    end
+    fprintf('\n')
 end %function writeRegularTiff
 
 
 function writeBigTiff
-  imB=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
-  optionsB=struct('big',true , 'overwrite', true, 'message', false);
-  saveastiff(imB,stackFname,optionsB);
+    imB=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
+    optionsB=struct('big',true , 'overwrite', true, 'message', false);
+    saveastiff(imB,stackFname,optionsB);
 
-  optionsB=struct('big',true , 'overwrite', false, 'append', true, 'message', false);
-  for iiB=2:length(files)
-    if mod(iiB,5)==0, fprintf('.'), end
-    imR=stitchit.tools.openTiff(fullfile(origDataDir,files(iiB).name));
-    saveastiff(imR,stackFname,optionsB);
-  end
-  fprintf('\n')
+    optionsB=struct('big',true , 'overwrite', false, 'append', true, 'message', false);
+    for iiB=2:length(files)
+        if mod(iiB,5)==0, fprintf('.'), end
+        imR=stitchit.tools.openTiff(fullfile(origDataDir,files(iiB).name));
+        saveastiff(imR,stackFname,optionsB);
+    end
+    fprintf('\n')
 end %function writeBigTiff
 
 
