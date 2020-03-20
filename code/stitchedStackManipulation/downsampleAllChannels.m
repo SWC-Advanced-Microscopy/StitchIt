@@ -14,10 +14,11 @@ function downsampleAllChannels(voxelSize,fileFormat)
 %
 %
 % Example
-% 
+% downsampleAllChannels(10)
 %
 % Rob Campbell - SWC, 2018
-
+%
+% See also - resampleVolume, rescaleStitched
 
 stitchedDataInfo=findStitchedData;
 if isempty(stitchedDataInfo)

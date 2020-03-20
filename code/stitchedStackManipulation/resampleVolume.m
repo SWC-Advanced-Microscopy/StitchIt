@@ -164,7 +164,19 @@ else
       downsampledFname=[downsampledFname, sprintf('_%0.1f',targetDims(2))];
 end
 
-downsampledFname=[downsampledFname, sprintf('_ch%02d',channel)];
+
+% See if we can obtain the channel name from the scan settings file
+if exist('scanSettings.mat','file')
+    load('scanSettings')
+    % Process channel name to ready it for insertion into file name
+    chName = lower(scanSettings.hPmts.names{channel});
+    chName = strrep(chName,' ','_');
+    chName = ['_',chName];
+else
+    chName=''
+end
+
+downsampledFname=[downsampledFname, sprintf('_ch%02d%s',channel,chName)];
 
 %place file in the correct directory
 downsampledFname = fullfile(savePath,downsampledFname);
