@@ -5,7 +5,7 @@ StitchIt Change Log
 - USER: stitchedPlanesToVolume produces stacks that contain the channel name the file name.
 
 21/02/20
-- USER: New folder structure for downsampled stacks. *MAY BREAK BEHAVIOR OF DOWNSTREAM CODE*
+- MAJOR USER: New folder structure for downsampled stacks. *MAY BREAK BEHAVIOR OF DOWNSTREAM CODE*
 
 
 23/01/2020
