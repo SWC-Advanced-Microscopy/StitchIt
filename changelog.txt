@@ -1,30 +1,42 @@
 StitchIt Change Log
 
+20/03/2020
+- USER: Downsampled stacks now contain the channel name (as a string -- "red" or "green") in the file name.
+- USER: stitchedPlanesToVolume produces stacks that contain the channel name the file name.
+
+21/02/20
+- MAJOR USER: New folder structure for downsampled stacks. *MAY BREAK BEHAVIOR OF DOWNSTREAM CODE*
+
+
+23/01/2020
+- USER: Sample splitter tidies away meta-data in sample root directory when finished. 
+
 
 07/10/19
 - USER: Add "chessboardStitch.m" and "exploreChessboard.m" for assisting with stitching parameter tweaking.
 
-03/10/19
+
+03/10/2019
 - USER: syncAndCrunch now *requires* the name of the acquisition system as an input argument 
         so we can handle multiple microscopes at once from one analysis PC.
 
 
-26/09/19
+26/09/2019
 - USER: Slightly improve appearance of montage images in web preview. 
 
 
-05/06/19
+05/06/2019
 - USER: downsampleAllChannels makes TIFF files by default since
 Elastix is now happy with these.
 
 
-28/04/19
+28/04/2019
 - USER: The auto-threshold algorithm is tweaked to deal with small brain areas. 
     **Involves a small change in the threshold parameter** You will need to use
     larger values and the cut-off before absolyte thresholding is now 25 not 10. 
 
 
-20/03/19
+20/03/2019
 - USER: Main web preview image is RGB.
 - USER: New adaptive option for setting web preview threshold (see default INI file) 
 SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the new comment text is 
@@ -32,86 +44,86 @@ SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the 
 - USER: stitchit.sampleSplitter ready for beta use by users
 
 
-15/03/19
+15/03/2019
 - USER: Add GUI (stitchit.sampleSplitter) for breaking up acquisitions with two brains into two separate 
         folders. Also allows cropping of a 
  single brain. GUI not heavily tested yet but it works.
 
 
-02/01/19
+02/01/2019
 - Tidy files to make discovery of StitchIt features easier for users.
 - DEVELOPER: New function "findStitchedData" to aid more flexible handling of already stitched data. 
 
 
-04/01/19
+04/01/2019
 - MAJOR: syncAndCrunch runs the web preview as a background task so it keeps up better with high bandwidth acquisitions.
          You can now change which channel is being sent to the web by editing the file at /tmp/buildSectionRunnerTargetChannel so you you could do: echo "3" > /tmp/buildSectionRunnerTargetChannel
 - mhd_write and the YAML reader are integrated into the repo, making instalation easier.
 
 
-04/08/18
+04/08/2018
 - Bugfix: was failing to read z voxel size correctly.
 - Now reads the most recent BakingTray recipe file, even if there are multiple.
 
 
-13/07/18
+13/07/2018
 - MAJOR: syncAndCrunch has new call system! See "help syncAndCrunch" and note you need to edit your INI file. See the default INI file and https://github.com/BaselLaserMouse/StitchIt/wiki/Setting-up-syncAndCrunch
 
 
-18/06/18
+18/06/2018
 - MAJOR - BakingTray tiles can be manipulated (undistorted and affine transformed) to allow for better stitching. User must edit StitchingParameters.VoxelSize in recipe to tweak mics per pixel if needed.
 - MAJOR - Bugfix in BakingTray tile loader means the tileRotate parameter in the INI file will likely 
 need changing. 
 
 
-18/05/02
+2018/05/02
 - MAJOR: Allow for optional tile rotation during image loading. Note the new tileRotate argument to the INI file under the "tile" section. 
 - Average image tile collation is now only performed during syncAndCrunch for the first few sections and then again at the end. 
 
-17/12/10 
+2017/12/10 
 - preProcessTiles now takes paramater/value pairs as input arguments
 - Image offset is read from ScanImage file header and is not calculated. 
 
 
-17/10/16
+2017/10/16
 - MAJOR: stitching-related parameters (including average images) are now stored in a separate location 
          to the raw data. So data sets processed prior to this date will need preprocessing again. 
          Suggest you first delete existing average images, as they take up a lot of space. 
 - Bugfix to cope with a situation where the user starts acquiring data from an extra channel mid-way
   through the acquisition. 
 
-17/10/10
+2017/10/10
 - MAJOR: coefficients needed to stitch images (with the exception of the tileIndex) are now kept 
          in rawData/stitchitPreProcessingFiles/. You will need to update your INI file by copying
          the relevant bit from the default INI file.
 
 
-17/10/06
+2017/10/06
 - MAJOR: Offset subtraction is now set via the INI file. You will see warnings on screen until you add 
          this setting to your INI file.
 - Improvements in the way the offset correction is performed.
 - Remove calcAverageBinFiles since we now only calculate the newer .mat files
 
 
-17/09/21
+2017/09/21
 - MAJOR: Enable offset correction in bakingtray.tileLoad. This seems necessary for Femto amps as they drift. 
 
 
-17/09/21
+2017/09/21
 - Bugfix to illumination corrector: error was generated if average file could not be found. 
 
 
-17/07/13
+2017/07/13
 - Average tiles saved as a structure.
 - syncAndCrunch works with BakingTray where sections are saved directly to a "rawData" directory.
 - Remove "averageSlowRows" option from INI file. 
 - Ability to stitch and average rectangular frames from BakingTray. 
 
 
-17/05/11
+2017/05/11
  - Improve docs and bug fix in stitchAllChannels.
 
-17/05/04: 
+2017/05/04: 
  - MAJOR: take away the option to remove channel 3 in syncAndCrunch
  - BakingTray: moved to ScanImage multi-channels TIFFs. No longer reads split channels.
  - Fix regression that was causing average image correction to fail with BT data
@@ -119,10 +131,10 @@ need changing.
  - DEVELOPER NOTE: meta-data format is now documented (help readMetaData2Stitchit)
  - DEVELOPER NOTE: image processing moved out of tileLoad functions
 
-17/05/02
+2017/05/02
 - Add makeCompositeOfPlane.m, which creates composite RGB images for use in Fiji with Bioformats
 
-17/03/12
+2017/03/12
 - MAJOR: stitchAllSubDirectories is now stitchAllChannels. please see "help stitchAllChannels"
 - MAJOR: The syncAndCrunch has new default values for the inputs:
     * "combCorChans" argument now defaults to 1.
@@ -135,33 +147,33 @@ need changing.
 - Delete web directory (forWWW) at completion of syncAndCrunch.
 - DEVELOPER NOTE: Minor bugfixes, cleanup (isfield calls relating to the INI file), mass tabs to spaces conversion.
 
-17/03/09
+2017/03/09
 - MAJOR: identifyMissingTilesInDir now optionally replaces missing tiles with adjacent ones in the same x/y positition instead of blank tiles. (Merged commit from Natalia Chicherova, Fouga fork).
 - Renamed postAcqfFun to  postAcqFun in the INI file. (BREAKS EXISTING INI FILES)
 
-17/03/03
+2017/03/03
 - saveMatrixAsCSV now runs on Windows.
 - DEVELOPER NOTE: Read BakingTray v0.5 recipe files.
 
-17/02/28
+2017/02/28
 - mergeChannels incorporates in place the addition, subtraction, etc, functions from Yunyun Han.
 
-17/02/21
+2017/02/21
 - Seamless stitching bugfix so it works on more recent MATLAB versions. 
 
-17/01/29
+2017/01/29
 - syncAndCrunch checks if the user's repo is up to date (Unix only)
 
-17/10/19
+2017/10/19
 - Fix bug that was causing stitching not to begin when acquisition ended.
 - DEVELOPER NOTE: some syncAndCrunch errors are now being saved to a file called StitchIt_Log.txt in the sample directory. Aids debugging.
 
-16/11/22
+2016/11/22
 - Go back to stitching *sections* in parallel instead of loading tiles in parallel. This is much faster. 
 
-16/11/01
+2016/11/01
 - DEVELOPER NOTE: BakingTray largely working. (beta feature)
 
-16/05/01
+2016/05/01
 - Move repo to GitHub
 

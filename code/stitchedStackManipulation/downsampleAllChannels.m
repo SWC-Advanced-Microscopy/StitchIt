@@ -7,49 +7,66 @@ function downsampleAllChannels(voxelSize,fileFormat)
 % all to a single directory. 
 %
 % Inputs
-% voxelSize - a scalar (25 by default) defining the target voxel
-%             size of the resample operation.
+% voxelSize - a scalar or vector(25 by default) defining the target voxel
+%             size of the resample operation. If a vector it makes downsampled
+%             stacks at each voxel size
 % fileFormat - 'MHD' or 'TIFF'. TIFF by default
 %
 %
+% Example
+% downsampleAllChannels(10)
+%
 % Rob Campbell - SWC, 2018
-  
+%
+% See also - resampleVolume, rescaleStitched
 
-  stitchedDataInfo=findStitchedData;
-  if isempty(stitchedDataInfo)
+stitchedDataInfo=findStitchedData;
+if isempty(stitchedDataInfo)
     fprintf('No stitched data found by %s. Quitting\n', mfilename)
     return
-  end
+end
 
-  if nargin<1 || isempty(voxelSize)
-    voxelSize=25;
-  end
-  
-  if nargin<2 || isempty(fileFormat)
+if nargin<1 || isempty(voxelSize)
+    % Choose pyramid to make based upon the resolution
+    if stitchedDataInfo.micsPerPixel<4 && stitchedDataInfo.zSpacingInMicrons<=10
+        voxelSize=[50,25,10];
+    else
+        voxelSize=[50,25];
+    end
+end
+
+if nargin<2 || isempty(fileFormat)
       fileFormat='tiff';
-  end
-
-  dsDirName=sprintf('downsampledStacks_%d', round(voxelSize));
+end
 
 
-  if ~exist(dsDirName,'dir')
-    mkdir(dsDirName)
-  end
+coreDownsampleDir = 'downsampled_stacks';
+if ~exist(coreDownsampleDir,'dir')
+    mkdir(coreDownsampleDir)
+    fprintf('Making %s\n', coreDownsampleDir)
+end
 
-  % Which channels are available?
-  chan = stitchedDataInfo.channelsPresent;
+% Make sub-directories to hold downsampled stacks of a particular size
+dsDirName={};
+for ii=1:length(voxelSize)
+    tDir = fullfile(coreDownsampleDir,sprintf('%03d_micron',voxelSize(ii)));
+    if ~exist(tDir,'dir')
+        fprintf('Making %s\n', tDir)
+        mkdir(tDir)
+    end
+    dsDirName{ii}=tDir;
+end
 
-  % Downsample those channels
-  fnames={};
-  for ii = 1:length(chan)
+
+
+% Which channels are available?
+chan = stitchedDataInfo.channelsPresent;
+
+% Downsample those channels
+for ii = 1:length(chan)
     tChan = chan(ii);
     fprintf('Making downsampled volume for channel %d\n', tChan)
-    [~,tFname]=resampleVolume(tChan,voxelSize,fileFormat); %Downsample
-    fnames{ii} = tFname;
-  end
-
-  % Now move all files to the destination directory
-  for ii = 1:length(fnames)
-    fprintf('Moving %s* to %s\n', fnames{ii}, dsDirName)
-    movefile([fnames{ii},'*'], dsDirName)
-  end
+    for jj=1:length(voxelSize)
+        resampleVolume(tChan,voxelSize(jj),fileFormat,dsDirName{jj}); %Downsample
+    end
+end

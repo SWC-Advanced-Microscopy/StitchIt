@@ -27,7 +27,7 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     end
 
     if nargin<2 || isempty(pixelSize)
-        pixelSize = 25; 
+        pixelSize = 50; %HACK -- it should extract this from the image info
     end
     if nargin<3
         doPlot=false;

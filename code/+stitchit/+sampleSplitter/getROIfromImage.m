@@ -11,6 +11,7 @@ function OUT=getROIfromImage(imToCrop,imToCropMicsPerPixel,ROIstruct)
     % Outputs
     % Data are returnd as a cell array
 
+
     if isempty(imToCropMicsPerPixel)
         m=readMetaData2Stitchit;
         imToCropMicsPerPixel = mean(m.voxelSize.X + m.voxelSize.Y)/2;
