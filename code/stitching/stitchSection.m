@@ -134,7 +134,7 @@ end
 %Extract preferences from INI file structure
 doIlluminationCorrection = userConfig.tile.doIlluminationCorrection; %correct tile illumination on loading. 
 doPhaseCorrection        = userConfig.tile.doPhaseCorrection;        %If 1, use saved coefficients to correct comb artifact
-doStageCoords            = userConfig.stitching.doStageCoords;       %If 1 use stage coorrds instead of naive coords
+doStageCoords            = userConfig.stitching.doStageCoords;       %If 1 use stage coords instead of naive coords
 
 %set up chessboard stitching (which is also the fusion weight variable that currently isn't interesting)
 if doChessBoard==1
@@ -219,7 +219,8 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     end
 
 
-    [imStack,tileIndex]=tileLoad([thisSection,0,0,channel]);
+    [imStack,tileIndex,stagePos]=tileLoad([thisSection,0,0,channel]);
+    imStack = flipud(imStack); % This is always necessary for the stitching to work
 
     if isempty(imStack) %Skip if the image stack is empty. 
         fprintf('Skipping %03d/%02d due to missing tiles\n',thisSection)
@@ -229,50 +230,23 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     fprintf('Stitching %03d/%03d -- Section %03d/%02d\n',ii,size(section,1),thisSection)
 
     tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
-    tileSize=size(imStack,1); %The image size (images are always square) TODO: this assumption may not always hold
+
 
     %Either stitch based on naive tile positions or stage coordinates. 
-    if doStageCoords
-        sectionName = sprintf('%s%04d',baseName,thisSection(1));
+    voxelSize = [param.voxelSize.X,param.voxelSize.Y];
 
-        mosaicFileName = fullfile(userConfig.subdir.rawDataDir,...
-                            sectionName,...
-                            sprintf('Mosaic_%s.txt',sectionName)); 
-
-
-        mosData = readMetaData2Stitchit(mosaicFileName);
-        pixelPos = stagePos2PixelPos(mosData,[param.voxelSize.X,param.voxelSize.Y]);
-
-        %Determine the final stitched image size as though we were not using stage coords
-        naivePos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]);
-        naiveMaxPos=max(naivePos)+tileSize;
-        naiveWidth=naiveMaxPos(1);
-        naiveHeight=naiveMaxPos(2);
-    else %just use the naive positions
-        pixelPos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]); 
-    end %if doStageCoords
-
-    [stitched,tilePosInPixels]=stitcher(imStack,pixelPos,fusionWeight);
-
-    %If the user has asked for stage positions then we need trim back the image in order to avoid different
-    %sections being different sizes (TODO -- hard-coded values)
-    if doStageCoords
-        if tileSize<1E3
-            trimPixels = 5;
-        elseif tileSize>1E3 & tileSize<2E3
-            trimPixels = 10;
-        elseif tileSize>2E3
-            trimPixels = 15;
-        end
-
-        stitched = stitched(1:naiveWidth-trimPixels, 1:naiveHeight-trimPixels,:);
-
-        f=find( tilePosInPixels(:,1)==max(tilePosInPixels(:,1)) );  
-        tilePosInPixels(f,2) = tilePosInPixels(f,2)-trimPixels;
-
-        f=find( tilePosInPixels(:,3)==max(tilePosInPixels(:,3)) );
-        tilePosInPixels(f,4) = tilePosInPixels(f,4)-trimPixels;
+    if doStageCoords == 1
+        pixelPositions = stagePos2PixelPos([stagePos.actualPos.X,stagePos.actualPos.Y],voxelSize);
+    elseif doStageCoords == 0
+        pixelPositions = stagePos2PixelPos([stagePos.targetPos.X,stagePos.targetPos.Y],voxelSize);
+    else
+        % We use the tile grid positions. This is how we used to do stitching before May 2020. 
+        % the doStageCoords == 0 should give a result identical to this
+        pixelPositions = ceil(gridPos2Pixels(tileIndex,voxelSize));
     end
+
+
+    [stitched,tilePosInPixels]=stitcher(imStack,pixelPositions,fusionWeight);
 
 
     %Save full and reduced size planes

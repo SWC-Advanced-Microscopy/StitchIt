@@ -38,7 +38,7 @@ mosaicFile=getTiledAcquisitionParamFile;
 param=readMetaData2Stitchit(mosaicFile);
 userConfig=readStitchItINI;
 
-
+doStageCoords = userConfig.stitching.doStageCoords; %If 1 use stage coords instead of naive coords
 
 
 if nargin<2 || isempty(channel)
@@ -115,10 +115,10 @@ if ~iscell(section)
     end
 
 
-    [im,tileIndex]=tileLoad([section,0,0,channel],'doIlluminationCorrection', doIlumCor);
+    [imStack,tileIndex,stagePos]=tileLoad([section,0,0,channel],'doIlluminationCorrection', doIlumCor);
+    imStack = flipud(imStack); % This is always necessary for the stitching to work
 
-
-    if isempty(im) 
+    if isempty(imStack) 
         fprintf('Failed to load data from section %d/%d channel %d.\n',section, channel)
         if nargout>0 
             varargout{1}=[];
@@ -147,13 +147,21 @@ tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
 %Begin stitching
 if verbose, tic, end
 
-% Flip arrays and stitch backwards. This reduces photo-bleaching artifacts
-% if the images haven't been illumination-corrected for vignetting. 
-%tileIndex=flipud(tileIndex);
 
-% Stitch using theoretical pixel positions
-pixelPositions=ceil(gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]));
-stitchedImage = stitcher(im,pixelPositions);
+% Get pixel positions for tiles
+voxelSize = [param.voxelSize.X,param.voxelSize.Y];
+
+if doStageCoords == 1
+    pixelPositions = stagePos2PixelPos([stagePos.actualPos.X,stagePos.actualPos.Y],voxelSize);
+elseif doStageCoords == 0
+    pixelPositions = stagePos2PixelPos([stagePos.targetPos.X,stagePos.targetPos.Y],voxelSize);
+else
+    % We use the tile grid positions. This is how we used to do stitching before May 2020. 
+    % the doStageCoords == 0 should give a result identical to this
+    pixelPositions = ceil(gridPos2Pixels(tileIndex,voxelSize));
+end
+
+stitchedImage = stitcher(imStack,pixelPositions);
 
 if resize<1
     stitchedImage = imresize(stitchedImage,resize);
