@@ -45,9 +45,9 @@ function varargout = generateTileIndex(sectionDir,~,verbose)
 %
 %
 % Rob Campbell - Basel 2014
-%
-%
-% See also: readTileIndex
+
+
+
 
 
 % No 2nd arg needed:

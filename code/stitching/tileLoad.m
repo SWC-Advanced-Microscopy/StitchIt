@@ -42,8 +42,15 @@ function [im,index]=tileLoad(coords,varargin)
 %
 % OUTPUTS
 % im - The image or image stack at 16 bit unsigned integers.
-% index - The index data of each tile (see readTileIndex) allowing the locations
-%         of the tiles in the mosaic to be determined. 
+% index - The index data of each tile allowing the locations
+%         of the tiles in the mosaic to be determined:
+%
+% 1. file index
+% 2. z-section index
+% 3. optical section
+% 4. tile row
+% 5. tile column
+%
 %
 %
 % EXAMPLES
@@ -56,7 +63,7 @@ function [im,index]=tileLoad(coords,varargin)
 %               updated to handle param/value pairs - Basel 2017
 %
 %
-% See also readTileIndex, generateTileIndex
+% See also generateTileIndex
 
 
 if length(coords)~=5
@@ -236,7 +243,7 @@ end
 
 %---------------
 %Build index output so we are compatible with the TV version (for now)
-index = ones(length(indsToKeep),8);
+index = ones(length(indsToKeep),5);
 
 index(:,1) = indsToKeep;
 index(:,2) = sectionNum;
