@@ -1,5 +1,5 @@
-function [stagePos,tileCoords]=readBakingLog(fname)
-% function [stagePos,tileCoords]=readBakingLog(fname)
+function [stagePos,tileCoords]=readBakingTrayLog(fname)
+% function [stagePos,tileCoords]=readBakingTrayLog(fname)
 %
 % Purpose
 % Preliminary function to return stage position from bakingTray log file

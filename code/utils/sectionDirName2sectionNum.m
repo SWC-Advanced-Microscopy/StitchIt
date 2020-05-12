@@ -1,6 +1,6 @@
-function sectionNumber = sectionDirName2sectionNum(varargin)
+function sectionNumber = sectionDirName2sectionNum(sectionDirName)
 % Get section number from the directory name containing raw data from that section
-%    
+%
 % function sectionNumber = sectionDirName2sectionNum(sectionDirName)
 %
 % PURPOSE
@@ -15,10 +15,10 @@ function sectionNumber = sectionDirName2sectionNum(varargin)
 %
 %
 % Rob Campbell - Basel 2016
+tok=regexp(sectionDirName,'.*-(\d+)','tokens');
 
-%NOTE:
-% This function instantiates an object specific to the data acquisition system being used
-% then calls a method with the same name as this function. For implementation details see
-% the SystemClasses directory. 
-OBJECT=returnSystemSpecificClass;
-sectionNumber = OBJECT.(mfilename)(varargin{:});
+if isempty(tok)
+    error('Unable to find section number from directory string')
+end
+
+sectionNumber = str2num(tok{1}{1});

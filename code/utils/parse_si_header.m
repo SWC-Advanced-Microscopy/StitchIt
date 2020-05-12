@@ -1,4 +1,4 @@
-function si_metadata = parse_si_header(~,tiff_header, si_fields)
+function si_metadata = parse_si_header(tiff_header, si_fields)
     % PARSE_SI_HEADER extract ScanImage related information from TIFF headers
     %
     % si_metadata = parse_si_header(tiff_header)

@@ -1,4 +1,4 @@
-function mosaicFile = getTiledAcquisitionParamFile(varargin)
+function paramFile = getTiledAcquisitionParamFile(supressWarning)
 % Look for a the acquisition system's parameter  file in the current directory and return its name
 %
 % function mosaicFile = getTiledAcquisitionParamFile(supressWarning)
@@ -17,9 +17,22 @@ function mosaicFile = getTiledAcquisitionParamFile(varargin)
 % Also see: directoryBaseName, getTiledAcquisitionParamFile
 
 
-%NOTE:
-% This function instantiates an object specific to the data acquisition system being used
-% then calls a method with the same name as this function. For implementation details see
-% the SystemClasses directory. 
-OBJECT=returnSystemSpecificClass;
-mosaicFile = OBJECT.(mfilename)(varargin{:});
+
+if nargin<1
+    supressWarning=0;
+end
+
+D=dir('*recipe*.yml');
+if isempty(D)
+    if ~supressWarning
+        fprintf('%s: Failed to find a recipe file in the current directory\n',mfilename)
+    end
+    paramFile=[];
+    return
+end
+
+if length(D)>1
+    D = D(end); %Load the most recent (file names include date and time)
+end
+
+paramFile=D.name;
