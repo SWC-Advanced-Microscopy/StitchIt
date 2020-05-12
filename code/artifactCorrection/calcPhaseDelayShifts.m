@@ -131,7 +131,7 @@ end
 
 if verbose
     fprintf('%d ',xShifts)
-    fprintf(' for image size %d by %d\n',size(im))
+    fprintf(' for image size %d by %d, mean = %0.2f\n',size(im),mean(im(:)))
 end
 
 
@@ -142,8 +142,8 @@ stats.targetRowsStart = int16(targetRows(1)); %Which rows will be fixed
 stats.movingRowsStart = int16(movingRows(1)); %Which rows will move
 stats.colX            = int16(colX);          %The band locations
 stats.imSize          = imSize;               %The size of the image for error checking
-
-
+stats.imageMean       = mean(im(:));
+stats.imageMedian     = median(im(:));
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
