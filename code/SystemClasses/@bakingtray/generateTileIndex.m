@@ -97,7 +97,18 @@ for thisDir = 1:length(sectionDirectories)
     TIFFS = dir(fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name,'*.tif'));
 
 
-    if mod(length(TIFFS),numExpectedTIFFsPerChannel)==0
+    % If this isn't auto-ROI, we check whether all tiles have been acquired
+    if ~strcmp(data.mosaic.scanmode, 'tiled: auto-ROI') && mod(length(TIFFS),numExpectedTIFFsPerChannel)==0
+        allTilesAcquired=true;
+    elseif strcmp(data.mosaic.scanmode, 'tiled: auto-ROI')
+        % We simply assume it ran to completion in this mode as there is no hard rule regarding how many tiles should be there.
+        % This could be modified in the future, but for now this will work.
+        allTilesAcquired=true;
+    else
+        allTilesAcquired=false;
+    end
+
+    if allTilesAcquired
         fname=fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name,'tileIndex');
         fid = fopen(fname,'w+');
         fprintf('Writing empty tileindex to %s\n',fname);
@@ -108,7 +119,7 @@ for thisDir = 1:length(sectionDirectories)
          sectionDirectories(thisDir).name)
     end
 
-end 
+end
 
 %Handle output arguments
 if nargout>0
