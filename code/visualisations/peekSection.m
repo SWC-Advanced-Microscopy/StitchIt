@@ -148,7 +148,7 @@ tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
 if verbose, tic, end
 
 % Flip arrays and stitch backwards. This reduces photo-bleaching artifacts
-% if the data haven't been intensity-corrected.
+% if the images haven't been illumination-corrected for vignetting. 
 %tileIndex=flipud(tileIndex);
 
 
@@ -180,7 +180,7 @@ parseOutputArgs(nargout);
 
 function parseOutputArgs(outerFunctNargout)
     %-----------------------------------------------------------------------
-    %Output data if requested. 
+    %Output data if requested
     if outerFunctNargout>0
         varargout{1}=stitchedImage;
     end
