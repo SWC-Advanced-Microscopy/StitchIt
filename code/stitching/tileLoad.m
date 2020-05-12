@@ -1,4 +1,4 @@
-function [im,index]=tileLoad(coords,varargin)
+function [im,index,stagePos]=tileLoad(coords,varargin)
 % Load raw tile data as a stack for processing by StitchIt
 %
 % function [im,index]=tileLoad(coords,'Param1', Val1, 'Param2', Val2, ...)
@@ -50,7 +50,8 @@ function [im,index]=tileLoad(coords,varargin)
 % 3. optical section
 % 4. tile row
 % 5. tile column
-%
+% 
+% stagePos - structure containing stage positions in mm
 %
 %
 % EXAMPLES
@@ -334,7 +335,18 @@ if doCrop
 end
 
 
-
+% get stage positions if requested
+if nargout>2
+    stagePos=[];
+    posFname = fullfile(sectionDir,'tilePositions.mat');
+    if exist(posFname)
+        load(posFname,'positionArray')
+        stagePos.targetPos.X = positionArray(:,3);
+        stagePos.targetPos.Y = positionArray(:,4);
+        stagePos.actualPos.X = positionArray(:,5);
+        stagePos.actualPos.Y = positionArray(:,6);
+    end
+end
 
 %Calculate average filename from tile coordinates. We could simply load the
 %image for one layer and one channel, or we could try odd stuff like averaging
@@ -354,3 +366,4 @@ function aveTemplate = coords2ave(coords,userConfig)
     end
 
 %/COMMON
+

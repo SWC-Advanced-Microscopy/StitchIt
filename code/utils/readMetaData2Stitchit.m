@@ -86,9 +86,6 @@ end
 out = recipe2StitchIt(rawOut,fname);
 
 
-% Add stage position data
-
-
 %------------------------------------------------------------------------
 % Internal functions follow. This is just for tidiness.
 
@@ -123,19 +120,4 @@ function out = recipe2StitchIt(raw,fname)
     %Ensure slice thickness is in microns
     if out.mosaic.sliceThickness<1
         out.mosaic.sliceThickness = out.mosaic.sliceThickness*1E3;
-    end
-
-
-function out = addStagePositions(recipeStruct,positionMatrix)
-    % Add stage position data associated with each tile to the recipe file
-    if ~isempty(raw.XPos)
-        out.stageLocations.requestedStep.X = raw.XPos(:,1); %What was the motion step requested by the microscope?
-        out.stageLocations.expected.X = cumsum(raw.XPos(:,1)); %Infer what the position shoudld be
-        out.stageLocations.reported.X = raw.XPos(:,2);
-    end
-
-    if ~isempty(raw.YPos)
-        out.stageLocations.requestedStep.Y = raw.YPos(:,1); %What was the motion step requested by the microscope?
-        out.stageLocations.expected.Y = cumsum(raw.YPos(:,1)); %Infer what the position shoudld be
-        out.stageLocations.reported.Y = raw.YPos(:,2);
     end

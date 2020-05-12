@@ -151,7 +151,7 @@ if verbose, tic, end
 % if the images haven't been illumination-corrected for vignetting. 
 %tileIndex=flipud(tileIndex);
 
-
+% Stitch using theoretical pixel positions
 pixelPositions=ceil(gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]));
 stitchedImage = stitcher(im,pixelPositions);
 

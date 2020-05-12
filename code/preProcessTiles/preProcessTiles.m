@@ -279,7 +279,7 @@ for thisDir = 1:length(sectionDirectories) %Loop through section directories
         combFile=fullfile(sectionStatsDirName,'phaseStats_01.mat');
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
             fprintf('%s exists. Skipping this comb correction\n',combFile)
-        else    
+        else
             % load channel if needed
             notLoaded = arrayfun(@(x) isempty(imStack{x,1}), combCorChans);
             [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, param, ...
