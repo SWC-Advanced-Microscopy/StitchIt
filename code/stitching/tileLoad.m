@@ -262,7 +262,8 @@ end
 
 %correct phase delay (comb artifact) if requested to do so
 if doCombCorrection
-    im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig);
+    disp('comb correction not re-implemented yet!')
+    %im = stitchit.tileload.combCorrector(im,sectionDir,coords,userConfig);
 end
 
 
