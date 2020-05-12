@@ -143,16 +143,17 @@ parfor XYposInd=1:length(indsToKeep)
     im(:,:,XYposInd)=stitchit.tools.loadTiffStack(path2stack,'frames',planeInSIstack,'outputType','int16');
 end
 
-
-expectedNumberOfTiles = param.numTiles.X*param.numTiles.Y;
-if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
-    fprintf('\nERROR during %s -\nExpected %d tiles from file "%s" but loaded %d tiles.\nRETURNING EMPTY ARRAY FOR SAFETY\n',...
-        mfilename, expectedNumberOfTiles, path2stack, size(im,3))
-    im=[];
-    index=[];
-    return
+% If this is not an auto-ROI acquisition and we have the wrong number of tiles, do not load any
+if ~strcmp(param.mosaic.scanmode, 'tiled: auto-ROI')
+    expectedNumberOfTiles = param.numTiles.X*param.numTiles.Y;
+    if size(im,3) ~= expectedNumberOfTiles && coords(3)==0 && coords(4)==0
+        fprintf('\nERROR during %s -\nExpected %d tiles from file "%s" but loaded %d tiles.\nRETURNING EMPTY ARRAY FOR SAFETY\n',...
+            mfilename, expectedNumberOfTiles, path2stack, size(im,3))
+        im=[];
+        index=[];
+        return
+    end
 end
-
 
 
 
