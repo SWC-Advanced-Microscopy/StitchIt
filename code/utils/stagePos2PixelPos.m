@@ -45,8 +45,6 @@ stagePos=bsxfun(@minus,stagePos,min(stagePos)); %start at zero
 
 
 %Convert to pixels
-stagePos(:,1)=stagePos(:,1)-min(stagePos(:,1));
-
 pixelPos(:,1) = stagePos(:,1) / pixResRow;
 pixelPos(:,2) = stagePos(:,2) / pixResCol;
 
