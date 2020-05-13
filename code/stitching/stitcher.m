@@ -1,7 +1,7 @@
-function varargout = stitcher(imStack,tileCoords,fusionWeight,verbose)
+function varargout = stitcher(imStack,tileCoords,fusionWeight)
 % Stitch one tile-scanned plane from one channel
 %
-% function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight,verbose)
+% function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight)
 %
 %
 % Purpose
@@ -35,9 +35,6 @@ if nargin<3
     fusionWeight=0;
 end
 
-if nargin<4
-    verbose=0;
-end
 
 if isempty(imStack)
     fprintf('%s: image stack is empty. Aborting.\n',mfilename)
@@ -146,6 +143,7 @@ for ii=1:size(imStack,3)
 
 end %for ii=1:size(imStack,3)
 
+fprintf('\nMax X: %0.2f Max Y: %0.2f\n\n', maxXpixel,maxYpixel)
 
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)
