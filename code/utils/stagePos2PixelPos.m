@@ -33,15 +33,6 @@ X=stageLocations(:,2);
 
 
 
-%Convert Y to match with the transposed tiles
-%This is because tile positions were transposed when they were read
-%by generateTileIndex. This avoids needing to flip and transpose the 
-%tiles
-Y = Y * -1;
-Y = Y - min(Y);
-
-
-
 stagePos = [Y,X];
 stagePos = round(stagePos * 1E3); % To get into microns
 
@@ -51,9 +42,6 @@ stagePos = round(stagePos * 1E3); % To get into microns
 %TODO: cropping doesn't seem to have been taken into account?
 
 stagePos=bsxfun(@minus,stagePos,min(stagePos)); %start at zero
-
-
-
 
 
 %Convert to pixels

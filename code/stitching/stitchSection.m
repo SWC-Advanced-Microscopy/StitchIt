@@ -220,7 +220,6 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
 
     [imStack,tileIndex,stagePos]=tileLoad([thisSection,0,0,channel]);
-    imStack = flipud(imStack); % This is always necessary for the stitching to work
 
     if isempty(imStack) %Skip if the image stack is empty. 
         fprintf('Skipping %03d/%02d due to missing tiles\n',thisSection)

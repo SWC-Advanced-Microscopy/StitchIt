@@ -116,7 +116,6 @@ if ~iscell(section)
 
 
     [imStack,tileIndex,stagePos]=tileLoad([section,0,0,channel],'doIlluminationCorrection', doIlumCor);
-    imStack = flipud(imStack); % This is always necessary for the stitching to work
 
     if isempty(imStack) 
         fprintf('Failed to load data from section %d/%d channel %d.\n',section, channel)
