@@ -185,7 +185,12 @@ for ii=1:length(stitchedSize)
     end
 end
 
-
+% Get the exent of the imaged area if we are to use stage positions
+if doStageCoords==1
+    imagedExtent = determineStitchedImageExtent;
+else
+    imagedExtent = [];
+end
 
 numStitched=0; %The number of images stitched. This is just used for error checking
 varargout=cell(1,1); %Declare outside parfor so they are returned correctly
@@ -235,7 +240,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     voxelSize = [param.voxelSize.X,param.voxelSize.Y];
 
     if doStageCoords == 1
-        pixelPositions = stagePos2PixelPos([stagePos.actualPos.X,stagePos.actualPos.Y],voxelSize);
+        pixelPositions = stagePos2PixelPos([stagePos.actualPos.X,stagePos.actualPos.Y],voxelSize,imagedExtent.minXY);
     elseif doStageCoords == 0
         pixelPositions = stagePos2PixelPos([stagePos.targetPos.X,stagePos.targetPos.Y],voxelSize);
     else
