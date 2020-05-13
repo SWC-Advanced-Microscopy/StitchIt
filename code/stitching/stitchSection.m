@@ -195,6 +195,7 @@ end
 numStitched=0; %The number of images stitched. This is just used for error checking
 varargout=cell(1,1); %Declare outside parfor so they are returned correctly
 nout=nargout;
+
 parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
