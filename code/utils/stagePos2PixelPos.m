@@ -19,7 +19,7 @@ function pixelPos = stagePos2PoxelPos(stagePos,micsPerPixel,offsetXY)
 %
 %
 % Rob Campbell - Basel 2014
-%              - Updated May 2020 to handle BakingTray instead of Orchestrator data
+%              - Updated May 2020 to handle only BakingTray instead of Orchestrator data
 
 if nargin<3
     offsetXY=[];
@@ -29,8 +29,7 @@ end
 pixResRow=micsPerPixel(1);
 pixResCol=micsPerPixel(2);
 
-
-stagePos = round(stagePos * 1E3); % To get into microns
+stagePos = round(stagePos * 1E3); % Convert to microns
 
 
 %However, we have cropped images so let's take that into account 
@@ -43,10 +42,6 @@ end
 
 stagePos = stagePos - offsetXY; % Subtract the offset
 
-
 %Convert to pixels
-pixelPos(:,1) = stagePos(:,1) / pixResRow;
-pixelPos(:,2) = stagePos(:,2) / pixResCol;
-
-
+pixelPos = bsxfun(@rdivide,stagePos,[pixResRow,pixResCol]);
 pixelPos = round(pixelPos + 1);
