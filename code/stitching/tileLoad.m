@@ -205,10 +205,6 @@ if planeNum>SI.numFramesPerVolume
         planeNum,SI.numFramesPerVolume)
     return
 end
-%Load all frames if requested
-if planeNum==0
-    %planeNum = 1:SI.numFramesPerVolume;
-end
 
 
 %Load the last frame and pre-allocate the rest of the stack
