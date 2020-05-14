@@ -1,7 +1,7 @@
-function varargout = stitcher(imStack,tileCoords,fusionWeight)
+function varargout = stitcher(imStack,tileCoords,fusionWeight,maxPixelPos)
 % Stitch one tile-scanned plane from one channel
 %
-% function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight)
+% function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight,maxPixelPos)
 %
 %
 % Purpose
@@ -35,12 +35,17 @@ if nargin<3
     fusionWeight=0;
 end
 
+if nargin<4
+    maxPixelPos=[];
+end
 
 if isempty(imStack)
     fprintf('%s: image stack is empty. Aborting.\n',mfilename)
     return
 end
 
+
+verbose = false;
 
 userConfig=readStitchItINI;
 
@@ -58,10 +63,26 @@ imStack(f)=cutoffVal;
 %Now we can pre-allocate our image
 tileSize=[size(imStack,1),size(imStack,2)];
 
-
 % Determine the size of the final stitched image
-maxXpixel=max(tileCoords(:,2)+tileSize(2)-1);
-maxYpixel=max(tileCoords(:,1)+tileSize(1)-1);
+projected_maxXpixel=max(tileCoords(:,2)+tileSize(2)-1);
+projected_maxYpixel=max(tileCoords(:,1)+tileSize(1)-1);
+if isempty(maxPixelPos)
+    maxXpixel=projected_maxXpixel;
+    maxYpixel=projected_maxYpixel;
+else
+    maxXpixel = maxPixelPos(2);
+    maxYpixel = maxPixelPos(1);
+
+
+    if projected_maxXpixel > maxXpixel
+        fprintf('Projected max x pixel is %d but expected values is %d\n', ...
+            projected_maxXpixel, maxXpixel);
+    end
+    if projected_maxYpixel > maxYpixel
+        fprintf('Projected max y pixel is %d but expected values is %d\n', ...
+            projected_maxYpixel, maxYpixel);
+    end
+end
 
 
 %We will use the value 2^16 to indicate regions where a tile hasn't been placed.
@@ -91,6 +112,9 @@ userConfig=readStitchItINI;
 %e.g. for gradient-domain removal of tile seams
 tilePositionInPixels=ones(size(imStack,3),4); %x,xwidth,y,ywidth
 
+if verbose
+    fprintf('\n%s reports -- Max X: %0.2f Max Y: %0.2f\n\n', mfilename, maxXpixel, maxYpixel)
+end
 
 
 for ii=1:size(imStack,3)
@@ -99,6 +123,10 @@ for ii=1:size(imStack,3)
     xPos = [tileCoords(ii,2), tileCoords(ii,2)+tileSize(2)-1];
     yPos = [tileCoords(ii,1), tileCoords(ii,1)+tileSize(1)-1];
     tilePositionInPixels(ii,:) = [xPos(1),tileSize(2),yPos(1),tileSize(1)]; %this is stored to disk
+
+    if verbose
+        fprintf('%d/%d Inserting tile at: x=%d to %d  y=%d to %d\n', ii, size(imStack,3), xPos,yPos)
+    end
 
     %origTilePatch is the area where the tile will be placed. We store it in order to allow for
     %for "average" blending between one tile and another
@@ -143,7 +171,7 @@ for ii=1:size(imStack,3)
 
 end %for ii=1:size(imStack,3)
 
-fprintf('\nMax X: %0.2f Max Y: %0.2f\n\n', maxXpixel,maxYpixel)
+
 
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)

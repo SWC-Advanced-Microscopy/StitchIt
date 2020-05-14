@@ -241,9 +241,15 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     voxelSize = [param.voxelSize.X,param.voxelSize.Y];
 
     if doStageCoords == 1
-        pixelPositions = stagePos2PixelPos([stagePos.actualPos.X,stagePos.actualPos.Y],voxelSize,imagedExtent.minXY);
+        posArray = [stagePos.actualPos.X,stagePos.actualPos.Y];
+        pixelPositions = stagePos2PixelPos(posArray,voxelSize,imagedExtent.minXY);
+        %pixelPositions = stagePos2PixelPos(posArray,voxelSize);
+
+        maxXY = max(stagePos2PixelPos([imagedExtent.minXY;imagedExtent.maxXY],voxelSize));
+
     elseif doStageCoords == 0
         pixelPositions = stagePos2PixelPos([stagePos.targetPos.X,stagePos.targetPos.Y],voxelSize);
+        maxXY = [];
     else
         % We use the tile grid positions. This is how we used to do stitching before May 2020. 
         % the doStageCoords == 0 should give a result identical to this
@@ -251,7 +257,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     end
 
 
-    [stitched,tilePosInPixels]=stitcher(imStack,pixelPositions,fusionWeight);
+    [stitched,tilePosInPixels]=stitcher(imStack,pixelPositions,fusionWeight,maxXY);
 
 
     %Save full and reduced size planes

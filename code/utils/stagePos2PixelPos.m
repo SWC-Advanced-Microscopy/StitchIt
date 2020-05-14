@@ -17,9 +17,18 @@ function pixelPos = stagePos2PoxelPos(stagePos,micsPerPixel,offsetXY)
 %           By default the minimum stage position in "stagePos" is used. 
 %           This option is to allow stitching of sections with with different ROIs.
 %
+% Outputs
+% pixelPos -  This n by 2 array is fed into stitcher to place the tiles forming a 
+%             stitched image. The first column is the pixel row the second is the 
+%             pixel column index.
+%
 %
 % Rob Campbell - Basel 2014
 %              - Updated May 2020 to handle only BakingTray instead of Orchestrator data
+%
+%
+% See also:
+% peekSection, stitchSection, tileLoad
 
 if nargin<3
     offsetXY=[];
@@ -29,19 +38,24 @@ end
 pixResRow=micsPerPixel(1);
 pixResCol=micsPerPixel(2);
 
-stagePos = round(stagePos * 1E3); % Convert to microns
+stagePos = round(stagePos * 1E3); % Convert from mm to microns
 
 
-%However, we have cropped images so let's take that into account 
-%TODO: cropping doesn't seem to have been taken into account?
 if isempty(offsetXY)
     offsetXY = min(stagePos); %start at zero
 else
-    offsetXY = round(offsetXY * 1E3);
+    tileSize=abs(mode(diff(stagePos(:,1))));
+    offsetXY = round( (offsetXY) * 1E3)+tileSize;
+%    round([offsetXY; min(stagePos)])
+%    diff([offsetXY; min(stagePos)])
+ 
+%    offsetXY = round( offsetXY + diff([offsetXY; min(stagePos)]) )
 end
 
+%stagePos(end-10:end,:)
 stagePos = stagePos - offsetXY; % Subtract the offset
+%stagePos(end-10:end,:)
 
-%Convert to pixels
+% Convert from microns to pixels
 pixelPos = bsxfun(@rdivide,stagePos,[pixResRow,pixResCol]);
 pixelPos = round(pixelPos + 1);
