@@ -46,15 +46,9 @@ if isempty(offsetXY)
 else
     tileSize=abs(mode(diff(stagePos(:,1))));
     offsetXY = round( (offsetXY) * 1E3)+tileSize;
-%    round([offsetXY; min(stagePos)])
-%    diff([offsetXY; min(stagePos)])
- 
-%    offsetXY = round( offsetXY + diff([offsetXY; min(stagePos)]) )
 end
 
-%stagePos(end-10:end,:)
 stagePos = stagePos - offsetXY; % Subtract the offset
-%stagePos(end-10:end,:)
 
 % Convert from microns to pixels
 pixelPos = bsxfun(@rdivide,stagePos,[pixResRow,pixResCol]);

@@ -243,8 +243,6 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     if doStageCoords == 1
         posArray = [stagePos.actualPos.X,stagePos.actualPos.Y];
         pixelPositions = stagePos2PixelPos(posArray,voxelSize,imagedExtent.minXY);
-        %pixelPositions = stagePos2PixelPos(posArray,voxelSize);
-
         maxXY = max(stagePos2PixelPos([imagedExtent.minXY;imagedExtent.maxXY],voxelSize));
 
     elseif doStageCoords == 0

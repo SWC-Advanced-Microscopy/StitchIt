@@ -64,21 +64,3 @@ function out = determineStitchedImageExtent
     tileStepSizeMM = abs(mode(diff(positionArray(:,3))));
     out.minXY = [min(out.minXPos), min(out.minYPos)] - tileStepSizeMM;
     out.maxXY = [max(out.maxXPos), max(out.maxYPos)];
-
-
-    verbose=false;
-
-    if verbose
-        % Get the tile step size in mm 
-
-
-        % report the size of the images that we would make
-        fprintf('Expecting ~ 1048  by 817\n')
-        t=stagePos2PixelPos(abs(out.minXY),[20,20],[0,0]);
-        fprintf('Producing %d by %d without an external offset\n', t)
-
-
-        t=stagePos2PixelPos([out.maxXY;out.minXY],[20,20]);
-        fprintf('Producing %d by %d with an external offset\n', max(t))
-
-    end
