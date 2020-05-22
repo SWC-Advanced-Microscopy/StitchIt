@@ -61,6 +61,11 @@ function out = determineStitchedImageExtent
     end
 
 
-    tileStepSizeMM = abs(mode(diff(positionArray(:,3))));
+    tileStepSizeMM = abs(mode(diff(positionArray(:,3))))
+
+
+    tileExtentInMM = tileStepSizeMM  / (1-data.mosaic.overlapProportion);
+ 
+    %out.minXY = [min(out.minXPos), min(out.minYPos)] - tileExtentInMM; %    % TODO -- I would have thought this is correct, but it seems not to be
     out.minXY = [min(out.minXPos), min(out.minYPos)] - tileStepSizeMM;
     out.maxXY = [max(out.maxXPos), max(out.maxYPos)];

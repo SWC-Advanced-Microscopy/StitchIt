@@ -74,7 +74,9 @@ else
     maxXpixel = maxPixelPos(2);
     maxYpixel = maxPixelPos(1);
 
-
+    disp('THERE IS A HACK IN stitcher at lines 78 and 79.')
+    maxXpixel=projected_maxXpixel;
+    maxYpixel=projected_maxYpixel;
     if projected_maxXpixel > maxXpixel
         fprintf('Warning, stage positions requested with projected max x pixel of %d but expected value is %d\n', ...
             projected_maxXpixel, maxXpixel);
