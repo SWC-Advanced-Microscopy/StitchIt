@@ -66,6 +66,7 @@ tileSize=[size(imStack,1),size(imStack,2)];
 % Determine the size of the final stitched image
 projected_maxXpixel=max(tileCoords(:,2)+tileSize(2)-1);
 projected_maxYpixel=max(tileCoords(:,1)+tileSize(1)-1);
+
 if isempty(maxPixelPos)
     maxXpixel=projected_maxXpixel;
     maxYpixel=projected_maxYpixel;
@@ -75,11 +76,11 @@ else
 
 
     if projected_maxXpixel > maxXpixel
-        fprintf('Projected max x pixel is %d but expected values is %d\n', ...
+        fprintf('Warning, stage positions requested with projected max x pixel of %d but expected value is %d\n', ...
             projected_maxXpixel, maxXpixel);
     end
     if projected_maxYpixel > maxYpixel
-        fprintf('Projected max y pixel is %d but expected values is %d\n', ...
+        fprintf('Warning, stage positions requested with projected max y pixel of %d but expected value is %d\n', ...
             projected_maxYpixel, maxYpixel);
     end
 end
@@ -123,6 +124,30 @@ for ii=1:size(imStack,3)
     xPos = [tileCoords(ii,2), tileCoords(ii,2)+tileSize(2)-1];
     yPos = [tileCoords(ii,1), tileCoords(ii,1)+tileSize(1)-1];
     tilePositionInPixels(ii,:) = [xPos(1),tileSize(2),yPos(1),tileSize(1)]; %this is stored to disk
+
+    % Gracefully fail. In normal usage, the following conditions should never evaluate to true
+    if yPos(1)<1
+        fprintf('Y coordinate would place tile in position < 1. SKIPPING TILE\n')
+        continue
+    end
+
+    if xPos(1)<1
+        fprintf('X coordinate would place tile in position < 1. SKIPPING TILE\n')
+        continue
+    end
+
+    if yPos(2)>size(stitchedPlane,1)
+        fprintf('Y coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
+            yPos(2), size(stitchedPlane,1))
+        continue
+    end
+
+    if xPos(2)>size(stitchedPlane,2)
+        fprintf('X coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
+            xPos(2), size(stitchedPlane,2))
+        continue
+    end
+
 
     if verbose
         fprintf('%d/%d Inserting tile at: x=%d to %d  y=%d to %d\n', ii, size(imStack,3), xPos,yPos)
