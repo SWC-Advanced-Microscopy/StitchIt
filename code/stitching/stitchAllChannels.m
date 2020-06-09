@@ -77,7 +77,6 @@ end
 
 
 %Loop through and stitch all requested channels
-generateTileIndex; %Ensure the tile index is present
 analysesPerformed = preProcessTiles(0, 'combCorChans', combCorChans,'illumChans', illumChans); %Ensure we have the pre-processing steps done
 
 if analysesPerformed.illumCor || ~exist(fullfile(config.subdir.rawDataDir, config.subdir.averageDir),'dir');
