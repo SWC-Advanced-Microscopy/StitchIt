@@ -18,8 +18,8 @@ function out = determineStitchedImageExtent
     % Rob Campbell - SWC 2020
 
 
-    verbose=true; %report to screen lots on info on 
-    plotboxes=true; %make a plot with the imaged areas overlain
+    verbose=false; %report to screen lots on info on 
+    plotboxes=false; %make a plot with the imaged areas overlain
 
     if verbose
         fprintf('%s is determining the extent of the imaged area\n', mfilename)
