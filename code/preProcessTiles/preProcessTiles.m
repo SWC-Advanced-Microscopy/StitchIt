@@ -119,9 +119,8 @@ illumChans=params.Results.illumChans;
 verbose=params.Results.verbose;
 
 
-if ~strcmp(determineStitchItSystemType,'TissueCyte') && ...
-    (length(combCorChans)>1 || combCorChans~=0)
-    fprintf('\nYou have requested to run a comb-correction on non-TissueVision data. Please see:\n ')
+if length(combCorChans)>1 || combCorChans~=0
+    fprintf('\nYou have requested to run a comb-correction. This is not working right now. Please see:\n ')
     fprintf('https://github.com/BaselLaserMouse/StitchIt/wiki/Tile-pre-processing\n\n')
 end
 

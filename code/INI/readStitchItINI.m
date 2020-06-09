@@ -22,7 +22,7 @@ function [out,pathToINI]=readStitchItINI(varargin)
 % Inputs
 % All inputs as *optional* parameter/value pairs
 % 'INIfname'   - Path to INI file to read. If empty or missing the above rules apply.
-% 'systemType' = either 'TissueCyte' or the ID of a system (the microscope name).
+% 'systemType' = The ID of a system (the microscope name).
 %
 % Outputs
 % out - the contents of the INI file (plus some minor processing) as a structure
@@ -130,29 +130,18 @@ for ii=1:length(fD)
 
 end
 
-%Pull out the current objective from the structure
-% TODO: the following is system specific and very much tied to the TV.
-% Need to get rid of it -- too complicated
-if ~isfield(out, out.experiment.objectiveName)
-    error('No objective name field %s found\nPlease check your INI file!', out.experiment.objectiveName')
-end
-thisObjective = out.(out.experiment.objectiveName);
-%Note that for TV data sets, the number of microns per pixel is with respect to the 1664 image size
-out.micsPerPixel.micsPerPixelMeasured=thisObjective.micsPerPixelMeasured;
-out.micsPerPixel.micsPerPixelRows=thisObjective.micsPerPixelRows;
-out.micsPerPixel.micsPerPixelCols=thisObjective.micsPerPixelCols;
 
 
 function out=readThisINI(fname)
-ini = IniConfig();
-ini.ReadFile(fname);
+    ini = IniConfig();
+    ini.ReadFile(fname);
 
-sections = ini.GetSections;
+    sections = ini.GetSections;
 
-for ii=1:length(sections)
-    keys = ini.GetKeys(sections{ii});
-    values = ini.GetValues(sections{ii}, keys);
-    for jj=1:length(values)
-        out.(sections{ii}(2:end-1)).(keys{jj})=values{jj};
+    for ii=1:length(sections)
+        keys = ini.GetKeys(sections{ii});
+        values = ini.GetValues(sections{ii}, keys);
+        for jj=1:length(values)
+            out.(sections{ii}(2:end-1)).(keys{jj})=values{jj};
+        end
     end
-end
