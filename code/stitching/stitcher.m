@@ -211,9 +211,6 @@ for ii=1:size(imStack,3)
 
 end %for ii=1:size(imStack,3)
 
-clf
-subplot(1,2,1)
-imagesc(stitchedPlane), caxis([0,300])
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)
     fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n', ...
@@ -240,9 +237,6 @@ if st.rotate ~= 0
     stitchedPlane=rot90(stitchedPlane,st.rotate);
     %TODO - return the tilePositionInPixels
 end
-
-subplot(1,2,2)
-imagesc(stitchedPlane), caxis([0,300])
 
 
 %Handle output arguments
