@@ -5,10 +5,10 @@ function varargout = stitcher(imStack,tileCoords,fusionWeight,maxPixelPos)
 %
 %
 % Purpose
-% This is the workhorse function that performs the stitching. 
-% All transformations, such as background subtraction, should already have 
-% been applied to the tile data fed to this function. Stitched "backwards",
-% which can reduce bleaching artifacts at tile overlap regions. 
+% This is the workhorse function that performs the stitching. All transformations,
+% such as background subtraction, should already have been applied to the tile 
+% data fed to this function. The image is stitched "backwards", which reduces
+% photo-bleaching artifacts at tile overlap regions.
 %
 %
 % Inputs
@@ -45,7 +45,7 @@ if isempty(imStack)
 end
 
 
-verbose = false;
+verbose = true;
 
 userConfig=readStitchItINI;
 
@@ -64,8 +64,13 @@ imStack(f)=cutoffVal;
 tileSize=[size(imStack,1),size(imStack,2)];
 
 % Determine the size of the final stitched image
-projected_maxXpixel=max(tileCoords(:,2)+tileSize(2)-1);
-projected_maxYpixel=max(tileCoords(:,1)+tileSize(1)-1);
+projected_maxXpixel=max(tileCoords(:,2)+tileSize(2)+1);
+projected_maxYpixel=max(tileCoords(:,1)+tileSize(1)+1);
+
+if verbose
+    fprintf('Projected max pixel -- X: %d Y: %d\n', projected_maxXpixel, projected_maxYpixel)
+end
+
 
 if isempty(maxPixelPos)
     maxXpixel=projected_maxXpixel;
@@ -74,9 +79,15 @@ else
     maxXpixel = maxPixelPos(2);
     maxYpixel = maxPixelPos(1);
 
-    disp('THERE IS A HACK IN stitcher at lines 78 and 79.')
-    maxXpixel=projected_maxXpixel;
-    maxYpixel=projected_maxYpixel;
+    if verbose
+        fprintf('Min pixel -- X: %d Y: %d\n', min(tileCoords(:,2)), min(tileCoords(:,1)))
+        fprintf('Supplied max pixel -- X: %d Y: %d\n', maxXpixel, maxYpixel)
+    end
+
+    %disp('THERE IS A HACK IN stitcher at lines 78 and 79: replacing supplied max with projected max pixels')
+    %maxXpixel=projected_maxXpixel;
+    %maxYpixel=projected_maxYpixel;
+
     if projected_maxXpixel > maxXpixel
         fprintf('Warning, stage positions requested with projected max x pixel of %d but expected value is %d\n', ...
             projected_maxXpixel, maxXpixel);
@@ -87,12 +98,15 @@ else
     end
 end
 
-
 %We will use the value 2^16 to indicate regions where a tile hasn't been placed.
 %this is just a trick to make the tile fusion (which is currently just averaging) 
 %work easily. Pre-allocate a little more than is needed (we'll trim it later).
 % TODO -- this is not working right now. It's missing! We should just remove it, TBH
-stitchedPlane = zeros([maxYpixel,maxXpixel], 'uint16');
+
+
+
+finalImSize = [maxYpixel,maxXpixel] + 15;
+stitchedPlane = zeros(finalImSize, 'uint16');
 
 
 if fusionWeight<0 %do chessboad
@@ -152,7 +166,7 @@ for ii=1:size(imStack,3)
 
 
     if verbose
-        fprintf('%d/%d Inserting tile at: x=%d to %d  y=%d to %d\n', ii, size(imStack,3), xPos,yPos)
+       %fprintf('%d/%d Inserting tile at: x=%d to %d  y=%d to %d\n', ii, size(imStack,3), xPos,yPos)
     end
 
     %origTilePatch is the area where the tile will be placed. We store it in order to allow for
@@ -182,7 +196,6 @@ for ii=1:size(imStack,3)
 
 
 
-
     %Incorporate debug info text into image for each tile if we're chessboard stitching. 
     %This indictes the tile index and X/Y grid position. 
     if fusionWeight<0
@@ -198,14 +211,18 @@ for ii=1:size(imStack,3)
 
 end %for ii=1:size(imStack,3)
 
-
-
+clf
+subplot(1,2,1)
+imagesc(stitchedPlane), caxis([0,300])
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)
     fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n', ...
              'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedPlane))
 end
 
+if verbose
+    fprintf('stitcher produced a stitched plane of size %d by %d\n',size(stitchedPlane))
+end
 
 %Flip or rotate sections if needed.
 st=userConfig.stitching;
@@ -224,6 +241,8 @@ if st.rotate ~= 0
     %TODO - return the tilePositionInPixels
 end
 
+subplot(1,2,2)
+imagesc(stitchedPlane), caxis([0,300])
 
 
 %Handle output arguments
