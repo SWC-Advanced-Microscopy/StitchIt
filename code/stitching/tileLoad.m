@@ -130,17 +130,6 @@ if ~exist(sectionDir,'dir')
 end
 
 
-%Load tile index file or bail out gracefully if it doesn't exist. 
-tileIndexFile=fullfile(sectionDir,'tileIndex');
-% TODO -- I think in future we can rid of the following. No longer need the index file
-if ~exist(tileIndexFile,'file') && strcmp(param.mosaic.scanmode, 'tiled: manual ROI')
-    fprintf('%s: No tile index file: %s\n',mfilename,tileIndexFile)
-    im=[];
-    index=[];
-    return
-end
-
-
 
 %Load the tile position array
 load(fullfile(sectionDir, 'tilePositions.mat')); %contains variable positionArray
@@ -260,6 +249,8 @@ index(:,4) = abs(colInd - max(colInd))+1;
 if doIlluminationCorrection==-1
     return
 end
+
+
 
 
 %--------------------------------------------------------------------
