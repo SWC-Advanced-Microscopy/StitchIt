@@ -191,7 +191,6 @@ voxelSize = [param.voxelSize.X,param.voxelSize.Y];
 if doStageCoords==1 || strcmp(param.mosaic.scanmode, 'tiled: auto-ROI')
     imagedExtent = determineStitchedImageExtent;
     maxXY = max(stagePos2PixelPos([imagedExtent.minXY;imagedExtent.maxXY],voxelSize));
-
 else
     imagedExtent.maxXY = [];
     maxXY=[];

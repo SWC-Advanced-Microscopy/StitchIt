@@ -96,7 +96,7 @@ function out = determineStitchedImageExtent
 
 
     % This is a call to a test function to ensure that all is running as expected
-    checkMinMax
+    %checkMinMax
 
 
     if plotboxes
