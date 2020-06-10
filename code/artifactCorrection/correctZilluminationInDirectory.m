@@ -221,15 +221,15 @@ function thisSection=smoothingRescale(thisSection,verbose)
 % 0. Remove the top 0.01% of pixels by setting a ceiling. (optional)
 % 1. Smooth each section with a big fat Gaussian
 % 2. Figure out the ratio at each pixel between the top section and the lower ones
-% 3. Divide all sections beneath the surface by the number in 2. 
+% 3. Divide all sections beneath the surface by the number in step 2.
 
-    
+
     thisSection=single(thisSection);
 
 
     %This failed for the full size images. No time yet to figure out why [raac]
     doReducePixelValues=0; 
-    
+
     if doReducePixelValues
 
         if verbose
@@ -258,7 +258,7 @@ function thisSection=smoothingRescale(thisSection,verbose)
 
 
 
-    %Speed up the processing by reducing the size of the filtered imagesj
+    %Speed up the processing by reducing the size of the filtered images
     %another option would be to do this in the frequency domain
     maxImSize=1.5E6; %images larger than this number of pixels will be reduced to this size
     thisImSize=prod(size(thisSection(:,:,1)));
@@ -271,14 +271,14 @@ function thisSection=smoothingRescale(thisSection,verbose)
         targetSize = size(thisSection(:,:,1));
         resizeBy=1; 
     end
-    
+
     %The filter area will be a fixed fraction of the image size
     filterArea = 0.01; %The area of the SD will be this proportion of the image size
     imSize = prod(targetSize);
     SDgaus = round(sqrt(imSize*filterArea/pi)*2);
 
     G=fspecial('gaussian',SDgaus*3,SDgaus); %great big Gaussian
-        
+
 
     %Filter and divide 
     if verbose
@@ -291,7 +291,7 @@ function thisSection=smoothingRescale(thisSection,verbose)
     end
 
 
-      %The following line is fairly expensive
+    %The following line is fairly expensive
     F1=single(imfilter( imresize(thisSection(:,:,1),'OutputSize',targetSize) , G)); %The first layer 
 
     %Now go through and divide
@@ -305,7 +305,3 @@ function thisSection=smoothingRescale(thisSection,verbose)
 
 
     thisSection=uint16(thisSection);
-
-
-
-

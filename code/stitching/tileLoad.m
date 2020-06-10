@@ -62,9 +62,7 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 %
 % Rob Campbell - Basel 2014
 %               updated to handle param/value pairs - Basel 2017
-%
-%
-% See also generateTileIndex
+
 
 
 if length(coords)~=5
