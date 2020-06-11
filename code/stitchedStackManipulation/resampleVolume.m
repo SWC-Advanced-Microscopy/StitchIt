@@ -338,3 +338,6 @@ function vol = correctZilum(vol,planeID)
 
     end
 
+    % Finally we clean it up a little more by doing a median filter in depth only
+    vol = medfilt3(vol,[1,1,3]); 
+
