@@ -210,11 +210,22 @@ vol=stitchit.tools.openTiff(fullfile(origDataDir,files(1).name));
 vol=imresize(vol,xyRescaleFactor);
 vol(:,:,2:end)=nan;
 vol=repmat(vol,[1,1,length(files)]);
+planeID = zeros(length(files),2); %array that will hold the physical/optical section numbers
 
+%This loop builds a volume that is downsampled in x/y but not in z
 parfor ii=1:length(files)
     fprintf('Resampling %03d\n', ii)
     im=stitchit.tools.openTiff(fullfile(origDataDir,files(ii).name));
     vol(:,:,ii)=imresize(im,xyRescaleFactor);
+    % Extract the physical and optical section numbers from the file name
+    tok=regexp(files(ii).name,'\w+_(\d+)_(\d+)\.tif','tokens'); 
+    planeID(ii,:) = cellfun(@str2double,(tok{1}));
+
+end
+
+% Correct z illumunation
+if length(unique(planeID(:,2)))>1
+    vol = correctZilum(vol,planeID);
 end
 
 
@@ -248,7 +259,8 @@ else
 end
 
 %Save the data
-vol=uint16(vol);  
+vol=uint16(vol);
+
 try
     fprintf('Saving to %s\n',downsampledFname)
 
@@ -285,3 +297,44 @@ msg = sprintf('Done\n');
 fprintf(msg);
 fprintf(fid,msg);
 fclose(fid);
+
+
+
+
+%-----------------------------------
+function vol = correctZilum(vol,planeID)
+
+    vol=single(vol);
+
+
+    %The filter area will be a fixed fraction of the image size
+    filterArea = 0.005; %The area of the SD will be this proportion of the image size
+    xySize = prod(size(vol,[1,2]));
+    SDgaus = round(sqrt(xySize*filterArea/pi)*2);
+
+    G=fspecial('gaussian',SDgaus*3,SDgaus); %great big Gaussian
+
+
+    sectionNumbers = unique(planeID(:,1));
+
+    for ii=1:length(sectionNumbers)
+        tSec = sectionNumbers(ii);
+        f=find(planeID(:,1)==tSec);
+        planeID(f,:);
+
+        tmpPlanes = single(vol(:,:,f));
+        F1=imfilter(tmpPlanes(:,:,1), G); %The first layer 
+
+        for jj=2:length(f)
+            %The following line is where the bulk of the time is taken
+            FthisLayer = F1 ./ imfilter(tmpPlanes(:,:,jj),G); 
+
+            %Now correct each section by this zRescaleFacto
+            tmpPlanes(:,:,jj) = tmpPlanes(:,:,jj) .* FthisLayer;
+        end
+
+        % Replace the data
+        vol(:,:,f)=uint16(tmpPlanes);
+
+    end
+
