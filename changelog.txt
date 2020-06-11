@@ -1,5 +1,9 @@
 StitchIt Change Log
 
+11/06/2020
+- USER: downsampled stacks now have illumination changes across depths corrected to a large degree
+
+
 20/03/2020
 - USER: Downsampled stacks now contain the channel name (as a string -- "red" or "green") in the file name.
 - USER: stitchedPlanesToVolume produces stacks that contain the channel name the file name.
