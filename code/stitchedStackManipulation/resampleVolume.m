@@ -303,7 +303,7 @@ fclose(fid);
 
 %-----------------------------------
 function vol = correctZilum(vol,planeID)
-
+    fprintf('Correcting z illumunation change within each section\n')
     vol=single(vol);
 
 
