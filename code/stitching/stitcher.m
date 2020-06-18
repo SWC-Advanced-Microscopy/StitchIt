@@ -80,8 +80,8 @@ else
     maxYpixel = maxPixelPos(1);
 
     if verbose
-        fprintf('Min pixel -- X: %d Y: %d\n', min(tileCoords(:,2)), min(tileCoords(:,1)))
-        fprintf('Supplied max pixel -- X: %d Y: %d\n', maxXpixel, maxYpixel)
+        fprintf('Min pixel from tile coords -- X: %d Y: %d\n', min(tileCoords(:,2)), min(tileCoords(:,1)))
+        fprintf('Supplied max pixel from determineStitchedImageExtent -- X: %d Y: %d\n', maxXpixel, maxYpixel)
     end
 
     %disp('THERE IS A HACK IN stitcher at lines 78 and 79: replacing supplied max with projected max pixels')
@@ -105,7 +105,8 @@ end
 
 
 
-finalImSize = [maxYpixel,maxXpixel] + 15;
+finalImSize = [maxYpixel,maxXpixel];
+
 stitchedPlane = zeros(finalImSize, 'uint16');
 
 

@@ -18,8 +18,8 @@ function out = determineStitchedImageExtent
     % Rob Campbell - SWC 2020
 
 
-    verbose=false; %report to screen lots on info on 
-    plotboxes=false; %make a plot with the imaged areas overlain
+    verbose=1; %report to screen lots on info on 
+    plotboxes=0; %make a plot with the imaged areas overlain
 
     if verbose
         fprintf('%s is determining the extent of the imaged area\n', mfilename)
@@ -35,6 +35,13 @@ function out = determineStitchedImageExtent
 
     %Load the INI file and extract default values from it
     userConfig=readStitchItINI;
+
+    % Ensure we choose the correct rows for theoretical vs actual coords
+    if userConfig.stitching.doStageCoords
+        colInds = [5,6];
+    else
+        colInds = [3,4];
+    end
 
     if ~exist(userConfig.subdir.rawDataDir, 'dir')
         fprintf('Found no raw data directory\n')
@@ -61,11 +68,11 @@ function out = determineStitchedImageExtent
 
         % Log the actual minimum X and Y positions
         % TODO - we should maybe allow for predicted stage positions instead of actual
-        out.minXPos(ii)=min(positionArray(:,5));
-        out.minYPos(ii)=min(positionArray(:,6));
+        out.minXPos(ii)=min(positionArray(:,colInds(1)));
+        out.minYPos(ii)=min(positionArray(:,colInds(2)));
 
-        out.maxXPos(ii)=max(positionArray(:,5));
-        out.maxYPos(ii)=max(positionArray(:,6));
+        out.maxXPos(ii)=max(positionArray(:,colInds(1)));
+        out.maxYPos(ii)=max(positionArray(:,colInds(2)));
 
         if verbose
             fprintf('%d/%d Front/Left -- x=%0.2f  y=%0.2f (%d by %d tiles)\n', ...
@@ -111,7 +118,7 @@ function out = determineStitchedImageExtent
         jj = jet(length(rDataDirs));
         for ii=1:length(rDataDirs)
 
-            tmp=stagePos2PixelPos(tp{ii}(:,5:6), voxSize, out.maxXY);
+            tmp=stagePos2PixelPos(tp{ii}(:,colInds), voxSize, out.maxXY);
             minPix = min(tmp);
             maxPix = max(tmp) + tileSizeInPixels;
             d = maxPix-minPix; % This is the size of the box
