@@ -193,7 +193,7 @@ function parseOutputArgs(outerFunctNargout)
     end
 
     if outerFunctNargout>1
-        varargout{2}=im;
+        varargout{2}=imStack;
     end
 
     if outerFunctNargout>2
@@ -227,9 +227,9 @@ function parseOutputArgs(outerFunctNargout)
             imshow(stitchedImage)
         end % size(stitchedImage,3)==1
         axis equal off
-    end % outerFunct
+    end % if outerFunct 
 
-end % function
+end % function parseOutputArgs
 
 
 end % peekSection
