@@ -45,7 +45,7 @@ if isempty(imStack)
 end
 
 
-verbose = true;
+verbose = false;
 
 userConfig=readStitchItINI;
 
