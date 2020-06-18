@@ -18,7 +18,7 @@ function out = determineStitchedImageExtent
     % Rob Campbell - SWC 2020
 
 
-    verbose=1; %report to screen lots on info on 
+    verbose=0; %report to screen lots on info on 
     plotboxes=0; %make a plot with the imaged areas overlain
 
     if verbose
@@ -97,7 +97,7 @@ function out = determineStitchedImageExtent
     % The number of mm of overlap between adjacent tiles
     tileOverlapInMM = tileExtentInMM - tileStepSizeMM;
 
-    out.minXY = [min(out.minXPos), min(out.minYPos)] - tileStepSizeMM;
+    out.minXY = [min(out.minXPos), min(out.minYPos)] - tileExtentInMM* (1-userConfig.tile.cropProportion);
 
     out.maxXY = [max(out.maxXPos), max(out.maxYPos)]; % This is the "origin" front/left
 
