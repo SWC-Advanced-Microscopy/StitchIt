@@ -265,7 +265,20 @@ try
     fprintf('Saving to %s\n',downsampledFname)
 
     if strcmp('tiff',fileFormat)
-        stitchit.tools.save3Dtiff(vol,[downsampledFname,'.tif'])
+        tiffName = [downsampledFname,'.tif'];
+        if ( prod(size(vol))*2 / 1024^3) < 4
+            % Then it's safe not to save a big tiff
+            stitchit.tools.save3Dtiff(vol,tiffName)
+        else
+            % Otherwise we save a bigtiff
+            fprintf('Writing volume %s as a BigTiff\n', tiffName)
+            optionsB=struct('big',true , 'overwrite', true, 'message', false);
+            saveastiff(vol(:,:,1),tiffName,optionsB);
+            optionsB=struct('big',true , 'overwrite', false, 'append', true, 'message', false);
+            for tPlane = 2:size(vol,3)
+                saveastiff(vol(:,:,tPlane),tiffName,optionsB);
+            end
+        end
     elseif strcmp('mhd',fileFormat)
         stitchit.tools.mhd_write(vol,downsampledFname,[1,1,1])
     else
