@@ -1,8 +1,13 @@
 StitchIt Change-Log
 
 
-9th June 2020:
+24/06/2020:
+- User/DEVELOPER [branch dev]: downsampleAllChannels loads data only once for each resolution level.
+
+
+09/06/2020:
 - User/DEVELOPER [branch dev]: Remove TissueCyte settings from INI file. The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
+
 
 13/03/2020
 - DEVELOPER MAJOR: Dev branch. Drop TissueCyte support. StitchIt handles only BakingTray data now. There is a release associated with this commit. Refactor BakingTray stitching files and remove possibility of adding other stitching system systems. The flexibility isn't being used and it's worth the confusion. 
