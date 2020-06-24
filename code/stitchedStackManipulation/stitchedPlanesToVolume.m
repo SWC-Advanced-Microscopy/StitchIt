@@ -67,8 +67,8 @@ if isempty(files)
 end
 
 % Do not proceed if the final stack will hit the bigtiff limit
-totalGB = (files(1).bytes * length(files)) / 1028^3;
-totalGB = totalGB * 1.1; %Fudge factor because it seems the above underestimates slightly
+totalGB = (files(1).bytes * length(files)) / 1024^3;
+totalGB = totalGB * 1.025; %Fudge factor to be sure we're over
 if totalGB>4
     bigtiff=true;
 else
