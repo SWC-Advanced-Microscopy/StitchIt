@@ -84,8 +84,7 @@ if startsWith(paramFile, 'recipe')
     % We have BakingTray Data
     stackFname = strcat(paramFile(8:end-4));
 else
-    % We have TissueVision
-    stackFname = [regexprep(paramFile(1:end-4),'Mosaic_','')];
+    error('Can not find recipe file')
 end
 chName=getChanNames(channel);
 stackFname = sprintf('%s_chan_%02d%s.tiff',stackFname,channel,chName);
