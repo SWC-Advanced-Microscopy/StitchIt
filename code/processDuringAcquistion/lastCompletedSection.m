@@ -25,7 +25,7 @@ end
 %Look backwards through dataDirs and return first directory which is completed
 foundFinishedDir=0;
 for ii=length(dataDirs):-1:1
-    if exist(fullfile(config.subdir.rawDataDir,dataDirs(ii).name,'tileIndex'),'file');
+    if exist(fullfile(config.subdir.rawDataDir,dataDirs(ii).name,'COMPLETED'),'file');
         foundFinishedDir=1;
         break
     end

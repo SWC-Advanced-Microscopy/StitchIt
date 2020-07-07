@@ -12,8 +12,8 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % channel is chosen automatically as the first available. 
 %
 % INPUTS
-% sectionToPlot - If empty plot the last completed section as per the trigger file
-%                 sectionToPlot can also be a directory index to plot
+% sectionToPlot - If empty plot the last completed section. sectionToPlot can also
+%                 be a directory index to plot
 % channel - the channel to plot in montage image. By default (or if empty) the 
 %           first available channel.
 %
