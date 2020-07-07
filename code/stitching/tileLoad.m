@@ -68,7 +68,7 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 if length(coords)~=5
     % coords - a vector of length 5 with the fields:
     %     [physical section, optical section, yID, xID,channel]
-    error('Coords should have a length of 5. Instead it has a length of %d', length(coords))
+    error('Input argument "coords" should have a length of 5. Instead it has a length of %d', length(coords))
 end
 
 

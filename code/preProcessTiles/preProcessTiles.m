@@ -202,15 +202,21 @@ for thisDir = 1:length(sectionDirectories) %Loop through section directories
         continue %Is only executed if user defined specific directories to process
     end
 
+    % Skip this directory if it is not completed
+    thisSectionDirName = fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name);
+    if ~exist(fullfile(thisSectionDirName,'COMPLETED'))
+        fprintf('** preProcessTiles finds directory %s is not completed. Skipping. ** \n', thisSectionDirName)
+        continue
+    end
 
     % We will make a lock file in the directory 
-    thisSectionDirName = fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name);
     lockfile = fullfile(thisSectionDirName, 'preProcessFilesLOCK');
 
     if exist(lockfile,'file')
         fprintf('** preProcessTiles finds a lock file at %s. Skipping. ** \n', lockfile)
         continue
     end
+
 
     fclose(fopen(lockfile,'w')); %make the lock file
     save(currentLockFileTemp,'lockfile'); %update the mat file containing the lock file location
