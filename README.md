@@ -50,10 +50,10 @@ Stitchit will automatically check if it's up to date whenever the user runs `syn
 
 ## Questions and bug reports
 Please use the project's [issue tracker](https://github.com/BaselLaserMouse/StitchIt/issues) for questions, bug reports, feature requests, etc.
+Please do get in touch if use the software: especially if you are publishing with it!
 
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
 
 ## Also see
-- [TissueVisionMods](https://github.com/BaselLaserMouse/TissueVisionMods) for protocols and tweaks associated with the TissueVision microscopy system. 
 - [MaSIV](https://github.com/alexanderbrown/masiv) for visualising data. 
