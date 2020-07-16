@@ -10,10 +10,18 @@ function lastSecNum = getLastSecNum
 %this way is more robust than counting the number of directories minus 1 since it's
 %conceivable someone could delete directories during the acquisition routine. This way
 %it only matters what the first directory is.
-
+%
+% Inputs
+% Index fo current sect
 
 
 userConfig = readStitchItINI;
+
+
+tok=regexp(lastCompletedSection,'(.*)-(.*)','tokens');
+sample=tok{1}{1};
+thisSecNum = str2num(tok{1}{2});
+
 
 
 d=dir([userConfig.subdir.rawDataDir,filesep,directoryBaseName,'*']);

@@ -14,7 +14,7 @@ function out=estimateEndTime
     % Find the acquisition log file
     d=dir('acqLog_*.txt');
 
-    verbose=true;
+    verbose=false;
     if verbose
       fprintf('\n%s verbose mode set to TRUE\n', mfilename)
     end
@@ -90,10 +90,16 @@ function out=estimateEndTime
     if verbose
       fprintf('Acquisition consists of %d sections, which will take a total of %0.1f hours.\n', ...
               M.mosaic.numSections, totalHours)
-      fprintf('Current section: %d\n',    M.mosaic.numSections, totalHours)
+      fprintf('Current section: %d\n',currentSecNum)
     end
 
-    hoursLeft = totalHours - sum(finishedTimes)/60^2;
+    % If the section start number was 1, then add up all
+    % times. Otherwise only the last few
+    if M.mosaic.sectionStartNum==1
+      hoursLeft = totalHours - sum(finishedTimes)/60^2;
+    else
+      hoursLeft = totalHours - sum(finishedTimes(end-currentSecNum+1:end))/60^2;
+    end
     
     if verbose
       fprintf('There are %0.2f hours left\n', hoursLeft)
