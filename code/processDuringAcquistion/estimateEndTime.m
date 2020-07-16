@@ -11,79 +11,96 @@ function varargout=estimateEndTime
 % Rob Campbell - Basel 2015
 
 
+    % Find the acquisition log file
+    d=dir('acqLog_*.txt');
 
-%First calculate the number of hours the whole thing will take
-param=readMetaData2Stitchit;
-
-
-
-if strcmp(param.System.type,'bakingtray')
-    out=estimateEndTimeBT; %TODO: have BT calculate this so StitchIt does nothing at all
-    if nargout>0
-        varargout{1}=out;
+    verbose=false;
+    if verbose
+      fprintf('\n%s verbose mode set to TRUE\n', mfilename)
     end
-    return
-end
+    
+    out=[];
+    if isempty(d)
+        fprintf('Failed to find acq log.\n');
+        return
+    end
 
-%TODO: the following is a poor way of proceeding
-%could calculate the tile time from the line period and number of lines plus the move time
-timeFor832Tile = 0.715; %Time in seconds for an 832*832 image
-tileTime = timeFor832Tile * param.tile.nRows/832;
-
-%number of hours per phyical section (i.e. per section directory)
-cuttingTime = (35/param.Slicer.cuttingSpeed) + param.Slicer.postCutDelay + 2; %approximate number of seconds per cut
-hoursPerDirectory = (param.mosaic.numOpticalPlanes * param.numTiles.X * param.numTiles.Y * tileTime + cuttingTime) / 60^2;
-
-
-%Total time is, therefore:
-totalTime = hoursPerDirectory*param.mosaic.numSections;
-
-
-
-
-%If we have enouggh data directories, we can obtain a potentially more 
-%accurate value by looking at the number of directories produced and the
-%start time of the acquisition
-userConfig=readStitchItINI;
-
-d=dir( fullfile(userConfig.subdir.rawDataDir,[directoryBaseName,'*']) );
-
-if length(d)>5
-    nDir = length(d);
-    elapsedDays = now-datenum(param.sample.acqStartTime);
-        hoursPerDirectory = (elapsedDays*24)/nDir;
-       totalTime = hoursPerDirectory * param.mosaic.numSections;
-end
-
-
-
-%So now the time left in hours is:
-numSectionsTotal =  param.mosaic.numSections + param.mosaic.sectionStartNum;
-timeLeft = totalTime * (numSectionsTotal-length(d))/numSectionsTotal;
-
-if timeLeft > 1.5
-    remainingString=sprintf('Time left: %d hours', round(timeLeft));
-elseif timeLeft <= hoursPerDirectory
-    remainingString='All sections acquired';
-else
-    remainingString=sprintf('Time left: %d minutes', round(timeLeft*60));
-end
-
-if timeLeft <= hoursPerDirectory
-    finishingString='FINISHED';
-else
-    finishingString=sprintf('Finishing at %s', datestr(now+timeLeft/24, 'HH:MM on ddd dd/mm'));
-end
+    if length(d)>1
+        fprintf('Found more than one acq log. confused. quitting %s\n',mfilename);
+        return
+    end
 
     
-if nargout<1
-    fprintf('%s\n',remainingString);
-    fprintf('%s\n',finishingString);
-end
+    % Open the acq log file and read it in line by line
+    fid=fopen(d.name,'r');
 
-if nargout>0
-    out.finishingString=finishingString;
-    out.remainingString=remainingString;
-    out.hoursPerDirectory=hoursPerDirectory;
-    varargout{1}=out;
-end
+    tline=fgetl(fid);
+
+    finishedTimes=[];
+    while 1
+        % Extract lines that contain section completion time
+        % information. The following regex copes with the scenario
+        % where the "secs" is missing.        
+        tok=regexp(tline,' completed in (\d+) mins? *(\d+)?(?: secs)?','tokens');
+        if ~isempty(tok)
+            m=str2num(tok{1}{1});
+            s=str2num(tok{1}{2});
+            if isempty(s)
+              s=0;
+            end
+            
+            finishedTimes(end+1)=(m*60)+s;
+        end
+        tline=fgetl(fid);
+
+        if tline<0
+            break
+        end
+
+    end
+    fclose(fid);
+
+
+    % Process this information
+    secondsPerDirectory = round(mean(finishedTimes));
+    out.hoursPerDirectory=secondsPerDirectory/60^2;
+    if verbose
+      fprintf('On average %d seconds per directory (%0.3f hours)\n', ...
+              round(secondsPerDirectory), out.hoursPerDirectory)
+    end
+
+    
+    M=readMetaData2Stitchit;
+    totalHours = out.hoursPerDirectory * M.mosaic.numSections;
+    if verbose
+      fprintf('Acquisition consists of %d sections, which will take a total of %0.1f hours.\n', ...
+              M.mosaic.numSections, totalHours)
+    end
+
+    hoursLeft = totalHours - sum(finishedTimes)/60^2;
+    
+    if verbose
+      fprintf('There are %0.2f hours left\n', hoursLeft)
+    end
+    
+
+
+    % Fail gracefully if something went wrong earlier
+    if isnan(hoursLeft)
+        out.finishingString = 'estimateEndTimeBT failed to calculate end time';
+        return
+    end
+
+    % Otherwise build a nice string
+    if hoursLeft<1
+        out.finishingString='FINISHING SOON';
+    else
+        out.finishingString=sprintf('Finishing at %s', datestr(now+hoursLeft/24, 'HH:MM on ddd dd/mm'));
+    end
+
+
+    if hoursLeft > 1.5
+        out.remainingString=sprintf('Time left: %d hours', round(hoursLeft));
+    else
+        out.remainingString=sprintf('Time left: %d minutes', round(hoursLeft*60));
+    end
