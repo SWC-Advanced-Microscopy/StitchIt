@@ -157,35 +157,21 @@ close(F);
 
 
 
-%Figure out the current section number for this series. However, we can't just use
-%the number from the directory file name since this will be wrong if we asked for the 
-%numbering to start >1. Thus we have to calculate the current section number. Doing it 
-%this way is more robust than counting the number of directories minus 1 since it's
-%conceivable someone could delete directories during the acquisition routine. This way
-%it only matters what the first directory is.
-tok=regexp(sectionToPlot,'(.*)-(.*)','tokens');
-sample=tok{1}{1};
-thisSecNum = str2num(tok{1}{2});
-
-
-d=dir([userConfig.subdir.rawDataDir,filesep,directoryBaseName,'*']);
-if ~isempty(d)
-   tok=regexp(d(1).name,'(.*)-(.*)','tokens');
-   firstSecNum = str2num(tok{1}{2});
-   currentSecNum = thisSecNum - firstSecNum + 1;
+%Figure out the current section number for this series.
+currentSecNum=getLastSecNum;
+if currentSecNum>0
    % Stops the current section number being larger than the number of sections
+   % This is only a problem if the acquisition was resumed.
    currentSecNum = currentSecNum - params.mosaic.sectionStartNum + 1; 
-else
-  currentSecNum = 0;
-  fprintf('Can not find section number.\n')
 end
-
 
 %The following string will be displayed on the website above the section 
 currentTime = datestr(now,'YYYY/mm/dd HH:MM:SS');
 sliceThicknessInMicrons =  params.mosaic.sliceThickness;
 
 
+tok=regexp(sectionToPlot,'(.*)-(.*)','tokens');
+sample=tok{1}{1};
 details = sprintf('Sample: %s (%d/%d) &mdash; %0.1f &micro;m cuts &mdash; (%s)',...
     sample, currentSecNum, params.mosaic.numSections, sliceThicknessInMicrons, currentTime);
 

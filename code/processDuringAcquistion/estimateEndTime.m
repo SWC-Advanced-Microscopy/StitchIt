@@ -72,6 +72,17 @@ function out=estimateEndTime
 
     % How many directories are there on disk for this sample?
     M=readMetaData2Stitchit;
+
+    %Figure out the current section number for this series.
+    currentSecNum=getLastSecNum;
+    if currentSecNum>0
+       % Stops the current section number being larger than the number of sections
+       % This is only a problem if the acquisition was resumed.
+       currentSecNum = currentSecNum - M.mosaic.sectionStartNum + 1; 
+    end
+
+
+
     %userConfig = readStitchItINI;
     %baseName = sprintf('%s%s%s', userConfig.subdir.rawDataDir, filesep, directoryBaseName);
     %rawDataDirs = dir([baseName,'*']);
