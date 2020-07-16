@@ -174,6 +174,8 @@ if ~isempty(d)
    tok=regexp(d(1).name,'(.*)-(.*)','tokens');
    firstSecNum = str2num(tok{1}{2});
    currentSecNum = thisSecNum - firstSecNum + 1;
+   % Stops the current section number being larger than the number of sections
+   currentSecNum = currentSecNum - params.mosaic.sectionStartNum + 1; 
 else
   currentSecNum = 0;
   fprintf('Can not find section number.\n')
