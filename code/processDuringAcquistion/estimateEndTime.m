@@ -58,7 +58,8 @@ end
 
 
 %So now the time left in hours is:
-timeLeft = totalTime * (param.mosaic.numSections-length(d))/param.mosaic.numSections;
+numSectionsTotal =  param.mosaic.numSections + param.mosaic.sectionStartNum;
+timeLeft = totalTime * (numSectionsTotal-length(d))/numSectionsTotal;
 
 if timeLeft > 1.5
     remainingString=sprintf('Time left: %d hours', round(timeLeft));
