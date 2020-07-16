@@ -70,7 +70,6 @@ tidyUp = onCleanup(@() thisCleanup(lockfile));
 
 
 [~,thisSectionDir]=fileparts(sectionToPlot);
-generateTileIndex(thisSectionDir,[],0);
 
 %The section index
 tok=regexp(sectionToPlot,'.*-(\d+)','tokens'); 
