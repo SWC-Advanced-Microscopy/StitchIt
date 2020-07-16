@@ -1,4 +1,4 @@
-function varargout=estimateEndTime
+function out=estimateEndTime
 % Estimates time at which the current imaging run will end
 %
 % function endTime=estimateEndTime
@@ -14,7 +14,7 @@ function varargout=estimateEndTime
     % Find the acquisition log file
     d=dir('acqLog_*.txt');
 
-    verbose=false;
+    verbose=true;
     if verbose
       fprintf('\n%s verbose mode set to TRUE\n', mfilename)
     end
@@ -69,12 +69,17 @@ function varargout=estimateEndTime
               round(secondsPerDirectory), out.hoursPerDirectory)
     end
 
-    
+
+    % How many directories are there on disk for this sample?
     M=readMetaData2Stitchit;
+    %userConfig = readStitchItINI;
+    %baseName = sprintf('%s%s%s', userConfig.subdir.rawDataDir, filesep, directoryBaseName);
+    %rawDataDirs = dir([baseName,'*']);
     totalHours = out.hoursPerDirectory * M.mosaic.numSections;
     if verbose
       fprintf('Acquisition consists of %d sections, which will take a total of %0.1f hours.\n', ...
               M.mosaic.numSections, totalHours)
+      fprintf('Current section: %d\n',    M.mosaic.numSections, totalHours)
     end
 
     hoursLeft = totalHours - sum(finishedTimes)/60^2;
