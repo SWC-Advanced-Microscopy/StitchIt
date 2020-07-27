@@ -575,77 +575,10 @@ cd(landingDir)
 
 
 %-------------------------------------------------------------------------------------
-function out = finished
-    % Return true if the finished file is present. false otherwise.
-    config=readStitchItINI;
-    if exist('FINISHED','file') || ...
-        exist('FINISHED.txt','file') || ...
-        exist(fullfile(config.subdir.rawDataDir,'FINISHED'))  || ...
-        exist(fullfile(config.subdir.rawDataDir,'FINISHED.txt'),'file')
-
-        out = true;
-    else
-        out = false;
-    end
-
-
-function dataDirs=returnDataDirs(rawDataDir)
-    % Return directories that are likely section directories based on the name
-    potentialDirs=dir([rawDataDir,filesep,'*-0*']); %TODO: should enforce that this ends with a number?
-    dataDirs=potentialDirs([potentialDirs.isdir]==true);
-
-
-    function SandC_cleanUpFunction(serverDir)
+function SandC_cleanUpFunction(serverDir)
     killSyncer(serverDir)
     msg = fprintf('Cleaning up syncAndCrunch\n');
     writeLineToLogFile('StitchIt_Log.txt', msg); %HARD-CODED
 
 
-function startBackgroundWebPreview(chanToPlot,config)
-    % Starts a background MATLAB process that sends low-res preview images of one channels to the web
-    mPath = config.syncAndCrunch.MATLABpath;
-    nSecRun = which('buildSectionRunner');
-
-    % The script file name we will build to run the background task
-    params = readMetaData2Stitchit;
-    micName = strrep(params.System.ID,' ','_');
-    pathToBSfile = fullfile(tempdir,['webPreviewBootstrap_',micName,'.m']);
-    logFilePath = fullfile(tempdir,['webPreviewLogFile_',micName]);
-    
-    % Before proceeding, let's kill any currently running background web previews
-    PIDs=stitchit.tools.findProcesses(pathToBSfile);
-    stitchit.tools.killPIDs(PIDs)
-
-    % Write the boostrap file
-    fid = fopen(pathToBSfile,'w');
-    fprintf(fid,'cd(''%s'');\n', fileparts(nSecRun)); %cd to the function directory
-    fprintf(fid,'buildSectionRunner(%d,''%s'');\n', chanToPlot, pwd);
-    fclose(fid);
-
-    if exist(mPath,'file')
-        CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s")'' > %s &', mPath, pathToBSfile, logFilePath);
-        msg = sprintf('Running background web preview with:\n %s\n', CMD);
-        writeLineToLogFile('StitchIt_Log.txt', msg); %HARD-CODED log file name, but ok...
-        unix(CMD);
-    else
-        fprintf(['Can not find MATLAB executable at %s. ', ...
-        'Not running background web preview process.\n'...
-        'Web preview may lag behind acquisition if dataset is large.\n'], mPath)
-    end
-
-
-function writeLineToLogFile(logFileName,msg)
-        % Simply writes a string to the log file and also displays on screen
-
-        fprintf('%s',msg); %Display to screen
-
-        fid=fopen(logFileName,'a+');
-        if fid < 0
-            fprintf('FAILED TO OPEN %s FOR WRITING\n', logFileName)
-            return
-        end
-
-        fprintf(fid, '%s', datestr(now, 'HH:MM:SS dd-mm-yyyy - ') );
-        fprintf(fid, '%s', msg);
-        fclose(fid);
 

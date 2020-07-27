@@ -143,40 +143,8 @@ end
 
 
 %Create file name
-paramFile=getTiledAcquisitionParamFile;
-if startsWith(paramFile, 'recipe')
-      % We have BakingTray Data
-      downsampledFname = strcat('ds_', paramFile(8:end-4));
-else
-      % We have TissueVision
-      downsampledFname = [regexprep(paramFile(1:end-4),'Mosaic_','ds')];
-end
+downsampledFname = createResampleVolFileName(channel,targetDims);
 
-if mod(targetDims(1),1)==0
-      downsampledFname=[downsampledFname, sprintf('_%d',targetDims(1))];
-else
-      downsampledFname=[downsampledFname, sprintf('_%0.1f',targetDims(1))];
-end
-
-if mod(targetDims(2),1)==0
-      downsampledFname=[downsampledFname, sprintf('_%d',targetDims(2))];
-else
-      downsampledFname=[downsampledFname, sprintf('_%0.1f',targetDims(2))];
-end
-
-
-% See if we can obtain the channel name from the scan settings file
-if exist('scanSettings.mat','file')
-    load('scanSettings')
-    % Process channel name to ready it for insertion into file name
-    chName = lower(scanSettings.hPmts.names{channel});
-    chName = strrep(chName,' ','_');
-    chName = ['_',chName];
-else
-    chName=''
-end
-
-downsampledFname=[downsampledFname, sprintf('_ch%02d%s',channel,chName)];
 
 %place file in the correct directory
 downsampledFname = fullfile(savePath,downsampledFname);
@@ -184,7 +152,7 @@ downsampledFname = fullfile(savePath,downsampledFname);
 
 fid = fopen([downsampledFname,'.txt'],'w');
 
-metaData = readMetaData2Stitchit(paramFile);
+metaData = readMetaData2Stitchit;
 fprintf(fid,'Downsampling %s\nAcquired on: %s\nDownsampled: %s\n', metaData.sample.ID, metaData.sample.acqStartTime, datestr(now));
 if strcmp('tiff',fileFormat)
     fprintf(fid,'downsample file name: %s.tif\n',downsampledFname);
@@ -214,7 +182,7 @@ planeID = zeros(length(files),2); %array that will hold the physical/optical sec
 
 %This loop builds a volume that is downsampled in x/y but not in z
 parfor ii=1:length(files)
-    fprintf('Resampling %03d\n', ii)
+    %fprintf('Resampling %03d\n', ii)
     im=stitchit.tools.openTiff(fullfile(origDataDir,files(ii).name));
     vol(:,:,ii)=imresize(im,xyRescaleFactor);
     % Extract the physical and optical section numbers from the file name
@@ -265,7 +233,20 @@ try
     fprintf('Saving to %s\n',downsampledFname)
 
     if strcmp('tiff',fileFormat)
-        stitchit.tools.save3Dtiff(vol,[downsampledFname,'.tif'])
+        tiffName = [downsampledFname,'.tif'];
+        if ( prod(size(vol))*2 / 1024^3) < 4
+            % Then it's safe not to save a big tiff
+            stitchit.tools.save3Dtiff(vol,tiffName)
+        else
+            % Otherwise we save a bigtiff
+            fprintf('Writing volume %s as a BigTiff\n', tiffName)
+            optionsB=struct('big',true , 'overwrite', true, 'message', false);
+            saveastiff(vol(:,:,1),tiffName,optionsB);
+            optionsB=struct('big',true , 'overwrite', false, 'append', true, 'message', false);
+            for tPlane = 2:size(vol,3)
+                saveastiff(vol(:,:,tPlane),tiffName,optionsB);
+            end
+        end
     elseif strcmp('mhd',fileFormat)
         stitchit.tools.mhd_write(vol,downsampledFname,[1,1,1])
     else

@@ -26,7 +26,7 @@ function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
 %  stepSize - step in microns between one tile and the next. If a scalar the step size is the same in both
 %             rows and columns. If a vector of length 2, it defines the step size along the rows (1) and
 %             cols (2). By default stepSize is obtained from the parameter file. 
-%        
+%
 %
 % OUTPUTS
 %  pixelPositions - n by 2 array. n tiles. [pixel row, pixel column]
@@ -39,29 +39,6 @@ function pixelPositions=gridPos2Pixels(tileCoords,pixelRes,stepSize)
 tileRow = tileCoords(:,1);
 tileCol = tileCoords(:,2);
 
-
-if nargin<2 | isempty(pixelRes) %read in number of microns per pixel if needed
-
-    userConfig=readStitchItINI;
-    if userConfig.micsPerPixel.usemeasured
-        pixResR = userConfig.micsPerPixel.micsPerPixelMeasured;
-        pixResC = userConfig.micsPerPixel.micsPerPixelMeasured;
-    else
-        pixResR = userConfig.micsPerPixel.micsPerPixelRows;
-        pixResC = userConfig.micsPerPixel.micsPerPixelCols;
-    end
-
-else
-
-    if length(pixelRes)==1
-        pixResR = pixelRes;
-        pixResC = pixelRes;
-    elseif length(pixelRes)>1
-        pixResR = pixelRes(1);
-        pixResC = pixelRes(2);
-    end
-
-end
 
 
 if nargin<3 | isempty(stepSize)

@@ -116,6 +116,7 @@ bytesPerTile = param.tile.nRows * param.tile.nColumns * 2; %assume 16 bit images
 bytesPerTile = bytesPerTile * (stitchedSize/100)^2; %Scale by the resize ratio
 MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
 
+
 %Calculate GB to be used based on number of sections
 nSections = size(section,1);
 GBrequired= nSections * MBPerPlane / 1024;
@@ -134,7 +135,7 @@ end
 %Extract preferences from INI file structure
 doIlluminationCorrection = userConfig.tile.doIlluminationCorrection; %correct tile illumination on loading. 
 doPhaseCorrection        = userConfig.tile.doPhaseCorrection;        %If 1, use saved coefficients to correct comb artifact
-doStageCoords            = userConfig.stitching.doStageCoords;       %If 1 use stage coorrds instead of naive coords
+doStageCoords            = userConfig.stitching.doStageCoords;       %If 1 use stage coords instead of naive coords
 
 %set up chessboard stitching (which is also the fusion weight variable that currently isn't interesting)
 if doChessBoard==1
@@ -185,11 +186,20 @@ for ii=1:length(stitchedSize)
     end
 end
 
-
+% Get the exent of the imaged area if we are to use stage positions
+voxelSize = [param.voxelSize.X,param.voxelSize.Y];
+if doStageCoords==1 || strcmp(param.mosaic.scanmode, 'tiled: auto-ROI')
+    imagedExtent = determineStitchedImageExtent;
+    maxXY = max(stagePos2PixelPos([imagedExtent.minXY;imagedExtent.maxXY],voxelSize));
+else
+    imagedExtent.maxXY = [];
+    maxXY=[];
+end
 
 numStitched=0; %The number of images stitched. This is just used for error checking
 varargout=cell(1,1); %Declare outside parfor so they are returned correctly
 nout=nargout;
+
 parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seems faster to stitch in parallel
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -219,7 +229,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     end
 
 
-    [imStack,tileIndex]=tileLoad([thisSection,0,0,channel]);
+    [imStack,tileIndex,stagePos]=tileLoad([thisSection,0,0,channel]);
 
     if isempty(imStack) %Skip if the image stack is empty. 
         fprintf('Skipping %03d/%02d due to missing tiles\n',thisSection)
@@ -229,50 +239,24 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     fprintf('Stitching %03d/%03d -- Section %03d/%02d\n',ii,size(section,1),thisSection)
 
     tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
-    tileSize=size(imStack,1); %The image size (images are always square) TODO: this assumption may not always hold
+
 
     %Either stitch based on naive tile positions or stage coordinates. 
-    if doStageCoords
-        sectionName = sprintf('%s%04d',baseName,thisSection(1));
+    if doStageCoords == 1
+        posArray = [stagePos.actualPos.X,stagePos.actualPos.Y];
+        pixelPositions = stagePos2PixelPos(posArray,voxelSize,imagedExtent.maxXY);
 
-        mosaicFileName = fullfile(userConfig.subdir.rawDataDir,...
-                            sectionName,...
-                            sprintf('Mosaic_%s.txt',sectionName)); 
-
-
-        mosData = readMetaData2Stitchit(mosaicFileName);
-        pixelPos = stagePos2PixelPos(mosData,[param.voxelSize.X,param.voxelSize.Y]);
-
-        %Determine the final stitched image size as though we were not using stage coords
-        naivePos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]);
-        naiveMaxPos=max(naivePos)+tileSize;
-        naiveWidth=naiveMaxPos(1);
-        naiveHeight=naiveMaxPos(2);
-    else %just use the naive positions
-        pixelPos=gridPos2Pixels(tileIndex,[param.voxelSize.X,param.voxelSize.Y]); 
-    end %if doStageCoords
-
-    [stitched,tilePosInPixels]=stitcher(imStack,pixelPos,fusionWeight);
-
-    %If the user has asked for stage positions then we need trim back the image in order to avoid different
-    %sections being different sizes (TODO -- hard-coded values)
-    if doStageCoords
-        if tileSize<1E3
-            trimPixels = 5;
-        elseif tileSize>1E3 & tileSize<2E3
-            trimPixels = 10;
-        elseif tileSize>2E3
-            trimPixels = 15;
-        end
-
-        stitched = stitched(1:naiveWidth-trimPixels, 1:naiveHeight-trimPixels,:);
-
-        f=find( tilePosInPixels(:,1)==max(tilePosInPixels(:,1)) );  
-        tilePosInPixels(f,2) = tilePosInPixels(f,2)-trimPixels;
-
-        f=find( tilePosInPixels(:,3)==max(tilePosInPixels(:,3)) );
-        tilePosInPixels(f,4) = tilePosInPixels(f,4)-trimPixels;
+    elseif doStageCoords == 0
+        posArray = [stagePos.targetPos.X,stagePos.targetPos.Y];
+        pixelPositions = stagePos2PixelPos(posArray,voxelSize,imagedExtent.maxXY);
+    else
+        % We use the tile grid positions. This is how we used to do stitching before May 2020. 
+        % the doStageCoords == 0 should give a result identical to this
+        fprintf('Basing stitching on tile grid on position array coordinates\n')
+        pixelPositions = ceil(gridPos2Pixels(tileIndex,voxelSize));
     end
+
+    [stitched,tilePosInPixels]=stitcher(imStack,pixelPositions,fusionWeight,maxXY);
 
 
     %Save full and reduced size planes

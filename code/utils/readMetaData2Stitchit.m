@@ -1,4 +1,4 @@
-function [out,sucessfulRead,mosOut]=readMetaData2Stitchit(varargin)
+function [out,sucessfulRead,rawOut]=readMetaData2Stitchit(fname,verbose)
 % Read acquisition meta data into a MATLAB structure
 %
 % function [out,sucessfulRead]=readMetaData2Stitchit(fname,verbose)
@@ -52,9 +52,72 @@ function [out,sucessfulRead,mosOut]=readMetaData2Stitchit(varargin)
 %
 % Rob Campbell - Basel 2016
 
-%NOTE:
-% This function instantiates an object specific to the data acquisition system being used
-% then calls a method with the same name as this function. For implementation details see
-% the SystemClasses directory. 
-OBJECT=returnSystemSpecificClass;
-[out,sucessfulRead,mosOut] = OBJECT.(mfilename)(varargin{:});
+
+%Input argument error checking 
+if nargin<1
+    fname=getTiledAcquisitionParamFile;
+end
+
+if ~exist(fname,'file')
+    error('Can not find parameter file: %s',fname)
+end
+
+if nargin<3
+    verbose=0;
+end
+
+
+%Read the BakingTray "recipe" yml file
+rawOut=stitchit.yaml.ReadYaml(fname,verbose);
+
+
+if isstruct(rawOut)
+    sucessfulRead=true;
+else
+    sucessfulRead=false;
+end
+
+if ~sucessfulRead
+    error('Failed to read %s',fname)
+end
+
+% Turn the imported YAML data into a standardised StitchIt format. This 
+% allows for potentially different acquisition systems to be "stitchable".
+out = recipe2StitchIt(rawOut,fname);
+
+
+%------------------------------------------------------------------------
+% Internal functions follow. This is just for tidiness.
+
+function out = recipe2StitchIt(raw,fname)
+    %Convert the BakingTray recipe structure to a StitchIt structure
+
+    out.paramFileName=fname; %The name of the Mosaic file
+
+
+    %  Sample
+    out.sample = raw.sample;
+    out.sample.acqStartTime= raw.Acquisition.acqStartTime;
+    out.sample.activeChannels = raw.ScannerSettings.activeChannels;
+    out.mosaic = raw.mosaic;
+    out.tile =raw.Tile;
+
+    out.voxelSize=raw.StitchingParameters.VoxelSize; %Read from the user-tweaked settings.
+    out.voxelSize.Z=raw.VoxelSize.Z; % The z is not tweaked
+    out.lensDistort=raw.StitchingParameters.lensDistort;
+    if isempty(out.lensDistort)
+        out.lensDistort.rows=0;
+        out.lensDistort.cols=0;
+    end
+    out.affineMat=cell2mat(raw.StitchingParameters.affineMat);
+    out.numTiles = raw.NumTiles;
+    out.TileStepSize = raw.TileStepSize;
+    out.TileStepSize.X = 1E3 * out.TileStepSize.X; 
+    out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; 
+    out.System = raw.SYSTEM;
+    out.Slicer = raw.SLICER;
+
+    %Ensure slice thickness is in microns
+    if out.mosaic.sliceThickness<1
+        out.mosaic.sliceThickness = out.mosaic.sliceThickness*1E3;
+    end

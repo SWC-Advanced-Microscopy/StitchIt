@@ -119,9 +119,8 @@ illumChans=params.Results.illumChans;
 verbose=params.Results.verbose;
 
 
-if ~strcmp(determineStitchItSystemType,'TissueCyte') && ...
-    (length(combCorChans)>1 || combCorChans~=0)
-    fprintf('\nYou have requested to run a comb-correction on non-TissueVision data. Please see:\n ')
+if length(combCorChans)>1 || combCorChans~=0
+    fprintf('\nYou have requested to run a comb-correction. This is not working right now. Please see:\n ')
     fprintf('https://github.com/BaselLaserMouse/StitchIt/wiki/Tile-pre-processing\n\n')
 end
 
@@ -203,15 +202,21 @@ for thisDir = 1:length(sectionDirectories) %Loop through section directories
         continue %Is only executed if user defined specific directories to process
     end
 
+    % Skip this directory if it is not completed
+    thisSectionDirName = fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name);
+    if ~exist(fullfile(thisSectionDirName,'COMPLETED'))
+        fprintf('** preProcessTiles finds directory %s is not completed. Skipping. ** \n', thisSectionDirName)
+        continue
+    end
 
     % We will make a lock file in the directory 
-    thisSectionDirName = fullfile(userConfig.subdir.rawDataDir, sectionDirectories(thisDir).name);
     lockfile = fullfile(thisSectionDirName, 'preProcessFilesLOCK');
 
     if exist(lockfile,'file')
         fprintf('** preProcessTiles finds a lock file at %s. Skipping. ** \n', lockfile)
         continue
     end
+
 
     fclose(fopen(lockfile,'w')); %make the lock file
     save(currentLockFileTemp,'lockfile'); %update the mat file containing the lock file location
@@ -279,7 +284,7 @@ for thisDir = 1:length(sectionDirectories) %Loop through section directories
         combFile=fullfile(sectionStatsDirName,'phaseStats_01.mat');
         if length(sectionsToProcess)==1 && sectionsToProcess==0 && exist(combFile,'file')
             fprintf('%s exists. Skipping this comb correction\n',combFile)
-        else    
+        else
             % load channel if needed
             notLoaded = arrayfun(@(x) isempty(imStack{x,1}), combCorChans);
             [imStack, tileIndex, loadError] = load_imstack(imStack, tileIndex, param, ...
