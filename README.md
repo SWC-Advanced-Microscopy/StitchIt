@@ -2,7 +2,7 @@
 
 # StitchIt
 
-*StitchIt* is a MATLAB package that was originally built for stitching data from the TissueVision 2-photon tomography system.
+*StitchIt* is a MATLAB package for stitching data acquired via our [ScanImage](http://scanimage.vidriotechnologies.com/))-based acquisition system (BakingTray).
 To get started, please read the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki). 
 There is a [changelog](https://raw.githubusercontent.com/BaselLaserMouse/StitchIt/master/changelog.txt).
 

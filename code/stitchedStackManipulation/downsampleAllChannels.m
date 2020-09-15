@@ -6,14 +6,15 @@ function downsampleAllChannels(voxelSize,fileFormat)
 % "voxelSize". If voxelSize is missing, we use 25 microns. Then copy
 % all to a single directory. 
 %
-% Inputs
-% voxelSize - a scalar or vector(25 by default) defining the target voxel
+% Inputs [optional]
+% voxelSize - a scalar or vector (makes 50 and 25 micron stacks by default. Also 10 microns)
+%             if the pixel size warrents it. It defines the target voxel
 %             size of the resample operation. If a vector it makes downsampled
 %             stacks at each voxel size
 % fileFormat - 'MHD' or 'TIFF'. TIFF by default
 %
 %
-% Example
+% Example: make 10 micron stacks
 % downsampleAllChannels(10)
 %
 % Rob Campbell - SWC, 2018
@@ -34,6 +35,8 @@ if nargin<1 || isempty(voxelSize)
         voxelSize=[50,25];
     end
 end
+
+voxelSize = sort(voxelSize);
 
 if nargin<2 || isempty(fileFormat)
       fileFormat='tiff';
@@ -66,7 +69,41 @@ chan = stitchedDataInfo.channelsPresent;
 for ii = 1:length(chan)
     tChan = chan(ii);
     fprintf('Making downsampled volume for channel %d\n', tChan)
-    for jj=1:length(voxelSize)
-        resampleVolume(tChan,voxelSize(jj),fileFormat,dsDirName{jj}); %Downsample
+
+    if length(voxelSize)==1
+        resampleVolume(tChan,voxelSize,fileFormat,dsDirName{1});
+    else
+        tVol = resampleVolume(tChan,voxelSize(1),fileFormat,dsDirName{1});
+        metaData = readMetaData2Stitchit;
+
+        for jj=2:length(voxelSize)
+            rescaleBy = voxelSize(1)/voxelSize(jj);
+            targetSize = size(tVol) * rescaleBy;
+            newVol = imresize3(tVol,targetSize);
+
+
+            fname = createResampleVolFileName(tChan,[voxelSize(jj),voxelSize(jj)]);
+            fname = fullfile(dsDirName{jj},fname);
+            fprintf('Saving to %s\n', fname)
+            if strcmpi('tiff',fileFormat)
+                stitchit.tools.save3Dtiff(newVol,[fname,'.tif'])
+            elseif strcmpi('mhd',fileFormat)
+                stitchit.tools.mhd_write(newVol,fname,[1,1,1])
+            end
+
+            % Write to log file
+            fid = fopen([fname,'.txt'],'w');
+            fprintf(fid,'Downsampling %s\nAcquired on: %s\nDownsampled: %s\n', metaData.sample.ID, metaData.sample.acqStartTime, datestr(now));
+            if strcmp('tiff',fileFormat)
+                fprintf(fid,'downsample file name: %s.tif\n',fname);
+            end
+
+            fprintf(fid,'Rescaled %d micron volume by %0.2f to write a %d micron volume\n', ...
+                voxelSize(1),rescaleBy,voxelSize(jj));
+            fclose(fid);
+
+
+        end
+
     end
 end

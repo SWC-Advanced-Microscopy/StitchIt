@@ -1,4 +1,4 @@
-function baseName=directoryBaseName(varargin)
+function baseName=directoryBaseName(parameterFile)
 % Get directory base name (i.e. the common stem of each section directory) from the acquisition parameter file
 %
 % function baseName=directoryBaseName(parameterFile)
@@ -29,10 +29,15 @@ function baseName=directoryBaseName(varargin)
 % 
 % Also see: getTiledAcquisitionParamFile
 
-%NOTE:
-% This function instantiates an object specific to the data acquisition system being used
-% then calls a method with the same name as this function. For implementation details see
-% the SystemClasses directory. 
+if nargin<1
+    parameterFile=getTiledAcquisitionParamFile;
+end
 
-OBJECT=returnSystemSpecificClass;
-baseName = OBJECT.(mfilename)(varargin{:});
+
+if isempty(parameterFile)
+    error('Can not find a BakingTray recipe file in the current directory\n')
+end
+
+params = stitchit.yaml.ReadYaml(parameterFile);
+
+baseName = [params.sample.ID,'-'];

@@ -1,14 +1,14 @@
-function varargout = stitcher(imStack,tileCoords,fusionWeight,verbose)
+function varargout = stitcher(imStack,tileCoords,fusionWeight,maxPixelPos)
 % Stitch one tile-scanned plane from one channel
 %
-% function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight,verbose)
+% function stitchedPlane = stitcher(imStack,tileCoords,fusionWeight,maxPixelPos)
 %
 %
 % Purpose
-% This is the workhorse function that performs the stitching. 
-% All transformations, such as background subtraction, should already have 
-% been applied to the tile data fed to this function. Stitched "backwards",
-% which can reduce bleaching artifacts at tile overlap regions. 
+% This is the workhorse function that performs the stitching. All transformations,
+% such as background subtraction, should already have been applied to the tile 
+% data fed to this function. The image is stitched "backwards", which reduces
+% photo-bleaching artifacts at tile overlap regions.
 %
 %
 % Inputs
@@ -32,11 +32,11 @@ function varargout = stitcher(imStack,tileCoords,fusionWeight,verbose)
 
 if nargin<3
     %zero to 1. zero is no transparancy and 1 is 100% transparancy
-    fusionWeight=0; 
+    fusionWeight=0;
 end
 
 if nargin<4
-    verbose=0;
+    maxPixelPos=[];
 end
 
 if isempty(imStack)
@@ -45,13 +45,15 @@ if isempty(imStack)
 end
 
 
+verbose = false;
+
 userConfig=readStitchItINI;
 
-%Flip arrays and stitch backwards. This reduces photo-bleaching artifacts. 
+%Flip arrays and stitch backwards. This reduces photo-bleaching artifacts.
 imStack=flip(imStack,3);
 tileCoords=flipud(tileCoords);
 
-%Get rid of very, very high values as they are rubbish (the system *never* produces anything this large) 
+%Get rid of very, very high values as they are rubbish (the system *never* produces anything this large)
 %and 2^16 will screw up the stitcher by clashing with the "marker" values (below). 
 cutoffVal=2^16-500;
 f=find(imStack > cutoffVal);
@@ -61,11 +63,52 @@ imStack(f)=cutoffVal;
 %Now we can pre-allocate our image
 tileSize=[size(imStack,1),size(imStack,2)];
 
+% Determine the size of the final stitched image
+projected_maxXpixel=max(tileCoords(:,2)+tileSize(2)+1);
+projected_maxYpixel=max(tileCoords(:,1)+tileSize(1)+1);
+
+if verbose
+    fprintf('Projected max pixel -- X: %d Y: %d\n', projected_maxXpixel, projected_maxYpixel)
+end
+
+
+if isempty(maxPixelPos)
+    maxXpixel=projected_maxXpixel;
+    maxYpixel=projected_maxYpixel;
+else
+    maxXpixel = maxPixelPos(2);
+    maxYpixel = maxPixelPos(1);
+
+    if verbose
+        fprintf('Min pixel from tile coords -- X: %d Y: %d\n', min(tileCoords(:,2)), min(tileCoords(:,1)))
+        fprintf('Supplied max pixel from determineStitchedImageExtent -- X: %d Y: %d\n', maxXpixel, maxYpixel)
+    end
+
+    %disp('THERE IS A HACK IN stitcher at lines 78 and 79: replacing supplied max with projected max pixels')
+    %maxXpixel=projected_maxXpixel;
+    %maxYpixel=projected_maxYpixel;
+
+    if projected_maxXpixel > maxXpixel
+        fprintf('Warning, stage positions requested with projected max x pixel of %d but expected value is %d\n', ...
+            projected_maxXpixel, maxXpixel);
+    end
+    if projected_maxYpixel > maxYpixel
+        fprintf('Warning, stage positions requested with projected max y pixel of %d but expected value is %d\n', ...
+            projected_maxYpixel, maxYpixel);
+    end
+end
 
 %We will use the value 2^16 to indicate regions where a tile hasn't been placed.
 %this is just a trick to make the tile fusion (which is currently just averaging) 
 %work easily. Pre-allocate a little more than is needed (we'll trim it later).
-stitchedPlane = zeros(max(tileCoords)+tileSize, 'uint16');
+% TODO -- this is not working right now. It's missing! We should just remove it, TBH
+
+
+
+finalImSize = [maxYpixel,maxXpixel];
+
+stitchedPlane = zeros(finalImSize, 'uint16');
+
 
 if fusionWeight<0 %do chessboad
     stitchedPlane = repmat(stitchedPlane,[1,1,3]);
@@ -87,10 +130,11 @@ userConfig=readStitchItINI;
 %e.g. for gradient-domain removal of tile seams
 tilePositionInPixels=ones(size(imStack,3),4); %x,xwidth,y,ywidth
 
-%We will store the maximum image size in these variables in order to trim back
-%the array (remember we pre-allocated to slightly larger than what was necessary)
-maxX=0; 
-maxY=0;
+if verbose
+    fprintf('\n%s reports -- Max X: %0.2f Max Y: %0.2f\n\n', mfilename, maxXpixel, maxYpixel)
+end
+
+
 for ii=1:size(imStack,3)
 
     %The indexes of the stitched image where we will be placing this tile
@@ -98,14 +142,39 @@ for ii=1:size(imStack,3)
     yPos = [tileCoords(ii,1), tileCoords(ii,1)+tileSize(1)-1];
     tilePositionInPixels(ii,:) = [xPos(1),tileSize(2),yPos(1),tileSize(1)]; %this is stored to disk
 
-    if xPos(2)>maxX, maxX=xPos(2); end
-    if yPos(2)>maxY, maxY=yPos(2); end
+    % Gracefully fail. In normal usage, the following conditions should never evaluate to true
+    if yPos(1)<1
+        fprintf('Y coordinate would place tile in position < 1. SKIPPING TILE\n')
+        continue
+    end
+
+    if xPos(1)<1
+        fprintf('X coordinate would place tile in position < 1. SKIPPING TILE\n')
+        continue
+    end
+
+    if yPos(2)>size(stitchedPlane,1)
+        fprintf('Y coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
+            yPos(2), size(stitchedPlane,1))
+        continue
+    end
+
+    if xPos(2)>size(stitchedPlane,2)
+        fprintf('X coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
+            xPos(2), size(stitchedPlane,2))
+        continue
+    end
+
+
+    if verbose
+       %fprintf('%d/%d Inserting tile at: x=%d to %d  y=%d to %d\n', ii, size(imStack,3), xPos,yPos)
+    end
 
     %origTilePatch is the area where the tile will be placed. We store it in order to allow for
     %for "average" blending between one tile and another
-    origTilePatch = stitchedPlane(yPos(1):yPos(2),xPos(1):xPos(2),mod(ii,chess)+1); 
+    origTilePatch = stitchedPlane(yPos(1):yPos(2),xPos(1):xPos(2),mod(ii,chess)+1);
 
-    newTile=imStack(:,:,ii); 
+    newTile=imStack(:,:,ii);
 
     if fusionWeight>0 && ii>1 %Perform blending if needed
         %Make mask for blending
@@ -119,13 +188,12 @@ for ii=1:size(imStack,3)
         %Create a blended tile using alpha-blending
         newTile = single(newTile).*maskNew + single(origTilePatch).*maskOrig;
 
-        newTile = int16(newTile);    
+        newTile = int16(newTile);
     end
 
 
     %Place tile into the area occupied by origTilePatch
     stitchedPlane(yPos(1):yPos(2),xPos(1):xPos(2),mod(ii,chess)+1) = newTile;
-
 
 
 
@@ -144,19 +212,17 @@ for ii=1:size(imStack,3)
 
 end %for ii=1:size(imStack,3)
 
-
-%Trim back the excess regions of the image 
-stitchedPlane = stitchedPlane(1:maxY,1:maxX,:);
-
-
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)
     fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n', ...
              'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedPlane))
 end
 
+if verbose
+    fprintf('stitcher produced a stitched plane of size %d by %d\n',size(stitchedPlane))
+end
 
-%Flip or rotate sections if needed. 
+%Flip or rotate sections if needed.
 st=userConfig.stitching;
 if st.flipud
     stitchedPlane=flipud(stitchedPlane);
@@ -168,12 +234,10 @@ if st.fliplr
     tilePositionInPixels(:,1)=abs(tilePositionInPixels(:,1)-max(tilePositionInPixels(:,1)))+1;
 end
 
-if st.rotate ~= 0 
+if st.rotate ~= 0
     stitchedPlane=rot90(stitchedPlane,st.rotate);
     %TODO - return the tilePositionInPixels
 end
-
-
 
 
 %Handle output arguments

@@ -1,4 +1,4 @@
-function [nbchannels, nbplanes] = size_from_scanimage(~,tifpath)
+function [nbchannels, nbplanes] = size_from_scanimage(tifpath)
     % load ScanImage metadata from TIFF header, v5 or v2016
 
     % default values for channels/zplanes in case of early return

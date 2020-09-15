@@ -1,4 +1,4 @@
-function availableChans=channelsAvailableForStitching(varargin)
+function availableChans=channelsAvailableForStitching
 % Determine the number of available channels in the raw data that can be stitched
 %
 % function availableChans=channelsAvailableForStitching
@@ -25,9 +25,24 @@ function availableChans=channelsAvailableForStitching(varargin)
 %
 % See also - stitchAllChannels
 
-%NOTE:
-% This function instantiates an object specific to the data acquisition system being used
-% then calls a method with the same name as this function. For implementation details see
-% the SystemClasses directory. 
-OBJECT=returnSystemSpecificClass;
-availableChans = OBJECT.(mfilename)(varargin{:});
+
+config=readStitchItINI;
+
+availableChans=[];
+sectionDirs = dir(fullfile(config.subdir.rawDataDir,[directoryBaseName,'*']));
+
+if isempty(sectionDirs)
+    fprintf('ERROR: No BakingTray data directories found. Quitting.\n')
+    return
+end
+
+pathToTiff = fullfile(config.subdir.rawDataDir,sectionDirs(end).name);
+tifs=dir(fullfile(pathToTiff,'*.tif'));
+
+imINFO=imfinfo(fullfile(pathToTiff,tifs(1).name));
+SI=parse_si_header(imINFO(1),'Software');
+availableChans=SI.channelSave;
+
+if isempty(availableChans)
+    fprintf('%s Could not find any channels to stitch.\n',mfilename)
+end
