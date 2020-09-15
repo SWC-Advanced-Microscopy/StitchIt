@@ -87,9 +87,12 @@ function out = determineStitchedImageExtent
     end
 
 
+    % Ensure we choose the longest position array from which 
+    [~,indLongest]=max(cellfun(@length,tp));
+
     % The tile step size is the distance moved by the microscope in mm as it travels from one x/y stage
     % location to the next. It is equal to the tile size (image FOV) minus the overlap between tiles.
-    tileStepSizeMM = abs(mode(diff(positionArray(:,3))));
+    tileStepSizeMM = abs(mode(diff(tp{indLongest}(:,3))));
 
     % The tile extent in mm is the image FOV
     tileExtentInMM = tileStepSizeMM  / (1-data.mosaic.overlapProportion);
@@ -104,7 +107,6 @@ function out = determineStitchedImageExtent
 
     % This is a call to a test function to ensure that all is running as expected
     %checkMinMax
-
 
     if plotboxes
         % Use the minimum x/y position and the tile position array to produce pixel positions for
@@ -129,15 +131,21 @@ function out = determineStitchedImageExtent
             plot(x, y, '-', 'Color', jj(ii,:), 'LineWidth', 2)
 
             % Print to screen the size and location of the box
-            fprintf('%d/%d %dx%d pixels. With far corner at pixel pos %d/%d (%0.2f by %0.2f tile step sizes).\n', ...
+            fprintf('%d/%d %dx%d pixels. Far corner at pixel pos %d/%d; min pixel: %d/%d, (%0.2f by %0.2f tile steps).\n', ...
                 ii, length(rDataDirs), ...
                 ceil(d),  ...
                 ceil(max(x)), ceil(max(y)), ...
+                ceil(min(x)), ceil(min(y)), ...
                 d(1)/tileStep(1), d(2)/tileStep(2))
-            fprintf(' min pixel: %d / %d\n\n', ceil(min(x)), ceil(min(y))) 
         end
         hold off
         axis ij
+
+        % summary
+        fprintf('\nThe above was determined with:\n')
+        fprintf('voxelSize: Y: %0.3f X: %0.3f \n', voxSize)
+        fprintf('Tile step size in mm: %0.3f \n\n', tileStepSizeMM)
+
     end
 
 

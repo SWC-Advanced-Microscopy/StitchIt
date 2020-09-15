@@ -256,6 +256,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
         pixelPositions = ceil(gridPos2Pixels(tileIndex,voxelSize));
     end
 
+    % maxXY a value in pixels which is calculated above and derived from the function determineStitchedImageExtent
     [stitched,tilePosInPixels]=stitcher(imStack,pixelPositions,fusionWeight,maxXY);
 
 

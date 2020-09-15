@@ -55,7 +55,7 @@ tileCoords=flipud(tileCoords);
 
 %Get rid of very, very high values as they are rubbish (the system *never* produces anything this large)
 %and 2^16 will screw up the stitcher by clashing with the "marker" values (below). 
-cutoffVal=2^16-500;
+cutoffVal=2^16-500; %TODO -- hard-coded 
 f=find(imStack > cutoffVal);
 imStack(f)=cutoffVal;
 
