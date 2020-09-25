@@ -1,4 +1,4 @@
-function renameSample(~,newSampleName)
+function renameSample(newSampleName)
 	% Change the name of the sample in the current directory
 	%
 	% function renameSample(newSampleName)
