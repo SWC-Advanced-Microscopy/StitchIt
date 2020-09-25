@@ -1,5 +1,8 @@
 StitchIt Change-Log
 
+25/09/2020:
+- Bugfix - since May 12th the sample splitter was not renaming acquisitions. Only directories. This is now fixed. 
+
 
 24/06/2020:
 - User/DEVELOPER [branch dev]: downsampleAllChannels loads data only once for each resolution level.
