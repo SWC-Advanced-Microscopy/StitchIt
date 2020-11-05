@@ -49,7 +49,14 @@ classdef sampleSplitter < handle
     %   The second optional input argument defines the number of microns per pixel. 
     %   If missing, this is either "25" or, if available, derived from the MHD name.
     % 
-    % 
+    %
+    % EXAMPLES
+    % 1. Loads a 50 micron downsampled stack and works with that.
+    % >> stitchit.sampleSplitter
+    % 2. User defines a 25 micron downsampled stack.
+    % >> stitchit.sampleSplitter('downsampled_stacks/025_micron/ds_xyz_123_25_25_ch02_green.tif' )
+    %
+    %
     % Rob Campbell, SWC, 2019
 
 
@@ -118,7 +125,7 @@ classdef sampleSplitter < handle
               end
 
               if isempty(d)
-                fprintf('Please provide a downsampled MHD or tiff stack filename, a stack, or an intensity projection\n')
+                fprintf('Could not find 50 micron downsampled stack provide a downsampled MHD or tiff stack filename, a stack, or an intensity projection\n')
                 obj.delete
                 return
               end
@@ -163,13 +170,20 @@ classdef sampleSplitter < handle
                         fname = fname{1};
                     end
 
-                    tok= regexp(fname,'(\d+)_(\d+)_(\d+)\.[mr]','tokens');
+                    tok= regexp(fname,'(\d+)_(\d+)_dch0','tokens');
                     if ~isempty(tok)
                         n=cellfun(@str2num,tok{1});
                         if n(1) == n(2)
                             obj.micsPerPixel = n(1);
                             fprintf('Setting microns per pixel to %d\n', obj.micsPerPixel)
                         end
+                    else
+                        [~,tFname]=fileparts(fname);
+                        msg = sprintf('FAILED TO FIND PIXEL SIZE IN FILE NAME "%s"', tFname);
+                        fprintf(msg)
+                        warndlg(msg)
+                        obj.delete
+                        return
                     end %~isempty(tok)
                 else
                     fprintf('Can not find file %s. Quitting\n', fname);
