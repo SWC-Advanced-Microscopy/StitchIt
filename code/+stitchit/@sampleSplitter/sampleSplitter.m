@@ -170,7 +170,7 @@ classdef sampleSplitter < handle
                         fname = fname{1};
                     end
 
-                    tok= regexp(fname,'(\d+)_(\d+)_dch0','tokens');
+                    tok= regexp(fname,'(\d+)_(\d+)_ch0','tokens');
                     if ~isempty(tok)
                         n=cellfun(@str2num,tok{1});
                         if n(1) == n(2)
