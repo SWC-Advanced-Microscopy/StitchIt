@@ -1,5 +1,9 @@
 function ROIS=returnROIparams(obj)
     % Returns the current ROI parameters as a structure 
+    %
+    % function ROIS=returnROIparams(obj)
+    %
+    %
 
 
     data = obj.hDataTable.Data;

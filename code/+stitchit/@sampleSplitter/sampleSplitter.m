@@ -61,6 +61,7 @@ classdef sampleSplitter < handle
 
 
     properties
+        imStack             % The 3D stack that was loaded and used for the max projection
         origImage           % The image upon which we draw ROIs
         splitBrainParams    % A structure containing the ROIs and their orientations 
         micsPerPixel = 50   % scale of the downsampled image fed into this class
@@ -160,6 +161,7 @@ classdef sampleSplitter < handle
                         im = mean(im,4);
                     end %if isstr
 
+                    obj.imStack = im;
                     obj.origImage = stitchit.sampleSplitter.filterAndProjectStack(im);
 
                     fprintf('Image is of size %d x %d\n', ...
