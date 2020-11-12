@@ -23,4 +23,11 @@ function ROIS=returnROIparams(obj)
         ROIS(ii).areaProportion = prod(ROIS(ii).ROI(3:4)) / prod(size(obj.origImage));
     end
 
+    % If this is an auto-ROI acquisition we assess how well the acquisition performed
+    % and save the stats related to this to the structure
+    m=readMetaData2Stitchit;
+    ROIS(1).autoROIperformance=[];
+    if strcmp(m.mosaic.scanmode,'tiled: auto-ROI')
+        ROIS(1).autoROIperformance = obj.return_autoROI_performance(ROIS);
+    end
 end

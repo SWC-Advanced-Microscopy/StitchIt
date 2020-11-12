@@ -36,6 +36,13 @@ for ii=length(metaDataFilesToMove):-1:1
   end
 end
 
+%Log to disk the autoROI performance if applicable
+fname='StitchIt_Log.txt';
+stitchit.tools.writeLineToLogFile(fname,sprintf('Running sample splitter on data\n'))
+if ~isempty(ROIs(1).autoROIperformance)
+    stitchit.tools.writeLineToLogFile(fname,sprintf('Auto-ROI performance:\n'))
+    stitchit.tools.writeLineToLogFile(fname,ROIs(1).autoROIperformance.msg);
+end
 
 atLeastOneWorked=false; % True if at least one of the full size image stacks cropped successfully
 
