@@ -178,11 +178,11 @@ end
 
 
 
-%Report if StitchIt is not up to date
-logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
-msg = sprintf(' --- Starting syncAndCrunch ---\n');
-stitchit.tools.writeLineToLogFile(logFileName,msg);
 
+logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
+
+
+%Report if StitchIt is not up to date
 try 
     stitchit.updateChecker.checkIfUpToDate;
 catch ME
@@ -206,8 +206,7 @@ if strcmp(localTargetRoot,expName)
 end
 
 if ~isWritable(landingDir)
-    msg = sprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir);
-    stitchit.tools.writeLineToLogFile(logFileName,msg)
+    fprintf('\nWARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir);
 end
 
 
@@ -221,8 +220,7 @@ killSyncer(serverDir)
 %Do an initial rsync 
 % copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
-    msg=sprintf('Making local raw data directory %s\n', expDir);
-    stitchit.tools.writeLineToLogFile(logFileName,msg)
+    fprintf('Making local raw data directory %s\n', expDir);
     mkdir(expDir)
 end
 
@@ -250,7 +248,7 @@ else
     rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
 end
 
-msg=fprintf('STARTING!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
+msg=sprintf('STARTING syncAndCrunch!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
 stitchit.tools.writeLineToLogFile(logFileName,msg);
 
 cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
