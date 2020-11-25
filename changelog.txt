@@ -1,5 +1,13 @@
 StitchIt Change-Log
 
+12/11/2020:
+- USER/DEVELOPER: sample splitter reports autoROI performance to stitchit log file [prerelease]
+
+
+5/11/2020:
+- Bugfix - Sample spliter was not reading the pixel size from the downsampled file names.
+
+
 25/09/2020:
 - Bugfix - since May 12th the sample splitter was not renaming acquisitions. Only directories. This is now fixed. 
 
