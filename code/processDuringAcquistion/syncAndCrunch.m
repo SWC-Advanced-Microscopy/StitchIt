@@ -178,11 +178,11 @@ end
 
 
 
-%Report if StitchIt is not up to date
-logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
-msg = sprintf(' --- Starting syncAndCrunch ---\n');
-writeLineToLogFile(logFileName,msg);
 
+logFileName='StitchIt_Log.txt'; %This is the file to which error messages will be written
+
+
+%Report if StitchIt is not up to date
 try 
     stitchit.updateChecker.checkIfUpToDate;
 catch ME
@@ -206,8 +206,7 @@ if strcmp(localTargetRoot,expName)
 end
 
 if ~isWritable(landingDir)
-    msg = sprintf('WARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir);
-    writeLineToLogFile(logFileName,msg)
+    fprintf('\nWARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir);
 end
 
 
@@ -221,8 +220,7 @@ killSyncer(serverDir)
 %Do an initial rsync 
 % copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
-    msg=sprintf('Making local raw data directory %s\n', expDir);
-    writeLineToLogFile(logFileName,msg)
+    fprintf('Making local raw data directory %s\n', expDir);
     mkdir(expDir)
 end
 
@@ -234,7 +232,7 @@ fprintf('Initial rsync with %s\n', CMD)
 exitStatus = unix(CMD); %copies everything not a directory
 if exitStatus ~= 0
     msg=sprintf('Initial rsync failed. QUITTING\n');
-    writeLineToLogFile(logFileName,msg)
+    stitchit.tools.writeLineToLogFile(logFileName,msg)
     return
 end
 
@@ -250,12 +248,12 @@ else
     rawDataDir = fullfile(expDir,config.subdir.rawDataDir);
 end
 
-msg=fprintf('STARTING!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
-writeLineToLogFile(logFileName,msg);
+msg=sprintf('STARTING syncAndCrunch!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
+stitchit.tools.writeLineToLogFile(logFileName,msg);
 
 cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
 msg = sprintf('Running:\n%s\n',cmd);
-writeLineToLogFile(logFileName,msg)
+stitchit.tools.writeLineToLogFile(logFileName,msg)
 unix(cmd);
 
 
@@ -457,7 +455,7 @@ while 1
         fprintf('Testing whether web preview is still running\n')
         if ~exist(webPreviewLogLocation)
             msg=sprintf('No web preview log file at %s. Not making any web preview images.\n', webPreviewLogLocation);
-            writeLineToLogFile(logFileName,msg);
+            stitchit.tools.writeLineToLogFile(logFileName,msg);
 
         else
 
@@ -467,7 +465,7 @@ while 1
             if secondsSinceLastUpdate > 60*2
                 msg=sprintf('%d seconds elapsed since last update of web preview log file. RESTARTING WEB PREVIEW!\n', ...
                     round(secondsSinceLastUpdate));
-                writeLineToLogFile(logFileName,msg);
+                stitchit.tools.writeLineToLogFile(logFileName,msg);
 
                 try 
                     startBackgroundWebPreview(chanToPlot,config)
@@ -536,7 +534,7 @@ end
 try
     stitchit.tools.warnLowDiskSpace(landingDir,90)
     msg = sprintf('Running post acquisition function\n');
-    writeLineToLogFile(logFileName,msg);
+    stitchit.tools.writeLineToLogFile(logFileName,msg);
     eval(postAcqFun) %Run the post-acquisition function
     success=true;
 catch ME
@@ -549,7 +547,7 @@ end
 
 if ~expAlreadyFinished && success
     msg=sprintf('Stitching finished!\n');
-    writeLineToLogFile(logFileName,msg);
+    stitchit.tools.writeLineToLogFile(logFileName,msg);
     stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
 end
 
@@ -558,7 +556,7 @@ if exist(config.subdir.WEBdir,'dir')
     success=rmdir(config.subdir.WEBdir,'s');
     if ~success
         msg = sprintf('Tried to delete directory %s but failed to do so\n',config.subdir.WEBdir);
-        writeLineToLogFile(logFileName,msg);
+        stitchit.tools.writeLineToLogFile(logFileName,msg);
     end
 end
 
@@ -578,7 +576,7 @@ cd(landingDir)
 function SandC_cleanUpFunction(serverDir)
     killSyncer(serverDir)
     msg = fprintf('Cleaning up syncAndCrunch\n');
-    writeLineToLogFile('StitchIt_Log.txt', msg); %HARD-CODED
+    stitchit.tools.writeLineToLogFile('StitchIt_Log.txt', msg); %HARD-CODED
 
 
 
