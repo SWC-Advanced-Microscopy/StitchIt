@@ -275,9 +275,9 @@ function [im,outThresh]=rescaleImage(im,thresh,pixSize)
     end
 
 
-    if length(thresh)==1
+    if length(outThresh)==1
         %Handles RGB images with a single threshold for all chans
-        outThresh = repmat(thresh,1,size(im,3))
+        outThresh = repmat(outThresh,1,size(im,3));
     end
 
 
@@ -293,4 +293,5 @@ function [im,outThresh]=rescaleImage(im,thresh,pixSize)
 
 
 function thisCleanup(lockfile)
+    % Ensure that the lock file is deleted whenever the function completes
     delete(lockfile)
