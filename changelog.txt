@@ -1,5 +1,10 @@
 StitchIt Change-Log
 
+- 14/11/2020:
+- USER (made in dev branch): update auto-thresh alg for web preview
+- USER (made in dev branch): provide helpful messages in sampleSplitter if stitched planes or downsampled stacks are missing
+
+
 12/11/2020:
 - USER/DEVELOPER: sample splitter reports autoROI performance to stitchit log file [prerelease]
 
