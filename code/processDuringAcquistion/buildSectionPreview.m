@@ -260,37 +260,13 @@ function [im,thresh]=rescaleImage(im,thresh,pixSize)
     im = single(im);
 
     if thresh<25
-        % The threshold is a multiple of the mean (length 3 for rgb images)
-        imFindBrain=mean(im,3);
-        imFindBrain = medfilt2(imFindBrain,[3,3]);
-        numPixInImage =  prod(size(imFindBrain));
-
-        %Find how many pixels are present in the brain
-        BW = imFindBrain<20; %hardcode this threshold
-
-        % Remove crap
-        SE = strel('square',round(150/pixSize));
-        BW = imerode(BW,SE);
-        BW = imdilate(BW,SE);
-
-        % Add a border of 250 microns around each brain (or bit of brain)
-        SE = strel('square',round(250/pixSize));
-        BW = imdilate(BW,SE);
-
-        [L,indexedBW]=bwboundaries(BW,'noholes');
-        numPixelsInBrain = sum(indexedBW(:));
-        if numPixelsInBrain<1 %if nothing was found
-            numPixelsInBrain = round(numPixInImage/2); %Choose something arbitrary
-        end
-
-        scaleFact = (numPixInImage / numPixelsInBrain) * thresh;
-        thresh = squeeze(mean(mean(im,1),2)) * scaleFact;
+        thresh = (std(im(:))+median(im(:))) * thresh;
     end
 
 
     if length(thresh)==1
         %Handles RGB images with a single threshold for all chans
-        thresh = repmat(thresh,1,size(im,3));
+        thresh = repmat(thresh,1,size(im,3))
     end
 
 
