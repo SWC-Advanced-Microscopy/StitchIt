@@ -119,11 +119,13 @@ sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample
 sectionProcessDir=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
     sprintf('%s-%04d',param.sample.ID,coords(1)));
 
+% To exit gracefully if data are missing
+im=[];
+tagePos=[];
+index=[];
+
 if ~exist(sectionDir,'dir')
     fprintf('%s: No directory: %s. Skipping.\n', mfilename,sprintf('%s',sectionDir))
-    im=[];
-    positionArray=[];
-    index=[];
     return
 end
 
