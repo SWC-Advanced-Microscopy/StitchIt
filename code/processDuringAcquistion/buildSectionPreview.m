@@ -260,7 +260,12 @@ function [im,thresh]=rescaleImage(im,thresh,pixSize)
     im = single(im);
 
     if thresh<25
-        thresh = (std(im(:))+median(im(:))) * thresh;
+        % Scale the threshold by the median and SD but
+        % first get rid of any zero pixels that may come
+        % from the auto-ROI
+        tmp = im(:);
+        tmp(tmp==0)=[];
+        thresh = (std(tmp)+median(tmp)) * thresh;
     end
 
 
