@@ -36,8 +36,17 @@ if isempty(sectionDirs)
     return
 end
 
-pathToTiff = fullfile(config.subdir.rawDataDir,sectionDirs(end).name);
-tifs=dir(fullfile(pathToTiff,'*.tif'));
+% Loop backwards through section directories until we find one with data
+for ii = length(sectionDirs):-1:1
+    pathToTiff = fullfile(config.subdir.rawDataDir,sectionDirs(ii).name);
+    tifs=dir(fullfile(pathToTiff,'*.tif'));
+    if isempty(tifs)
+        continue
+    else
+        break
+    end        
+end
+
 
 imINFO=imfinfo(fullfile(pathToTiff,tifs(1).name));
 SI=parse_si_header(imINFO(1),'Software');
