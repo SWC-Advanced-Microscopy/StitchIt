@@ -251,33 +251,39 @@ end
 
 
 
-function [im,thresh]=rescaleImage(im,thresh,pixSize)
+function [im,outThresh]=rescaleImage(im,thresh,pixSize)
     % Re-scale the stitched image look up table so it is visible on screen and saves nicely
     if nargin<2
         thresh=1;
     end
 
     im = single(im);
+    outThresh = [];
 
     if thresh<25
         % Scale the threshold by the median and SD but
         % first get rid of any zero pixels that may come
         % from the auto-ROI
-        tmp = im(:);
-        tmp(tmp==0)=[];
-        thresh = (std(tmp)+median(tmp)) * thresh;
+        for ii=1:size(im,3)
+            tmp = im(:,:,ii);
+            tmp = tmp(:);
+            tmp(tmp==0)=[];
+            outThresh(ii) = (std(tmp)+median(tmp)) * thresh;
+        end
+    else
+        outThresh = thresh;        
     end
 
 
     if length(thresh)==1
         %Handles RGB images with a single threshold for all chans
-        thresh = repmat(thresh,1,size(im,3))
+        outThresh = repmat(thresh,1,size(im,3))
     end
 
 
-    if ~isempty(thresh)
-        for ii=1:length(thresh)
-            im(:,:,ii) = im(:,:,ii) ./ thresh(ii);
+    if ~isempty(outThresh)
+        for ii=1:length(outThresh)
+            im(:,:,ii) = im(:,:,ii) ./ outThresh(ii);
         end
         im(im>1)=1;
     end
