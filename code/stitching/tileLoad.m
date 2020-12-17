@@ -121,7 +121,7 @@ sectionProcessDir=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.prePr
 
 % To exit gracefully if data are missing
 im=[];
-tagePos=[];
+stagePos=[];
 index=[];
 
 if ~exist(sectionDir,'dir')
