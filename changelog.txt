@@ -1,6 +1,11 @@
 StitchIt Change-Log
 
-- 14/11/2020:
+
+06/01/2021:
+- USER - MAJOR: fixes bug that was losing the upper half of the dynamic range in stitched images. 
+
+
+14/11/2020:
 - USER (made in dev branch): Update auto-thresh alg for web preview
 - USER (made in dev branch): Provide helpful messages in sampleSplitter if stitched planes or downsampled stacks are missing
 - USER (made in dev branch): Fix a couple of bugs that could cause stitching to fail.
