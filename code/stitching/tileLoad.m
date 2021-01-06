@@ -161,10 +161,10 @@ im=[];
 index=[];
 
 %Check that all requested data exist
-for XYposInd=1:size(positionArray,1)
-    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,XYposInd);
+for XYposInd=1:length(indsToKeep)
+    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,indsToKeep(XYposInd));
     path2stack = fullfile(sectionDir,sectionTiff);
-    if ~exist(path2stack,'file') %TODO: bad [why? -- RAAC 02/05/2017]
+    if ~exist(path2stack,'file')
         fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);
         positionArray=[];
         return
