@@ -282,10 +282,22 @@ if doSubtractOffset
     if ~exist(firstTiff, 'file')
         error('Asked for offset subtraction but could not load the first tiff of the acquisition:\n%s', firstTiff)
     end
+
     firstImInfo = imfinfo(firstTiff);
     firstSI=parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
-    offset = firstSI.channelOffset;
-    im = im - cast(offset(channel),class(im));
+
+
+    if isa(im,'int16')
+        % We will save 16 bit unsigned TIFFs and will need, sadly, to transiently convert to singles if the
+        % data are saved as signed 16 bit tiffs.
+        %im = uint16(single(im) - offset(channel));
+        offset = single(firstSI.channelOffset);
+        im = im - cast(offset(channel),class(im));
+    else
+        fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
+            mfilename, class(im))
+    end
+
 end
 
 %Do illumination correction if requested to do so
