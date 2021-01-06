@@ -251,52 +251,39 @@ end
 
 
 
-function [im,thresh]=rescaleImage(im,thresh,pixSize)
+function [im,outThresh]=rescaleImage(im,thresh,pixSize)
     % Re-scale the stitched image look up table so it is visible on screen and saves nicely
     if nargin<2
         thresh=1;
     end
 
     im = single(im);
+    outThresh = [];
 
     if thresh<25
-        % The threshold is a multiple of the mean (length 3 for rgb images)
-        imFindBrain=mean(im,3);
-        imFindBrain = medfilt2(imFindBrain,[3,3]);
-        numPixInImage =  prod(size(imFindBrain));
-
-        %Find how many pixels are present in the brain
-        BW = imFindBrain<20; %hardcode this threshold
-
-        % Remove crap
-        SE = strel('square',round(150/pixSize));
-        BW = imerode(BW,SE);
-        BW = imdilate(BW,SE);
-
-        % Add a border of 250 microns around each brain (or bit of brain)
-        SE = strel('square',round(250/pixSize));
-        BW = imdilate(BW,SE);
-
-        [L,indexedBW]=bwboundaries(BW,'noholes');
-        numPixelsInBrain = sum(indexedBW(:));
-        if numPixelsInBrain<1 %if nothing was found
-            numPixelsInBrain = round(numPixInImage/2); %Choose something arbitrary
+        % Scale the threshold by the median and SD but
+        % first get rid of any zero pixels that may come
+        % from the auto-ROI
+        for ii=1:size(im,3)
+            tmp = im(:,:,ii);
+            tmp = tmp(:);
+            tmp(tmp==0)=[];
+            outThresh(ii) = (std(tmp)+median(tmp)) * thresh;
         end
-
-        scaleFact = (numPixInImage / numPixelsInBrain) * thresh;
-        thresh = squeeze(mean(mean(im,1),2)) * scaleFact;
+    else
+        outThresh = thresh;        
     end
 
 
-    if length(thresh)==1
+    if length(outThresh)==1
         %Handles RGB images with a single threshold for all chans
-        thresh = repmat(thresh,1,size(im,3));
+        outThresh = repmat(outThresh,1,size(im,3));
     end
 
 
-    if ~isempty(thresh)
-        for ii=1:length(thresh)
-            im(:,:,ii) = im(:,:,ii) ./ thresh(ii);
+    if ~isempty(outThresh)
+        for ii=1:length(outThresh)
+            im(:,:,ii) = im(:,:,ii) ./ outThresh(ii);
         end
         im(im>1)=1;
     end
@@ -306,4 +293,5 @@ function [im,thresh]=rescaleImage(im,thresh,pixSize)
 
 
 function thisCleanup(lockfile)
+    % Ensure that the lock file is deleted whenever the function completes
     delete(lockfile)

@@ -119,11 +119,13 @@ sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample
 sectionProcessDir=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
     sprintf('%s-%04d',param.sample.ID,coords(1)));
 
+% To exit gracefully if data are missing
+im=[];
+stagePos=[];
+index=[];
+
 if ~exist(sectionDir,'dir')
     fprintf('%s: No directory: %s. Skipping.\n', mfilename,sprintf('%s',sectionDir))
-    im=[];
-    positionArray=[];
-    index=[];
     return
 end
 
@@ -159,10 +161,10 @@ im=[];
 index=[];
 
 %Check that all requested data exist
-for XYposInd=1:size(positionArray,1)
-    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,XYposInd);
+for XYposInd=1:length(indsToKeep)
+    sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,indsToKeep(XYposInd));
     path2stack = fullfile(sectionDir,sectionTiff);
-    if ~exist(path2stack,'file') %TODO: bad [why? -- RAAC 02/05/2017]
+    if ~exist(path2stack,'file')
         fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);
         positionArray=[];
         return
@@ -280,10 +282,22 @@ if doSubtractOffset
     if ~exist(firstTiff, 'file')
         error('Asked for offset subtraction but could not load the first tiff of the acquisition:\n%s', firstTiff)
     end
+
     firstImInfo = imfinfo(firstTiff);
     firstSI=parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
-    offset = firstSI.channelOffset;
-    im = im - cast(offset(channel),class(im));
+
+
+    if isa(im,'int16')
+        % We will save 16 bit unsigned TIFFs and will need, sadly, to transiently convert to singles if the
+        % data are saved as signed 16 bit tiffs.
+        %im = uint16(single(im) - offset(channel));
+        offset = single(firstSI.channelOffset);
+        im = im - cast(offset(channel),class(im));
+    else
+        fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
+            mfilename, class(im))
+    end
+
 end
 
 %Do illumination correction if requested to do so
