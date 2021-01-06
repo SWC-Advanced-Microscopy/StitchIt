@@ -290,9 +290,10 @@ if doSubtractOffset
     if isa(im,'int16')
         % We will save 16 bit unsigned TIFFs and will need, sadly, to transiently convert to singles if the
         % data are saved as signed 16 bit tiffs.
-        %im = uint16(single(im) - offset(channel));
+
         offset = single(firstSI.channelOffset);
-        im = im - cast(offset(channel),class(im));
+        im = uint16(single(im) - offset(channel));
+
     else
         fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
             mfilename, class(im))
