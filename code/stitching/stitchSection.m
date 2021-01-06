@@ -35,7 +35,8 @@ function varargout=stitchSection(section, channel, varargin)
 % 'overwrite'   - false by default. If false skips sections that have already been built. If true, overwrite.
 % 'chessboard'  - false by default. if true do chessboard stitching (red/green overlapping tiles 
 %                 to diagnose stitching quality) 
-%
+% bidishiftpixels - zero by default. If non-zero, does a bidi correction shift by this whole number 
+%                   of pixels. 
 %
 % OUTPUTS (optional)
 % stitchedPlane - If only one section was requested to be stitched then it's possible to return it
@@ -94,14 +95,17 @@ end
 %Parse optional arguments
 inParams = inputParser;
 inParams.CaseSensitive = false;
-inParams.addParamValue('stitchedSize', 100, @(x) isnumeric(x));
-inParams.addParamValue('overwrite', false, @(x) islogical(x) || x==0 || x==1);
-inParams.addParamValue('chessboard', false, @(x) islogical(x) || x==0 || x==1);
+inParams.addParameter('stitchedSize', 100, @(x) isnumeric(x));
+inParams.addParameter('overwrite', false, @(x) islogical(x) || x==0 || x==1);
+inParams.addParameter('chessboard', false, @(x) islogical(x) || x==0 || x==1);
+inParams.addParameter('bidishiftpixels', 0)
 inParams.parse(varargin{:});
 
 stitchedSize=inParams.Results.stitchedSize;
 overwrite=inParams.Results.overwrite;
 doChessBoard=inParams.Results.chessboard;
+bidishiftpixels = inParams.Results.bidishiftpixels;
+
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
@@ -229,7 +233,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     end
 
 
-    [imStack,tileIndex,stagePos]=tileLoad([thisSection,0,0,channel]);
+    [imStack,tileIndex,stagePos]=tileLoad([thisSection,0,0,channel],'bidishiftpixels',bidishiftpixels);
 
     if isempty(imStack) %Skip if the image stack is empty. 
         fprintf('Skipping %03d/%02d due to missing tiles\n',thisSection)

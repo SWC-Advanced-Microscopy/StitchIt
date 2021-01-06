@@ -37,7 +37,8 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 %                    Equally, if the offset was not calculated then it's not incorporated into the 
 %                    average and the offset value will be forced to be zero. So the doSubtractOffset
 %                    value will have no effect in this case. 
-%
+% bidishiftpixels - zero by default. If non-zero, does a bidi correction shift by this whole number 
+%                   of pixels. 
 %
 %
 % OUTPUTS
@@ -77,11 +78,12 @@ IN = inputParser;
 IN.CaseSensitive = false;
 
 valChk = @(x) islogical(x) || x==0 || x==1 || isempty(x) || x==-1;
-IN.addParamValue('doIlluminationCorrection', [], valChk);
-IN.addParamValue('doCrop', [], valChk);
-IN.addParamValue('doCombCorrection', [], valChk);
-IN.addParamValue('doSubtractOffset', [], valChk);
-IN.addParamValue('verbose', false, @(x) islogical(x) || x==0 || x==1 );
+IN.addParameter('doIlluminationCorrection', [], valChk);
+IN.addParameter('doCrop', [], valChk);
+IN.addParameter('doCombCorrection', [], valChk);
+IN.addParameter('doSubtractOffset', [], valChk);
+IN.addParameter('bidishiftpixels', 0, @(x) isscalar(x) && mod(x,1) == 0)
+IN.addParameter('verbose', false, @(x) islogical(x) || x==0 || x==1 );
 
 IN.parse(varargin{:});
 
@@ -90,7 +92,7 @@ doCrop = IN.Results.doCrop;
 doCombCorrection = IN.Results.doCombCorrection;
 doSubtractOffset = IN.Results.doSubtractOffset;
 verbose = IN.Results.verbose;
-
+bidishiftpixels = IN.Results.bidishiftpixels;
 
 
 %Load the INI file and extract default values from it
@@ -116,8 +118,7 @@ end
 %Exit gracefully if data directory is missing 
 param = readMetaData2Stitchit;
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
-sectionProcessDir=fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
-    sprintf('%s-%04d',param.sample.ID,coords(1)));
+
 
 % To exit gracefully if data are missing
 im=[];
@@ -132,7 +133,7 @@ end
 
 
 %Load the tile position array
-load(fullfile(sectionDir, 'tilePositions.mat')); %contains variable positionArray
+load(fullfile(sectionDir, 'tilePositions.mat'),'positionArray'); %contains variable positionArray
 
 
 
@@ -157,8 +158,6 @@ sectionNum = coords(1);
 planeNum = coords(2); %Optical plane
 channel = coords(5);
 
-im=[];
-index=[];
 
 %Check that all requested data exist
 for XYposInd=1:length(indsToKeep)
@@ -166,7 +165,6 @@ for XYposInd=1:length(indsToKeep)
     path2stack = fullfile(sectionDir,sectionTiff);
     if ~exist(path2stack,'file')
         fprintf('%s - Can not find stack %s. RETURNING EMPTY DATA. BAD.\n', mfilename, path2stack);
-        positionArray=[];
         return
     end
 end
@@ -201,7 +199,6 @@ im=stitchit.tools.loadTiffStack(path2stack,'frames',planeNum,'outputType','int16
 im=repmat(im,[1,1,size(positionArray,1)]);
 im(:,:,1:end-1)=0;
 
-n=1; %counter for adding images to stack
 parfor XYposInd=1:length(indsToKeep)
 
     sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,indsToKeep(XYposInd) );
@@ -309,10 +306,9 @@ end
 
 
 % This is a super simple way for correcting bidirectional scanning artifacts with a resonant scanner.
-bidihack=false;
-if bidihack
+if bidishiftpixels ~= 0
   d = im(1:2:end,:,:);
-  d = circshift(d,[0,-1,0]);
+  d = circshift(d,[0,bidishiftpixels,0]);
   im(1:2:end,:,:)=d;
 end
 
@@ -340,7 +336,7 @@ end
 if nargout>2
     stagePos=[];
     posFname = fullfile(sectionDir,'tilePositions.mat');
-    if exist(posFname)
+    if exist(posFname,'file')
         load(posFname,'positionArray')
         stagePos.targetPos.X = positionArray(:,3);
         stagePos.targetPos.Y = positionArray(:,4);
@@ -350,23 +346,3 @@ if nargout>2
         fprintf('%s failed to find tile position array at %s\n', mfilename, posFname)
     end
 end
-
-%Calculate average filename from tile coordinates. We could simply load the
-%image for one layer and one channel, or we could try odd stuff like averaging
-%layers or channels. This may make things worse or it may make things better. 
-function aveTemplate = coords2ave(coords,userConfig)
-
-    layer=coords(2); % Optical section
-    chan=coords(5);
-
-    fname = sprintf('%s/%s/%d/%02d.bin',userConfig.subdir.rawDataDir,userConfig.subdir.averageDir,chan,layer);
-    if exist(fname,'file')
-        %The OS caches, so for repeated image loads this is negligible. 
-        aveTemplate = loadAveBinFile(fname); 
-    else
-        aveTemplate=[];
-        fprintf('%s Can not find average template file %s\n',mfilename,fname)
-    end
-
-%/COMMON
-
