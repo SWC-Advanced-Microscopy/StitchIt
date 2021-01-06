@@ -116,7 +116,7 @@ classdef sampleSplitter < handle
                     evalin('base', sprintf('delete(%s);clear(''%s'')', t{ii},t{ii}) )
                 end
             end
- 
+
             if isempty(varargin)
               %Look for an MHD file 
               d=dir('downsampled_stacks/050_micron/*.mhd');
@@ -126,7 +126,24 @@ classdef sampleSplitter < handle
               end
 
               if isempty(d)
-                fprintf('Could not find 50 micron downsampled stack provide a downsampled MHD or tiff stack filename, a stack, or an intensity projection\n')
+                % Warn user if there is no stitched data in the directory
+                s=findStitchedData;
+
+                msg = sprintf('Could not find 50 micron downsampled stack provide a downsampled MHD or tiff stack filename, a stack, or an intensity projection\n');
+                fprintf(msg)
+                if isempty(s)
+                    msg = [msg,'STITCHING SEEMS TO HAVE FAILED: see command line for suggestions'];
+                end
+                msg = [msg,'See command line for suggestions'];
+                warndlg(msg)
+
+                if isempty(s)
+                    % No stitched data
+                    fprintf('\n -> Either the stitching did not start or there was an error running "stitchAllChannels; downsampleAllChannels" <-\n')
+                else
+                    % There are stitched data but maybe no downsampled data because stitching failed
+                    fprintf('\n -> Either the downsampling did not start or the stitching failed. Try running "stitchAllChannels; downsampleAllChannels" <-\n')
+                end
                 obj.delete
                 return
               end

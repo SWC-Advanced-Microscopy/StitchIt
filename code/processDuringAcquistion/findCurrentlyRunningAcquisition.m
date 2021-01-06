@@ -68,7 +68,7 @@ end
 
 % Does the most recent one look like it could be an acquistion?
 if ~dirDetails(1).containsFINISHED && ...
-            dirDetails(1).secondsSinceLastAcqLogUpdate<60*5
+            dirDetails(1).secondsSinceLastAcqLogUpdate<60*10
     currentAcq = dirDetails(1);
 end
 
