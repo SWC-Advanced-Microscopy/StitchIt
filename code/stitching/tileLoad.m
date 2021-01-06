@@ -82,7 +82,7 @@ IN.addParameter('doIlluminationCorrection', [], valChk);
 IN.addParameter('doCrop', [], valChk);
 IN.addParameter('doCombCorrection', [], valChk);
 IN.addParameter('doSubtractOffset', [], valChk);
-IN.addParameter('bidishiftpixels', 0, @(x) isscalar(x) && (isinteger(x) || x==0))
+IN.addParameter('bidishiftpixels', 0, @(x) isscalar(x) && mod(x,1) == 0)
 IN.addParameter('verbose', false, @(x) islogical(x) || x==0 || x==1 );
 
 IN.parse(varargin{:});
