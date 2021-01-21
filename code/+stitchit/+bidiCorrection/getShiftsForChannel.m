@@ -11,6 +11,7 @@ function stats=getShiftForChannel(chan,everyNSections)
 
     section = section(1:everyNSections:end,:) 
 
+    T=tic;
     parfor ii=1:length(section)
         tSection = section(ii,1);
         fprintf('Starting section %d\n',tSection)
@@ -22,3 +23,4 @@ function stats=getShiftForChannel(chan,everyNSections)
         end
     end
 
+    fprintf('Finished processing channel %d in %0.1f seconds\n',toc(T))
