@@ -2,7 +2,7 @@ function TILESTATS = loadAllTileStatsFiles(chan)
 
 % Loads all tile stats files .mat files
 %
-%  function tileStats = loadAllTileStatsFiles
+%  function tileStats = loadAllTileStatsFiles(chan)
 %
 % Purpose
 % Load all tileStats.mat files in the raw data directory and return as a structure

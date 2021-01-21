@@ -172,7 +172,7 @@ end
 
 % Check that the user has asked for a channel that exists
 imInfo = imfinfo(path2stack);
-SI=parse_si_header(imInfo(1),'Software'); % Parse the ScanImage TIFF header
+SI=stitchit.tools.parse_si_header(imInfo(1),'Software'); % Parse the ScanImage TIFF header
 
 channelsInSIstack = SI.channelSave;
 numChannelsAvailable = length(channelsInSIstack);
@@ -281,7 +281,7 @@ if doSubtractOffset
     end
 
     firstImInfo = imfinfo(firstTiff);
-    firstSI=parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
+    firstSI=stitchit.tools.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
 
 
     if isa(im,'int16')
