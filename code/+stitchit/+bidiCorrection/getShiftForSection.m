@@ -12,9 +12,15 @@ function stats=getShiftForSection(sectionNum,chan)
     param = readMetaData2Stitchit;
     rawDataDir = sprintf('%s%04d',directoryBaseName,sectionNum);
 
+
     preProcessPath = fullfile(userConfig.subdir.rawDataDir,userConfig.subdir.preProcessDir);
     preProcessPath = fullfile(preProcessPath,sprintf('%s%04d',directoryBaseName,sectionNum));
     preProcessPath = fullfile(preProcessPath,sprintf('tileStats_ch%.0f.mat', chan));
+    if ~exist(preProcessPath,'file')
+        stats=[];
+        return
+    end
+
     load(preProcessPath)
 
 
