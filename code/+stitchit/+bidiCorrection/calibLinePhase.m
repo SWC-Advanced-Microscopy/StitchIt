@@ -41,10 +41,10 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
     T=tic;
     newPhase = stitchit.bidiCorrection.calibLinePhase.calibrateLinePhase(double(currentImg'),metaData);
 
-    if verbose
+   % if verbose
         fprintf('New phase calculated in %0.2f s : %0.4f us to %0.4f us\n', ...
             toc(T), metaData.linePhase*1E6, newPhase*1E6)
-    end
+   % end
 
 
 
