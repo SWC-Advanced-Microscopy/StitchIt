@@ -9,6 +9,8 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
         suppressPlot=false;
     end
 
+    verbose=false;
+
     % Load the image from the raw data stack
     origImg = imread(imFname,imIdx);
 
@@ -26,7 +28,9 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
 
     % Phase the original image was taken with
     origPhase = metaData.linePhase;
-    fprintf('Original phase: %0.4f us\n',origPhase*1E6)
+    if verbose
+        fprintf('Original phase: %0.4f us\n',origPhase*1E6)
+    end
 
 
     currentImg = origImg;
@@ -36,8 +40,13 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
     % is indicates some shifting is necessary.
     T=tic;
     newPhase = stitchit.bidiCorrection.calibLinePhase.calibrateLinePhase(double(currentImg'),metaData);
-    fprintf('New phase calculated in %0.2f s : %0.4f us to %0.4f us\n', ...
-        toc(T), metaData.linePhase*1E6, newPhase*1E6)
+
+    if verbose
+        fprintf('New phase calculated in %0.2f s : %0.4f us to %0.4f us\n', ...
+            toc(T), metaData.linePhase*1E6, newPhase*1E6)
+    end
+
+
 
 
     % The is the difference between the new phase and the original phase
@@ -61,7 +70,9 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
     T=tic;
 
     while (delta ~= 0) && iter < maxIter
-        fprintf('Iter. %d shift by %0.2f\n', iter, shiftAmnt)
+        if verbose
+            fprintf('Iter. %d shift by %0.2f\n', iter, shiftAmnt)
+        end
         % Shift the image lines by some amount to generate a new image
         newImg = shiftEvenLines(currentImg, shiftAmnt);
         
@@ -92,11 +103,15 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
         % worse than the pervious delta, then it means we are moving away
         % from 0 and the shifting is making things worse. 
         if delta > lastDelta
-            disp('Getting worse, so lets go back and stop');
+            if verbose
+                disp('Getting worse, so lets go back and stop')
+            end
             newImg = shiftEvenLines(origImg, lastGoodShiftAmnt);
-            break;
+            break
         else
-            disp('Getting better');
+            if verbose
+                disp('Getting better')
+            end
             lastGoodShiftAmnt = shiftAmnt;
         end
         
@@ -110,7 +125,9 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
     end
     
     if iter == maxIter
-        warning('unable to correct image in fewer than 5 iterations');
+        if verbose
+            warning('unable to correct image in fewer than 5 iterations');
+        end
         correctedImg = [];
         lastGoodShiftAmnt = nan; % So we don't count it
     elseif ~suppressPlot && ~isempty(newImg)
@@ -120,7 +137,9 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
 %         imshow(correctedImg, 'Colormap', summer(256));
     end
 
-    fprintf('Shifted in %0.2f s\n', toc(T))
+    if verbose
+        fprintf('Shifted in %0.2f s\n', toc(T))
+    end
 
     stats.shiftAmnt = lastGoodShiftAmnt;
     stats.iter = iter;

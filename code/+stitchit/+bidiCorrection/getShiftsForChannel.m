@@ -9,7 +9,7 @@ function stats=getShiftForChannel(chan,everyNSections)
     section = handleSectionArg([]);
     section = section(section(:,2)==1,:);
 
-    section = section(1:everyNSections:end,:) 
+    section = section(1:everyNSections:end,:);
 
     T=tic;
     parfor ii=1:length(section)
@@ -23,4 +23,4 @@ function stats=getShiftForChannel(chan,everyNSections)
         end
     end
 
-    fprintf('Finished processing channel %d in %0.1f seconds\n',toc(T))
+    fprintf('Finished processing channel %d in %0.1f seconds\n',chan,toc(T))

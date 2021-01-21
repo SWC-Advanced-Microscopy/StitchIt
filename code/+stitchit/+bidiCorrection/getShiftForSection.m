@@ -36,10 +36,10 @@ function stats=getShiftForSection(sectionNum,chan)
     ind(round(length(ind)*0.25):end)=[];
 
     % TODO -- check files exist before entering loop
+    fprintf('\nStarting to get shifts for %d tiles of section %d\n', length(ind), sectionNum)
     for ii=1:length(ind)
         sectionTiff = sprintf('%s%04d_%05d.tif',directoryBaseName,sectionNum,ind(ii));
         pathToFile = fullfile(userConfig.subdir.rawDataDir, rawDataDir, sectionTiff);
-        fprintf('%s\n', pathToFile)
         
         [~,tmp]=stitchit.bidiCorrection.calibLinePhase(pathToFile,chan-1,true); %The chan-1 is a horrible hack! TODO
         tmp.sectionNumber=sectionNum;
@@ -58,4 +58,4 @@ function stats=getShiftForSection(sectionNum,chan)
     end
 
 
-    fprintf('Function complete in %0.1f seconds\n', toc(T) );
+    fprintf('getShiftForSection complete in %0.1f seconds\n', toc(T) );
