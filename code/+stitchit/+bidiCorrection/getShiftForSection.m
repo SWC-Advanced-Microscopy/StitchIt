@@ -38,7 +38,7 @@ function stats=getShiftForSection(sectionNum,chan)
     ind(round(length(ind)*0.25):end)=[];
 
     % We might still have loads of tiles, though. If so we keep only a fixed number
-    if ind>maxTiles
+    if length(ind)>maxTiles
         ind=ind(end-maxTiles+1:end);
     end
 
