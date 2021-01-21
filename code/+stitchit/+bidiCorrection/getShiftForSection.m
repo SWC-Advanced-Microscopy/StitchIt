@@ -5,6 +5,8 @@ function stats=getShiftForSection(sectionNum,chan)
         chan=2;
     end
 
+    maxTiles = 30; 
+
     T = tic;
 
     userConfig=readStitchItINI;
@@ -28,12 +30,17 @@ function stats=getShiftForSection(sectionNum,chan)
 
     mu = tileStats(1).mu{1};
 
+    % If there are more than 25 tiles we get rid of the dimmest quarter
     if length(mu)>25
         [~,ind] = sort(mu,'descend');
     end
 
-    %ind(round(length(ind)/2):end)=[];
     ind(round(length(ind)*0.25):end)=[];
+
+    % We might still have loads of tiles, though. If so we keep only a fixed number
+    if ind>maxTiles
+        ind=ind(end-maxTiles+1:end);
+    end
 
     % TODO -- check files exist before entering loop
     fprintf('\nStarting to get shifts for %d tiles of section %d\n', length(ind), sectionNum)
