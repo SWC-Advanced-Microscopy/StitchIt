@@ -1,9 +1,15 @@
-function stats=getShiftForChannel(chan)
+function stats=getShiftForChannel(chan,everyNSections)
     % Get all shifts for a particular channel across all sections
 
 
-    section=handleSectionArg([]);
+    if nargin<2
+        everyNSections=1;
+    end
+
+    section = handleSectionArg([]);
     section = section(section(:,2)==1,:);
+
+    section = section(1:everyNSections:end,:) 
 
     parfor ii=1:length(section)
         tSection = section(ii,1);
