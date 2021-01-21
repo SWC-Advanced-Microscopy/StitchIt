@@ -11,6 +11,8 @@ function stats=getShiftForChannel(chan,everyNSections)
 
     section = section(1:everyNSections:end,:);
 
+    fprintf('Running over a total of %d sections\n', length(section))
+
     T=tic;
     parfor ii=1:length(section)
         tSection = section(ii,1);
