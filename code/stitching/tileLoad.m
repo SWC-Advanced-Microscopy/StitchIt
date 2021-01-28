@@ -133,7 +133,12 @@ end
 
 
 %Load the tile position array
-load(fullfile(sectionDir, 'tilePositions.mat'),'positionArray'); %contains variable positionArray
+posFname = fullfile(sectionDir,'tilePositions.mat');
+if ~exist(posFname,'file')
+    fprintf('tileLoad fails to find tile position file at %s\n',posFname)
+    return
+end
+load(posFname); %contains variable positionArray
 
 
 
@@ -334,15 +339,8 @@ end
 
 % get stage positions if requested
 if nargout>2
-    stagePos=[];
-    posFname = fullfile(sectionDir,'tilePositions.mat');
-    if exist(posFname,'file')
-        load(posFname,'positionArray')
-        stagePos.targetPos.X = positionArray(:,3);
-        stagePos.targetPos.Y = positionArray(:,4);
-        stagePos.actualPos.X = positionArray(:,5);
-        stagePos.actualPos.Y = positionArray(:,6);
-    else
-        fprintf('%s failed to find tile position array at %s\n', mfilename, posFname)
-    end
+    stagePos.targetPos.X = positionArray(:,3);
+    stagePos.targetPos.Y = positionArray(:,4);
+    stagePos.actualPos.X = positionArray(:,5);
+    stagePos.actualPos.Y = positionArray(:,6);
 end
