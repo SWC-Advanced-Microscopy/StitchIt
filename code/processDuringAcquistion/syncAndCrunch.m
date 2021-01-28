@@ -514,6 +514,11 @@ end
 
 % Find the function that we will run after acquisition
 config=readStitchItINI; %re-read the config file
+
+% Get sample ID to report status to user
+R=readMetaData2Stitchit;
+sampleID = R.sample.ID;
+
 if config.syncAndCrunch.postAcqFun==0
     postAcqFun='postAcq';
 else
@@ -528,7 +533,7 @@ end
 
 % To avoid sending slack messages if the user has begun the analysis on data that already have a "finished" file
 if ~expAlreadyFinished 
-    stitchit.tools.notify(sprintf('%s Acquisition finished. Beginning stitching of %s.',generateMessage('positive'),expName))
+    stitchit.tools.notify(sprintf('%s Acquisition finished. Beginning stitching of %s.',generateMessage('positive'),sampleID));
 end
 
 try
@@ -548,7 +553,7 @@ end
 if ~expAlreadyFinished && success
     msg=sprintf('Stitching finished!\n');
     stitchit.tools.writeLineToLogFile(logFileName,msg);
-    stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),expName))
+    stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),sampleID))
 end
 
 %Delete the web directory if it's there
