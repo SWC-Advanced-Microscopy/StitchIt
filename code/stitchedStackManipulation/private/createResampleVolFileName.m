@@ -39,6 +39,7 @@ function downsampledFname = createResampleVolFileName(channel,targetDims)
 
 
     % See if we can obtain the channel name from the scan settings file
+    % TODO -- dupe with stitchedPlanesToVolume
     if exist('scanSettings.mat','file')
         load('scanSettings')
         % Process channel name to ready it for insertion into file name
@@ -46,7 +47,7 @@ function downsampledFname = createResampleVolFileName(channel,targetDims)
         chName = strrep(chName,' ','_');
         chName = ['_',chName];
     else
-        chName=''
+        chName='';
     end
 
     downsampledFname=[downsampledFname, sprintf('_ch%02d%s',channel,chName)];

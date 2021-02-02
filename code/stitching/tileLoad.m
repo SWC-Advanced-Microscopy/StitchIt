@@ -296,14 +296,14 @@ if doSubtractOffset
         offset = single(firstSI.channelOffset);
         tOffset = offset(channel);
 
-        % TEMPORARY
-        % It should be the case that the offset value supplied by ScanImage will be correct. 
-        % i.e. that it will have the same sign and magnitude as what is seen in the histogram
-        % However, in Jan 2021 I notice that on NV the sign is inverted. We therefore add the
-        % following code here to crudely check for this and correct it. 
+        % Hacky fix for a scanimage bug that happens when acquirising linear scanner
+        % data with an FPGA that has the PMTs set to inverted. This causes the 
+        % offset to be th opposite sign, which messes up low values in our images. 
+        % So if the mode and offset are of different signs for linear scanner data we flip
+        % the sign of the offset. Ideally this hacky mess is temporary (TODO)
         if strcmp(firstSI.scanMode,'linear')
             if (mode(im(:))<0 && tOffset>0) || (mode(im(:))>0 && tOffset<0)
-                tOffset = tOffset * -1;
+               tOffset = tOffset * -1;
             end
         end
 

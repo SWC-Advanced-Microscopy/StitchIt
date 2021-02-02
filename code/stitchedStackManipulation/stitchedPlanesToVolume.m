@@ -110,7 +110,7 @@ function chName = getChanNames(channel)
         chName = strrep(chName,' ','_');
         chName = ['_',chName];
     else
-        chName=''
+        chName='';
     end
 end %function getChanNames
 
