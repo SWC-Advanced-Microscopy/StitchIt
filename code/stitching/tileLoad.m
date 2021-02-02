@@ -294,7 +294,21 @@ if doSubtractOffset
         % data are saved as signed 16 bit tiffs.
 
         offset = single(firstSI.channelOffset);
-        im = uint16(single(im) - offset(channel));
+        tOffset = offset(channel);
+        % It should be the case that the offset value supplied by ScanImage will be correct. 
+        % i.e. that it will have the same sign and magnitude as what is seen in the histogram
+        % However, in Jan 2021 I notice that on NV the sign is inverted. We therefore add the
+        % following code here to crudely check for this and correct it. 
+        if mode(im(:))<0 && tOffset>0
+            fprintf('FLIPPING IMAGE OFFSET')
+            tOffset = tOffset * -1;
+        end
+        if mode(im(:))>0 && tOffset<0
+            fprintf('FLIPPING IMAGE OFFSET')
+            tOffset = tOffset * -1;
+        end
+
+        im = uint16(single(im) - tOffset);
 
     else
         fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
