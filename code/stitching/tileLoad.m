@@ -36,7 +36,8 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 %                    these circumstances you might want to re-generate the average images. 
 %                    Equally, if the offset was not calculated then it's not incorporated into the 
 %                    average and the offset value will be forced to be zero. So the doSubtractOffset
-%                    value will have no effect in this case. 
+%                    value will have no effect in this case. if doSubtractOffset is -1 the the offset
+%                    is multiplied by -1 before being subtracted.
 % bidishiftpixels - zero by default. If non-zero, does a bidi correction shift by this whole number 
 %                   of pixels. 
 %
@@ -269,7 +270,7 @@ end
 % If requested and possible, subtract the calculated offset from the tiles. This
 % is useful in the event that a drifting offset is creating problems. 
 % Can be used to deal with offset amplifiers for a wider dynamic range.
-if doSubtractOffset
+if doSubtractOffset==1 || doSubtractOffset==-1
     % Find the first image of that acquisition (not assuming that 1 is
     % first)
     dirNames = dir(userConfig.subdir.rawDataDir);
@@ -294,19 +295,13 @@ if doSubtractOffset
         % data are saved as signed 16 bit tiffs.
 
         offset = single(firstSI.channelOffset);
-        tOffset = offset(channel);
 
-        % Hacky fix for a scanimage bug that happens when acquirising linear scanner
-        % data with an FPGA that has the PMTs set to inverted. This causes the 
+        % The multiplication by doSubtractOffset is a hacky fix for a scanimage bug that happens 
+        % when acquiring linear scanner data with an FPGA that has the PMTs set to inverted. This causes the 
         % offset to be th opposite sign, which messes up low values in our images. 
         % So if the mode and offset are of different signs for linear scanner data we flip
         % the sign of the offset. Ideally this hacky mess is temporary (TODO)
-        if strcmp(firstSI.scanMode,'linear')
-            if (mode(im(:))<0 && tOffset>0) || (mode(im(:))>0 && tOffset<0)
-               tOffset = tOffset * -1;
-            end
-        end
-
+        tOffset = offset(channel) * doSubtractOffset; 
         im = uint16(single(im) - tOffset);
 
     else
