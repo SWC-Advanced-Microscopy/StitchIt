@@ -44,12 +44,12 @@ for ii = length(sectionDirs):-1:1
         continue
     else
         break
-    end        
+    end
 end
 
 
 imINFO=imfinfo(fullfile(pathToTiff,tifs(1).name));
-SI=parse_si_header(imINFO(1),'Software');
+SI=stitchit.tools.parse_si_header(imINFO(1),'Software');
 availableChans=SI.channelSave;
 
 if isempty(availableChans)

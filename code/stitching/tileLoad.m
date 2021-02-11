@@ -36,7 +36,8 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 %                    these circumstances you might want to re-generate the average images. 
 %                    Equally, if the offset was not calculated then it's not incorporated into the 
 %                    average and the offset value will be forced to be zero. So the doSubtractOffset
-%                    value will have no effect in this case. 
+%                    value will have no effect in this case. if doSubtractOffset is -1 the the offset
+%                    is multiplied by -1 before being subtracted.
 % bidishiftpixels - zero by default. If non-zero, does a bidi correction shift by this whole number 
 %                   of pixels. 
 %
@@ -133,7 +134,12 @@ end
 
 
 %Load the tile position array
-load(fullfile(sectionDir, 'tilePositions.mat'),'positionArray'); %contains variable positionArray
+posFname = fullfile(sectionDir,'tilePositions.mat');
+if ~exist(posFname,'file')
+    fprintf('tileLoad fails to find tile position file at %s\n',posFname)
+    return
+end
+load(posFname); %contains variable positionArray
 
 
 
@@ -172,7 +178,7 @@ end
 
 % Check that the user has asked for a channel that exists
 imInfo = imfinfo(path2stack);
-SI=parse_si_header(imInfo(1),'Software'); % Parse the ScanImage TIFF header
+SI=stitchit.tools.parse_si_header(imInfo(1),'Software'); % Parse the ScanImage TIFF header
 
 channelsInSIstack = SI.channelSave;
 numChannelsAvailable = length(channelsInSIstack);
@@ -264,7 +270,7 @@ end
 % If requested and possible, subtract the calculated offset from the tiles. This
 % is useful in the event that a drifting offset is creating problems. 
 % Can be used to deal with offset amplifiers for a wider dynamic range.
-if doSubtractOffset
+if doSubtractOffset==1 || doSubtractOffset==-1
     % Find the first image of that acquisition (not assuming that 1 is
     % first)
     dirNames = dir(userConfig.subdir.rawDataDir);
@@ -281,7 +287,7 @@ if doSubtractOffset
     end
 
     firstImInfo = imfinfo(firstTiff);
-    firstSI=parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
+    firstSI=stitchit.tools.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
 
 
     if isa(im,'int16')
@@ -289,7 +295,14 @@ if doSubtractOffset
         % data are saved as signed 16 bit tiffs.
 
         offset = single(firstSI.channelOffset);
-        im = uint16(single(im) - offset(channel));
+
+        % The multiplication by doSubtractOffset is a hacky fix for a scanimage bug that happens 
+        % when acquiring linear scanner data with an FPGA that has the PMTs set to inverted. This causes the 
+        % offset to be th opposite sign, which messes up low values in our images. 
+        % So if the mode and offset are of different signs for linear scanner data we flip
+        % the sign of the offset. Ideally this hacky mess is temporary (TODO)
+        tOffset = offset(channel) * doSubtractOffset; 
+        im = uint16(single(im) - tOffset);
 
     else
         fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
@@ -334,15 +347,8 @@ end
 
 % get stage positions if requested
 if nargout>2
-    stagePos=[];
-    posFname = fullfile(sectionDir,'tilePositions.mat');
-    if exist(posFname,'file')
-        load(posFname,'positionArray')
-        stagePos.targetPos.X = positionArray(:,3);
-        stagePos.targetPos.Y = positionArray(:,4);
-        stagePos.actualPos.X = positionArray(:,5);
-        stagePos.actualPos.Y = positionArray(:,6);
-    else
-        fprintf('%s failed to find tile position array at %s\n', mfilename, posFname)
-    end
+    stagePos.targetPos.X = positionArray(:,3);
+    stagePos.targetPos.Y = positionArray(:,4);
+    stagePos.actualPos.X = positionArray(:,5);
+    stagePos.actualPos.Y = positionArray(:,6);
 end

@@ -35,7 +35,7 @@ function varargout=stitchSection(section, channel, varargin)
 % 'overwrite'   - false by default. If false skips sections that have already been built. If true, overwrite.
 % 'chessboard'  - false by default. if true do chessboard stitching (red/green overlapping tiles 
 %                 to diagnose stitching quality) 
-% bidishiftpixels - zero by default. If non-zero, does a bidi correction shift by this whole number 
+% 'bidishiftpixels' - zero by default. If non-zero, does a bidi correction shift by this whole number 
 %                   of pixels. 
 %
 % OUTPUTS (optional)

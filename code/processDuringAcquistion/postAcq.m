@@ -48,3 +48,6 @@ collateAverageImages % Ensure all are collated
 stitchAllChannels
 %-----------------------------------------------------
 
+% Make downsampled stacks of all channels at 25 and 50 microns per pixel
+% We need the 50 micron stack for sampleSplitter
+downsampleAllChannels([50,25])
