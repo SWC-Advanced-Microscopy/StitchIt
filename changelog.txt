@@ -1,6 +1,9 @@
 StitchIt Change-Log
 
 
+11/02/2021:
+- USER: downsampled stacks made at conclusion of acquisition for sampleSplitter
+
 06/01/2021:
 - USER - MAJOR: fixes bug that was losing the upper half of the dynamic range in stitched images. 
 - USER - stitchSection now handles an optional bidirectional phase correction. This is a fixed, user-provided,
