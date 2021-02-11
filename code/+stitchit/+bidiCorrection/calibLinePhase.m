@@ -9,7 +9,7 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
         suppressPlot=false;
     end
 
-    verbose=false;
+    verbose=true;
 
     % Load the image from the raw data stack
     origImg = imread(imFname,imIdx);
@@ -126,7 +126,7 @@ function [correctedImg,stats] = calibLinePhase(imFname, imIdx,suppressPlot)
     
     if iter == maxIter
         if verbose
-            warning('unable to correct image in fewer than 5 iterations');
+            warning(sprintf('Unable to correct image in fewer than 5 iterations\n',maxIter));
         end
         correctedImg = [];
         lastGoodShiftAmnt = nan; % So we don't count it
