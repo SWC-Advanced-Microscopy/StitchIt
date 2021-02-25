@@ -56,6 +56,3 @@ You may also join the [StitchIt Gitter](https://gitter.im/open-serial-section/st
 
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
-
-## Also see
-- [MaSIV](https://github.com/alexanderbrown/masiv) for visualising data. 
