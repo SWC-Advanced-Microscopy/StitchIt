@@ -5,7 +5,7 @@ function varargout=correctZilluminationInDirectory(sectionDirectory,outputDirect
 %
 % Purpose
 % Imaging deeper in a physical section results in more scatter and dimmer images. We
-% can correct for this with higher laser power, but it's hard to do this precisely. 
+% can correct for this with higher laser power, but it is hard to do this precisely. 
 % This function therefore corrects for small differences in intensity between optical 
 % sections. 
 %
