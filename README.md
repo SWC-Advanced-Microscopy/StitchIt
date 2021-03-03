@@ -3,8 +3,9 @@
 # StitchIt
 
 *StitchIt* is a MATLAB package for stitching data acquired via our [ScanImage](http://scanimage.vidriotechnologies.com/))-based acquisition system (BakingTray).
-To get started, please read the [Wiki](https://github.com/BaselLaserMouse/StitchIt/wiki). 
-There is a [changelog](https://raw.githubusercontent.com/BaselLaserMouse/StitchIt/master/changelog.txt).
+To get started, please read the [Documentation](https://stitchit.mouse.vision/). 
+There is a [changelog](https://raw.githubusercontent.com/SainsburyWellcomeCentre
+/StitchIt/master/changelog.txt).
 
 ## Features
 
@@ -55,6 +56,3 @@ You may also join the [StitchIt Gitter](https://gitter.im/open-serial-section/st
 
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
-
-## Also see
-- [MaSIV](https://github.com/alexanderbrown/masiv) for visualising data. 
