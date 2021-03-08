@@ -316,7 +316,7 @@ end
 iniFileContents=showStitchItConf(-1,fullPathToINIfile);
 
 for thisR = 1:length(reducedSizeDir)
-        fname = sprintf('.%s%s%s%d%sstitchinginParams.ini',...
+        fname = sprintf('.%s%s%s%d%sstitchingParams.ini',...
                                 filesep,reducedSizeDir{thisR},filesep, channel, filesep);
 
         fprintf('Logging stitching parameters to %s\n',fname)
