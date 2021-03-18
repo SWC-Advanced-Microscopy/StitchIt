@@ -71,11 +71,18 @@ if verbose
     fprintf('Projected max pixel -- X: %d Y: %d\n', projected_maxXpixel, projected_maxYpixel)
 end
 
+% In theory an integer number of tiles should always fit into each stitched plane. In auto-ROI acquisitions
+% most planes will be bounded by empty pixels. For an unknown reason, however, sometimes the pre-allocated 
+% image size is a few pixels short. StitchIt used to just not lay down the whole row or column of tiles in 
+% such cases. This is a bit extreme, though, so "allowPartial" tiles lays these down then clips them to
+% ensure that all sections have the same number of pixels. Probably there is no reason to set this to false
+% other than for debugging.
+allowPartialTiles = false;
 
 if isempty(maxPixelPos)
     maxXpixel=projected_maxXpixel;
     maxYpixel=projected_maxYpixel;
-else
+elseif ~allowPartialTiles
     maxXpixel = maxPixelPos(2);
     maxYpixel = maxPixelPos(1);
 
@@ -83,10 +90,6 @@ else
         fprintf('Min pixel from tile coords -- X: %d Y: %d\n', min(tileCoords(:,2)), min(tileCoords(:,1)))
         fprintf('Supplied max pixel from determineStitchedImageExtent -- X: %d Y: %d\n', maxXpixel, maxYpixel)
     end
-
-    %disp('THERE IS A HACK IN stitcher at lines 78 and 79: replacing supplied max with projected max pixels')
-    %maxXpixel=projected_maxXpixel;
-    %maxYpixel=projected_maxYpixel;
 
     if projected_maxXpixel > maxXpixel
         fprintf('Warning, stage positions requested with projected max x pixel of %d but expected value is %d\n', ...
@@ -96,6 +99,9 @@ else
         fprintf('Warning, stage positions requested with projected max y pixel of %d but expected value is %d\n', ...
             projected_maxYpixel, maxYpixel);
     end
+elseif allowPartialTiles
+    maxXpixel=projected_maxXpixel;
+    maxYpixel=projected_maxYpixel;
 end
 
 %We will use the value 2^16 to indicate regions where a tile hasn't been placed.
@@ -135,6 +141,7 @@ if verbose
 end
 
 
+
 for ii=1:size(imStack,3)
 
     %The indexes of the stitched image where we will be placing this tile
@@ -153,16 +160,18 @@ for ii=1:size(imStack,3)
         continue
     end
 
-    if yPos(2)>size(stitchedPlane,1)
-        fprintf('Y coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
-            yPos(2), size(stitchedPlane,1))
-        continue
-    end
+    if ~allowPartialTiles
+        if yPos(2)>size(stitchedPlane,1)
+            fprintf('Y coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
+                yPos(2), size(stitchedPlane,1))
+            continue
+        end
 
-    if xPos(2)>size(stitchedPlane,2)
-        fprintf('X coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
-            xPos(2), size(stitchedPlane,2))
-        continue
+        if xPos(2)>size(stitchedPlane,2)
+            fprintf('X coordinate would place tile up to pixel value %d but image is pre-allocated up to %d. SKIPPING TILE\n', ...
+                xPos(2), size(stitchedPlane,2))
+            continue
+        end
     end
 
 
@@ -211,6 +220,10 @@ for ii=1:size(imStack,3)
 
 
 end %for ii=1:size(imStack,3)
+
+if allowPartialTiles
+    stitchedPlane = stitchedPlane(1:maxPixelPos(1), 1:maxPixelPos(2));
+end
 
 %If the matrix has grown, we have a problem with the way pre-allocation is being done. 
 if any(size(stitchedPlane)>allocatedSize)
