@@ -79,9 +79,18 @@ end
 % other than for debugging.
 allowPartialTiles = false;
 
+if verbose && allowPartialTiles
+    fprintf('%s.m is allowing partial tiles\n',mfilename)
+end
+
 if isempty(maxPixelPos)
+    if verbose
+        fprintf('variable maxPixelPos is empty. Using projected_maxXpixel=%d and projected_maxYpixel=%d instead\n',...
+            projected_maxXpixel, projected_maxYpixel)
+    end
     maxXpixel=projected_maxXpixel;
     maxYpixel=projected_maxYpixel;
+    finalImSize = [maxYpixel,maxXpixel];
 elseif ~allowPartialTiles
     maxXpixel = maxPixelPos(2);
     maxYpixel = maxPixelPos(1);
@@ -99,10 +108,25 @@ elseif ~allowPartialTiles
         fprintf('Warning, stage positions requested with projected max y pixel of %d but expected value is %d\n', ...
             projected_maxYpixel, maxYpixel);
     end
+    finalImSize = [maxYpixel,maxXpixel];
 elseif allowPartialTiles
-    maxXpixel=projected_maxXpixel;
-    maxYpixel=projected_maxYpixel;
+    if projected_maxXpixel>maxPixelPos(2)
+        xMax = projected_maxXpixel;
+    else
+        xMax = maxPixelPos(2);
+    end
+
+    if projected_maxYpixel>maxPixelPos(1)
+        yMax = projected_maxYpixel;
+    else
+        yMax = maxPixelPos(1);
+    end
+
+    finalImSize = [yMax,xMax];
+    maxXpixel = maxPixelPos(2);
+    maxYpixel = maxPixelPos(1);
 end
+
 
 %We will use the value 2^16 to indicate regions where a tile hasn't been placed.
 %this is just a trick to make the tile fusion (which is currently just averaging) 
@@ -111,7 +135,7 @@ end
 
 
 
-finalImSize = [maxYpixel,maxXpixel];
+
 
 stitchedPlane = zeros(finalImSize, 'uint16');
 
@@ -125,6 +149,9 @@ end
 
 allocatedSize=size(stitchedPlane);
 
+if verbose
+    fprintf('stitched plane pre-allocated to %d pixel columns by %d pixel rows\n', fliplr(allocatedSize))
+end
 
 
 %Lay down the tiles
@@ -137,7 +164,7 @@ userConfig=readStitchItINI;
 tilePositionInPixels=ones(size(imStack,3),4); %x,xwidth,y,ywidth
 
 if verbose
-    fprintf('\n%s reports -- Max X: %0.2f Max Y: %0.2f\n\n', mfilename, maxXpixel, maxYpixel)
+    fprintf('\n%s.m reports -- Max X: %0.2f Max Y: %0.2f\n\n', mfilename, maxXpixel, maxYpixel)
 end
 
 
