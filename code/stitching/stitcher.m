@@ -232,7 +232,6 @@ for ii=1:size(imStack,3)
     stitchedPlane(yPos(1):yPos(2),xPos(1):xPos(2),mod(ii,chess)+1) = newTile;
 
 
-
     %Incorporate debug info text into image for each tile if we're chessboard stitching. 
     %This indictes the tile index and X/Y grid position. 
     if fusionWeight<0
