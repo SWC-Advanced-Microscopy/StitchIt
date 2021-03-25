@@ -77,7 +77,7 @@ end
 % such cases. This is a bit extreme, though, so "allowPartial" tiles lays these down then clips them to
 % ensure that all sections have the same number of pixels. Probably there is no reason to set this to false
 % other than for debugging.
-allowPartialTiles = false;
+allowPartialTiles = true;
 
 if verbose && allowPartialTiles
     fprintf('%s.m is allowing partial tiles\n',mfilename)
