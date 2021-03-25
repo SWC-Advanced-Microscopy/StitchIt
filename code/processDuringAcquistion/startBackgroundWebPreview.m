@@ -20,9 +20,23 @@ function startBackgroundWebPreview(chanToPlot,config)
 
     % Write the boostrap file
     fid = fopen(pathToBSfile,'w');
-    fprintf(fid,'cd(''%s'');\n', fileparts(nSecRun)); %cd to the function directory
-    fprintf(fid,'buildSectionRunner(%d,''%s'');\n', chanToPlot, pwd);
+
+    if fid<0
+       fprintf('%s FAILED TO OPEN FILE at %s for writing\n', mfilename, pathToBSfile)
+    else
+        fprintf(fid,'cd(''%s'');\n', fileparts(nSecRun)); %cd to the function directory
+        fprintf(fid,'buildSectionRunner(%d,''%s'');\n', chanToPlot, pwd);
+        fclose(fid);
+    end
+ 
+
+    % Make empty log file
+    fid = fopen(logFilePath,'w');
+    if fid<0
+       fprintf('%s FAILED TO OPEN FILE at %s for writing\n', mfilename, logFilePath)
+    end
     fclose(fid);
+
 
     if exist(mPath,'file')
         CMD = sprintf('%s -nosplash -nodesktop -r ''run("%s")'' > %s &', mPath, pathToBSfile, logFilePath);

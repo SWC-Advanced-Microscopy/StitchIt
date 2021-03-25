@@ -64,7 +64,7 @@ if isstruct(params)
 
     % TODO the following is BakingTray-specific because it assumes we are using YML files
     tmp = readMetaData2Stitchit;
-    fullParams = yaml.ReadYaml(tmp.paramFileName);
+    fullParams = stitchit.yaml.ReadYaml(tmp.paramFileName);
 
     %Replace the fields related with stitching
     fullParams.StitchingParameters.VoxelSize = params.voxelSize;
@@ -73,7 +73,7 @@ if isstruct(params)
 
     [~,fname,ext] = fileparts(params.paramFileName);
     newFname = [fname,'_',tagStr,ext];
-    yaml.WriteYaml(newFname,fullParams);
+    stitchit.yaml.WriteYaml(newFname,fullParams);
 end
 
 
