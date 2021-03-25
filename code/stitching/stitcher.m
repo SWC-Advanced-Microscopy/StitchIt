@@ -247,7 +247,7 @@ for ii=1:size(imStack,3)
 
 end %for ii=1:size(imStack,3)
 
-if allowPartialTiles
+if allowPartialTiles && ~isempty(maxPixelPos)
     stitchedPlane = stitchedPlane(1:maxPixelPos(1), 1:maxPixelPos(2));
 end
 
