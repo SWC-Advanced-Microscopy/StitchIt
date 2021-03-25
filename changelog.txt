@@ -1,5 +1,8 @@
 StitchIt Change-Log
 
+25/03/2021:
+- Ensure that all tile rows and columns are laid down. Bugfix.
+
 
 11/02/2021:
 - USER: downsampled stacks made at conclusion of acquisition for sampleSplitter
