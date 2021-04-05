@@ -248,10 +248,10 @@ for ii=1:size(imStack,3)
 end %for ii=1:size(imStack,3)
 
 if allowPartialTiles && ~isempty(maxPixelPos)
-    stitchedPlane = stitchedPlane(1:maxPixelPos(1), 1:maxPixelPos(2));
+    stitchedPlane = stitchedPlane(1:maxPixelPos(1), 1:maxPixelPos(2),:);
 end
 
-%If the matrix has grown, we have a problem with the way pre-allocation is being done. 
+% If the matrix has grown, we have a problem with the way pre-allocation is being done.
 if any(size(stitchedPlane)>allocatedSize)
     fprintf(['Warning: stitched image has grown during stitching from pre-allocated size\n', ...
              'Was %d by %d, now %d by %d\n'], allocatedSize, size(stitchedPlane))
