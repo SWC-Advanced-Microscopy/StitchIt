@@ -44,11 +44,11 @@ function stats=getShiftForSection(sectionNum,chan)
     mu = tileStats(1).mu{1};
 
     % If there are more than 25 tiles we get rid of the dimmest quarter
+    [~,ind] = sort(mu,'descend');
     if length(mu)>25
-        [~,ind] = sort(mu,'descend');
+        ind(round(length(ind)*0.25):end)=[];
     end
 
-    ind(round(length(ind)*0.25):end)=[];
 
     % We might still have loads of tiles, though. If so we keep only a fixed number
     if length(ind)>maxTiles
