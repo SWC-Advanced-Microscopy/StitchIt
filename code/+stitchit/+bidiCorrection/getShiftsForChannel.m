@@ -45,3 +45,4 @@ function stats=getShiftsForChannel(chan,everyNSections)
     end
 
     fprintf('Finished processing channel %d in %0.1f seconds\n',chan,toc(T))
+

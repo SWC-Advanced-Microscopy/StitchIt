@@ -18,7 +18,6 @@ function stats=getShiftForSection(sectionNum,chan)
     % Also see:
     %  stitchit.bidiCorrection.getShiftsForChannel
 
-
     maxTiles = 30; 
 
     T = tic;
