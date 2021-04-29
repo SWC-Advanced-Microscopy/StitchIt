@@ -38,24 +38,48 @@ function out=estimateEndTime
 
     finishedTimes=[];
     while 1
-        % Extract lines that contain section completion time
-        % information. The following regex copes with the scenario
-        % where the "secs" is missing.        
-        tok=regexp(tline,' completed in (\d+) mins? *(\d+)?(?: secs)?','tokens');
-        if ~isempty(tok)
-            m=str2num(tok{1}{1});
-            s=str2num(tok{1}{2});
-            if isempty(s)
-              s=0;
-            end
-            
-            finishedTimes(end+1)=(m*60)+s;
-        end
-        tline=fgetl(fid);
-
+        %Break if we are at the end of the file
         if tline<0
             break
         end
+
+        % If the line doesn't contain info on the finished time we bail out
+        if isempty(strfind(tline,'FINISHED section number'))
+          tline=fgetl(fid);
+          continue
+        end
+
+        % Extract lines that contain section completion time
+        % information. The following regex copes with the scenario
+        % where either "mins" or "secs" is missing.        
+
+        tok=regexp(tline,' completed in (\d+) mins? *(\d+)?(?: secs)?','tokens');
+        tok=regexp(tline,' completed in (\d+) ([a-z]+) *(\d+)?(?: secs)?','tokens');
+        if ~isempty(tok)
+            A=str2num(tok{1}{1});
+            B=tok{1}{2};
+            C=str2num(tok{1}{3});
+
+            if ~isempty(C)
+              % Then we have both minutes and seconds so:
+              m = A;
+              s = C;
+            else
+              if strcmp(B,'secs')
+                s = A;
+                m = 0;
+              elseif strcmp(B,'mins')
+                m = A;
+                s = 0;
+              end
+            end
+
+            finishedTimes(end+1)=(m*60)+s;
+        end
+
+
+        tline=fgetl(fid);
+
 
     end
     fclose(fid);

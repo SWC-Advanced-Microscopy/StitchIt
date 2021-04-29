@@ -1,10 +1,14 @@
 function stats=analyseShiftsForChannel(data,doPlots)
     % Analyse data produced by getShiftForChannel
     %
+    % stitchit.bidiCorrection.analyseShiftsForChannel(data,doPlots)
+    %
     % Purpose
     % Make plots of the bidi shifts we have calculated.
     %
-    % Input: the output of getShiftsForChannel
+    % Inputs
+    % data - the output of stitchit.bidiCorrection.getShiftsForChannel
+    % doPlots - optional false by default
 
     if nargin<2
         doPlots = false;
