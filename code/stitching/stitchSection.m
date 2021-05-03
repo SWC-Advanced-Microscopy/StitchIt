@@ -221,7 +221,8 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
     %Skip if data have already been created 
     filesExist=zeros(1,length(reducedSizeDir)); %we use this again below to only write data as needed
-    if ~overwrite || ~outputMatrixOnly
+
+    if ~overwrite && ~outputMatrixOnly
         for thisR = 1:length(reducedSizeDir)
             fname = sprintf('.%s%s%s%d%ssection_%03d_%02d.tif',...
                                         filesep,reducedSizeDir{thisR},filesep, channel, filesep,thisSection);
@@ -269,6 +270,10 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
     %Save full and reduced size planes
     for thisR = 1:length(reducedSizeDir)
+        if outputMatrixOnly
+            % So nothing is saved
+            continue
+        end
         % Don't save if files exist or the user asked for an output argument
         if filesExist(thisR) || outputMatrixOnly
             continue
