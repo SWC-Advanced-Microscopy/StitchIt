@@ -121,18 +121,32 @@ bytesPerTile = bytesPerTile * (stitchedSize/100)^2; %Scale by the resize ratio
 MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
 
 
+if nargout>0 
+    if size(section,1)==1
+        outputMatrixOnly=true;
+    else
+        fprintf('Only one section can be returned as an output at the moment\n')
+        return
+    end
+else
+    outputMatrixOnly=false;
+end
+
+
 %Calculate GB to be used based on number of sections
-nSections = size(section,1);
-GBrequired= nSections * MBPerPlane / 1024;
+if ~outputMatrixOnly
+    nSections = size(section,1);
+    GBrequired= nSections * MBPerPlane / 1024;
 
-fprintf('Producing %d stitched images from channel %d. This will consume %0.2f GB of disk space.\n',...
-    nSections, channel, GBrequired )
+    fprintf('Producing %d stitched images from channel %d. This will consume %0.2f GB of disk space.\n',...
+        nSections, channel, GBrequired )
 
-spaceUsed=stitchit.tools.returnDiskSpace;
-if  GBrequired > spaceUsed.freeGB 
-    fprintf('\n ** Not enough disk space to stitch these sections. You have only %d GB left!\n ** %s is aborting\n\n',...
-        round(spaceUsed.freeGB), mfilename)
-    return
+    spaceUsed=stitchit.tools.returnDiskSpace;
+    if  GBrequired > spaceUsed.freeGB 
+        fprintf('\n ** Not enough disk space to stitch these sections. You have only %d GB left!\n ** %s is aborting\n\n',...
+            round(spaceUsed.freeGB), mfilename)
+        return
+    end
 end
 
 
@@ -160,17 +174,6 @@ if fusionWeight<0
 end
 fprintf('--------------------------------\n\n')
 
-
-if nargout>0 
-    if size(section,1)==1
-        outputMatrixOnly=true;
-    else
-        fprintf('Only one section can be returned as an output at the moment\n')
-        return
-    end
-else
-    outputMatrixOnly=false;
-end
 
 %Create directories we will use for saving the stitched data
 for ii=1:length(stitchedSize)
@@ -218,7 +221,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
 
     %Skip if data have already been created 
     filesExist=zeros(1,length(reducedSizeDir)); %we use this again below to only write data as needed
-    if ~overwrite
+    if ~overwrite || ~outputMatrixOnly
         for thisR = 1:length(reducedSizeDir)
             fname = sprintf('.%s%s%s%d%ssection_%03d_%02d.tif',...
                                         filesep,reducedSizeDir{thisR},filesep, channel, filesep,thisSection);
