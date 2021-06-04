@@ -50,4 +50,9 @@ function downsampledFname = createResampleVolFileName(channel,targetDims)
         chName='';
     end
 
+
     downsampledFname=[downsampledFname, sprintf('_ch%02d%s',channel,chName)];
+
+
+    % remove nasty characters
+    downsampledFname = strrep(downsampledFname,':','');
