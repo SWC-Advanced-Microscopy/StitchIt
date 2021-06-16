@@ -1,8 +1,19 @@
 StitchIt Change-Log
 
+04/06/2021:
+- Bugfix : remove ":" characters from downsampled stack names
+Also: have been working on code for fixing bidi scan errors. Code is in dev but sort of works and not documented. Merge to master anyway. 
+
+06/04/2021:
+- Bugfix that was causing chessboard stitching to fail
+
+
+30/03/2021:
+- Bugfix to code that estimates sample end time.
+
+
 25/03/2021:
 - Ensure that all tile rows and columns are laid down. Bugfix.
-
 
 11/02/2021:
 - USER: downsampled stacks made at conclusion of acquisition for sampleSplitter

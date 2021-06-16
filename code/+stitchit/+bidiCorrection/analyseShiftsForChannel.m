@@ -4,14 +4,23 @@ function stats=analyseShiftsForChannel(data,doPlots)
     % stitchit.bidiCorrection.analyseShiftsForChannel(data,doPlots)
     %
     % Purpose
-    % Make plots of the bidi shifts we have calculated.
+    % Make plots of the bidi shifts we have calculated and return data to 
+    % command line
     %
     % Inputs
     % data - the output of stitchit.bidiCorrection.getShiftsForChannel
-    % doPlots - optional false by default
+    % doPlots - optional false by default if data are returned. 
+    %
+    % Output
+    % stats 
 
-    if nargin<2
-        doPlots = false;
+
+    if nargin<2 || isempty(doPlots)
+        if nargout<1
+            doPlots = true;
+        else
+            doPlots = false;
+        end
     end
 
     sectionNumber = zeros(1,length(data));
@@ -29,11 +38,9 @@ function stats=analyseShiftsForChannel(data,doPlots)
         if range(tShifts)>1
             fprintf('Shifts for section %d are not reliable!\n',sectionNumber(ii));
         end
-        shiftsMed(ii) = median(tShifts);
+        shiftsMed(ii) = ceil(median(tShifts));
         shiftsMu(ii) = mean(tShifts);
     end
-
-
 
     if doPlots
         clf
@@ -46,6 +53,11 @@ function stats=analyseShiftsForChannel(data,doPlots)
         plot(sectionNumber,shiftsMu,'o-r')
         ylabel('mean shift')
         grid on
+    end
 
 
+    if nargout>0
+        stats.shiftsMed = shiftsMed;
+        stats.shiftsMu = shiftsMu;
+        varargout{1} = stats;
     end

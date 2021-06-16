@@ -16,6 +16,10 @@ function stats=getShiftsForChannel(chan,everyNSections)
     % everyNSections - Optional. 1 by default. e.g. if set to 3 the 
     %               calculation is run on every third section only.
     %
+    %
+    % shiftsChan2 = stitchit.bidiCorrection.getShiftsForChannel(2,10);
+    %
+    %
     % Rob Campbell - SWC 2019
     %
     % Also see:

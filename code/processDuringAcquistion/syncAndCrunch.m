@@ -284,7 +284,7 @@ end
 tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir)); %First ensure we can tidy up in case of failure
 
 pathToScript=fileparts(which(mfilename));
-pathToScript=fullfile(pathToScript,'syncer.sh'); %NOTE: this script must be executable or the sync durin acquisition will not run!
+pathToScript=fullfile(pathToScript,'syncer.sh');
 
 CMD = sprintf('%s -r %s -s %s -l %s &', ...
     pathToScript, ...
