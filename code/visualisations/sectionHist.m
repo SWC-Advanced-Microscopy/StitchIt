@@ -1,5 +1,5 @@
 function sectionHist(im,thresh)
-% Make an appealing histogram of a TV optical section
+% Make an appealing histogram of an  optical section
 %
 %
 % sectionHist(im,thresh)
