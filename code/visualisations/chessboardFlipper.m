@@ -47,9 +47,9 @@ n=1;
 while 1
 
     if n==1
-        im.CData = chessIm.im(:,:,1) .* tmp;
+        im.CData = chessIm.im(:,:,1) .* imMask;
     else
-        im.CData = chessIm.im(:,:,2) .* tmp;
+        im.CData = chessIm.im(:,:,2) .* imMask;
     end
 
     n=n*-1;
