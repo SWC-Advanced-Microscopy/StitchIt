@@ -62,7 +62,6 @@ if isstruct(params)
         end
     end
 
-    % TODO the following is BakingTray-specific because it assumes we are using YML files
     tmp = readMetaData2Stitchit;
     fullParams = stitchit.yaml.ReadYaml(tmp.paramFileName);
 

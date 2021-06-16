@@ -1,9 +1,22 @@
 function stats=getShiftForSection(sectionNum,chan)
-    % Get all shifts from a section
-    
-    if nargin<2
-        chan=2;
-    end
+    % Get a bidi shift value for one section at a defined channel
+    %
+    % stitchit.bidiCorrection.getShiftForSection(sectionNum,chan)
+    %
+    % Purpose
+    % Get a bidi shift value for one section,
+    %
+    % Inputs
+    % sectionNum - integer defining which section to analyse
+    % chan - Which channel to use for the calculation. This input argument 
+    %        is required. You should choose the channel with the strongest
+    %        signal. A purely auto-fluorescence channel is likely not 
+    %        going to have enough structure for this work. 
+    %
+    % Rob Campbell - SWC 2019
+    %
+    % Also see:
+    %  stitchit.bidiCorrection.getShiftsForChannel
 
     maxTiles = 30; 
 
@@ -31,11 +44,11 @@ function stats=getShiftForSection(sectionNum,chan)
     mu = tileStats(1).mu{1};
 
     % If there are more than 25 tiles we get rid of the dimmest quarter
+    [~,ind] = sort(mu,'descend');
     if length(mu)>25
-        [~,ind] = sort(mu,'descend');
+        ind(round(length(ind)*0.25):end)=[];
     end
 
-    ind(round(length(ind)*0.25):end)=[];
 
     % We might still have loads of tiles, though. If so we keep only a fixed number
     if length(ind)>maxTiles
