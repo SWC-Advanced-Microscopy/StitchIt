@@ -42,7 +42,7 @@ function varargout=chessboardStitch(planeToStitch,channel,params)
 %
 % Rob Campbell - September 2019, SWC
 %
-% See also: exploreChessBoard
+% See also: exploreChessBoard, chessboardFlipper
 
 
 if nargin<3
