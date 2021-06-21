@@ -282,7 +282,11 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
         sectionDir = sprintf('.%s%s%s%d%s',filesep,reducedSizeDir{thisR},filesep, channel, filesep);
         sectionFname = sprintf('%ssection_%03d_%02d.tif',sectionDir,thisSection);
 
-        imwrite(imresize(stitched,stitchedSize(thisR)/100),sectionFname,'Compression','None' )
+        if userConfig.stitching.saveCompressed == true
+            imwrite(imresize(stitched,stitchedSize(thisR)/100),sectionFname,'Compression','lzw' )
+        else
+            imwrite(imresize(stitched,stitchedSize(thisR)/100),sectionFname,'Compression','None' )
+        end
 
         %also save the tile positions
         tilePosFname = sprintf('%sdetails%stilePos_%03d_%02d.csv',sectionDir,filesep,thisSection);
