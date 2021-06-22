@@ -162,6 +162,8 @@ end % if atLeastOneWorked
 function runCrop(fileList, ROIs, micsPix, chanTargetDir)
     % This function runs the crop operation in parallel on one channel
 
+    userConfig=readStitchItINI;
+
     parfor ii = 1:length(fileList.tifNames)
         % Load the image
         fname = fullfile(fileList.fullPath, fileList.tifNames{ii});
@@ -169,7 +171,12 @@ function runCrop(fileList, ROIs, micsPix, chanTargetDir)
 
         croppedImage=stitchit.sampleSplitter.getROIfromImage(imToCrop,micsPix, ROIs);
         for jj=1:length(croppedImage)
-            imwrite(croppedImage{jj}, fullfile(chanTargetDir{jj},fileList.tifNames{ii}),...
-                'Compression','none')
+            if userConfig.stitching.saveCompressed == true
+                imwrite(croppedImage{jj}, fullfile(chanTargetDir{jj},fileList.tifNames{ii}),...
+                    'Compression','lzw')
+            else
+                imwrite(croppedImage{jj}, fullfile(chanTargetDir{jj},fileList.tifNames{ii}),...
+                        'Compression','none')
+            end
         end
     end

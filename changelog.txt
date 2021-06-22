@@ -1,5 +1,14 @@
 StitchIt Change-Log
 
+21/06/2021:
+- USER: add new stitching.saveCompressed feature to INI file. If this is set to 1 then TIFFs are saved LZW compressed. If it is set to 0, TIFFs are not compressed. By default TIFFs are not compressed (the current situation). After pulling this commit, you will receive a message stating:
+Missing field saveCompressed in INI file /path/to/file/stitchitConf_local.ini. Using default value.
+When the INI file is loaded. 
+You can get rid of the message by copying "saveCompressed=0" into the "[stitching]" section of the INI file.
+Obviously set that to 1 if you want compression. For an example of what it should look like see the stitchitConf_DEFAULT.ini file. 
+
+
+
 04/06/2021:
 - Bugfix : remove ":" characters from downsampled stack names
 Also: have been working on code for fixing bidi scan errors. Code is in dev but sort of works and not documented. Merge to master anyway. 
