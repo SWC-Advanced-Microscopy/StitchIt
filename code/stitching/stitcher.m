@@ -123,12 +123,16 @@ elseif allowPartialTiles
 
     if projected_maxXpixel>maxPixelPos(2)
         xMax = projected_maxXpixel;
+        fprintf('Warning, stage positions requested with projected max x pixel of %d but expected value is %d\n', ...
+            projected_maxXpixel, maxPixelPos(2));
     else
         xMax = maxPixelPos(2);
     end
 
     if projected_maxYpixel>maxPixelPos(1)
         yMax = projected_maxYpixel;
+        fprintf('Warning, stage positions requested with projected max y pixel of %d but expected value is %d\n', ...
+            projected_maxYpixel, maxPixelPos(1));
     else
         yMax = maxPixelPos(1);
     end
@@ -261,6 +265,7 @@ end %for ii=1:size(imStack,3)
 if allowPartialTiles && ~isempty(maxPixelPos)
     stitchedPlane = stitchedPlane(1:maxPixelPos(1), 1:maxPixelPos(2),:);
 end
+
 
 % If the matrix has grown, we have a problem with the way pre-allocation is being done.
 if any(size(stitchedPlane)>allocatedSize)

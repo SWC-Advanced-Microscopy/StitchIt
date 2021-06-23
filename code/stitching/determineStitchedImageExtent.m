@@ -92,7 +92,14 @@ function out = determineStitchedImageExtent
 
     % The tile step size is the distance moved by the microscope in mm as it travels from one x/y stage
     % location to the next. It is equal to the tile size (image FOV) minus the overlap between tiles.
-    tileStepSizeMM = abs(mode(diff(tp{indLongest}(:,3))));
+    posDataCols = tp{indLongest}(:,3:4); %Both x and y because we don't know which direction is the dominant tiling direction
+    tileStepSizeMM = abs(mode(diff( posDataCols )));
+    tileStepSizeMM = max(tileStepSizeMM); % To use axis where most motions happen
+
+    if tileStepSizeMM<=0
+        fprintf('WARNING %s calculates a tile step size of less than equal to zero: %0.1f. This is WRONG!\n', ...
+            mfilename, tileStepSizeMM)
+    end
 
     % The tile extent in mm is the image FOV
     tileExtentInMM = tileStepSizeMM  / (1-data.mosaic.overlapProportion);
