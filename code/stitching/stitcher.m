@@ -17,6 +17,10 @@ function varargout = stitcher(imStack,tileCoords,fusionWeight,maxPixelPos)
 % fusionWeight - a number between 0 and 1 indicating how the overlapping regions are averaged. 
 %                0 means overlap with no blending. 1 means complete transparency in overlapping region.
 %                if -1 we do **chessboard stitching**
+% maxPixelPos - vector of length 2 defining how large the image should be:
+%               maxXpixel = maxPixelPos(2);
+%               maxYpixel = maxPixelPos(1);
+%               This is used for auto-ROI acquisitions where sample planeshave different sizes. 
 %
 % 
 % Outputs
@@ -92,6 +96,9 @@ if isempty(maxPixelPos)
     maxYpixel=projected_maxYpixel;
     finalImSize = [maxYpixel,maxXpixel];
 elseif ~allowPartialTiles
+    if verbose
+        fprintf('maxPixelPos was provided and not allowing partial tiles.\n')
+    end
     maxXpixel = maxPixelPos(2);
     maxYpixel = maxPixelPos(1);
 
@@ -110,14 +117,22 @@ elseif ~allowPartialTiles
     end
     finalImSize = [maxYpixel,maxXpixel];
 elseif allowPartialTiles
+    if verbose
+        fprintf('maxPixelPos was provided and is allowing partial tiles.\n')
+    end
+
     if projected_maxXpixel>maxPixelPos(2)
         xMax = projected_maxXpixel;
+        fprintf('Warning, stage positions requested with projected max x pixel of %d but expected value is %d\n', ...
+            projected_maxXpixel, maxPixelPos(2));
     else
         xMax = maxPixelPos(2);
     end
 
     if projected_maxYpixel>maxPixelPos(1)
         yMax = projected_maxYpixel;
+        fprintf('Warning, stage positions requested with projected max y pixel of %d but expected value is %d\n', ...
+            projected_maxYpixel, maxPixelPos(1));
     else
         yMax = maxPixelPos(1);
     end
@@ -250,6 +265,7 @@ end %for ii=1:size(imStack,3)
 if allowPartialTiles && ~isempty(maxPixelPos)
     stitchedPlane = stitchedPlane(1:maxPixelPos(1), 1:maxPixelPos(2),:);
 end
+
 
 % If the matrix has grown, we have a problem with the way pre-allocation is being done.
 if any(size(stitchedPlane)>allocatedSize)
