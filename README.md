@@ -56,3 +56,12 @@ You may also join the [StitchIt Gitter](https://gitter.im/open-serial-section/st
 
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
+
+
+
+## More tools
+See [btpytools](https://github.com/SainsburyWellcomeCentre/btpytools) for Python-based helper tools. e.g. to compress raw data or send data to a remote server. You may install those via:
+```
+$ sudo pip install btpytools
+
+```

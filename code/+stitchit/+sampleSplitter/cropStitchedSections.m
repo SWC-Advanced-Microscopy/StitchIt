@@ -171,7 +171,7 @@ function runCrop(fileList, ROIs, micsPix, chanTargetDir)
 
         croppedImage=stitchit.sampleSplitter.getROIfromImage(imToCrop,micsPix, ROIs);
         for jj=1:length(croppedImage)
-            if userConfig.stitching.saveCompressed == true
+            if userConfig.stitching.saveCompressedCropped == true
                 imwrite(croppedImage{jj}, fullfile(chanTargetDir{jj},fileList.tifNames{ii}),...
                     'Compression','lzw')
             else
