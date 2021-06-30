@@ -1,5 +1,25 @@
 StitchIt Change-Log
 
+
+30/06/2021:
+- USER:
+Modify compression code so that cropped and stitched data can independently be set for compression.
+The new INI file settings are:
+
+;; The following two settings relate to whether the TIFFs should be compressed. Likely the
+;; most sensible configuration if you want compression is to save compressed cropped images
+;; but not compressed the stitched data, as these will discarded and compression slows down
+;; processing. 
+
+;; save LZW compressed tiffs after stitching? Set to 0 for no compression and 1 for compression
+saveCompressedStitched=0
+
+;; save LZW compressed tiffs after cropping? Set to 0 for no compression and 1 for compression
+saveCompressedCropped=0
+
+Copy the above into your INI file. 
+
+
 21/06/2021:
 - USER: add new stitching.saveCompressed feature to INI file. If this is set to 1 then TIFFs are saved LZW compressed. If it is set to 0, TIFFs are not compressed. By default TIFFs are not compressed (the current situation). After pulling this commit, you will receive a message stating:
 Missing field saveCompressed in INI file /path/to/file/stitchitConf_local.ini. Using default value.
