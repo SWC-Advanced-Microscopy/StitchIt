@@ -91,8 +91,6 @@ function [I,imInfo] = openTiff(fileName, regionSpec, downSample, methodFlag)
 
 
   if ~strcmp(imInfo.Compression,'Uncompressed') && methodFlag>1
-    fprintf('images are %s compressed. Reverting to imread.\n',imInfo.Compression)
-
     if doCrop
       methodFlag=1;
     else
