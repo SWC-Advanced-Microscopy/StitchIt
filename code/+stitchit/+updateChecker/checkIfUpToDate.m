@@ -40,7 +40,7 @@ end
 
 %First we do a fetch. This doesn't stop the user then doing a pull
 dirToRepo=fileparts(which('stitcher'));
-[success,status] = system(sprintf('git -C %s fetch',dirToRepo));
+[success,status] = system(sprintf('git -C "%s" fetch',dirToRepo));
 if success ~=0
     %Will return false for stuff like permissions errors
     isUpToDate=-1;
@@ -49,7 +49,7 @@ end
 
 
 %Now check if we're up to date
-[success,status] = system(sprintf('git -C %s status -uno',dirToRepo));
+[success,status] = system(sprintf('git -C "%s" status -uno',dirToRepo));
 if success ~=0
     isUpToDate=-1;
     return
