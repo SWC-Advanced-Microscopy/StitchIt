@@ -80,7 +80,7 @@ end
 analysesPerformed = preProcessTiles(0, 'combCorChans', combCorChans,'illumChans', illumChans); %Ensure we have the pre-processing steps done
 
 if analysesPerformed.illumCor || ~exist(fullfile(config.subdir.rawDataDir, config.subdir.averageDir),'dir');
-    collateAverageImages
+    collateAverageImages([],true); % second inptut deletes original average directory before making a new one. Just being cautious. 
 end
 
 

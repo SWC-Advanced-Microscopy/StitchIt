@@ -1,6 +1,10 @@
 StitchIt Change-Log
 
 
+13/12/2021:
+- USER Bugfix (Dev): updatechecker handles cases where stitchit is installed in a path that contains spaces. Add error report to git fetch step. 
+
+
 30/06/2021:
 - USER:
 Modify compression code so that cropped and stitched data can independently be set for compression.
