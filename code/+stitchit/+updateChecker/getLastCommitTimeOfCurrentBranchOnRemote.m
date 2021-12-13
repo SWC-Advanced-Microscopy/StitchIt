@@ -22,7 +22,7 @@ end
 
 
 
-[success,status] = system(sprintf('git -C %s show --no-color --format="%%ci %%cr" %s ',localDir,branchName)); 
+[success,status] = system(sprintf('git -C "%s" show --no-color --format="%%ci %%cr" %s ',localDir,branchName)); 
 
 if success~=0
     timeAsString='';

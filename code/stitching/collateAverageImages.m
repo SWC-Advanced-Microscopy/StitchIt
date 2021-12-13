@@ -1,4 +1,4 @@
-function varargout=collateAverageImages(theseDirs)
+function varargout=collateAverageImages(theseDirs,deleteOriginalDir)
 % Loop through data directories and use saved average files to create grand average images
 %
 % function collateAverageImages(theseDirs)
@@ -19,6 +19,9 @@ function varargout=collateAverageImages(theseDirs)
 %             theseDirs is 1:10 then we will collate sections 10 to 19. This is 
 %             useful when the early and/or late sections contain mostly empty tiles.
 %             if theseDirs is empty, all directories are processed.
+% deleteOriginalDir - optional bool. false by default. If true it wipes any pre-existing
+%              average directory before proceeding. 
+%
 %
 % OUTPUTS
 % None - data are saved to disk
@@ -33,15 +36,20 @@ userConfig=readStitchItINI;
 % Determine the name of the directory to which we will write data
 grandAvDirName = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir);
 
+if nargin<2
+    deleteOriginalDir = false;
+end 
 
-if exist(grandAvDirName,'dir')
-    if length(dir(grandAvDirName))>2
-        fprintf('Deleting existing average data in directory %s\n', grandAvDirName)
-        rmdir(grandAvDirName,'s')
+if deleteOriginalDir
+    if exist(grandAvDirName,'dir')
+        if length(dir(grandAvDirName))>2
+            fprintf('Deleting existing average data in directory %s\n', grandAvDirName)
+            rmdir(grandAvDirName,'s')
+        end
+    else
+        mkdir(grandAvDirName)
     end
-else
-    mkdir(grandAvDirName)
-end
+end 
 
 
 % Find the section directory names

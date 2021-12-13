@@ -18,7 +18,7 @@ if ~stitchit.updateChecker.gitAvailable
     return
 end
 
-[success,status] = system(sprintf('git -C %s branch -vv --no-color',localDir)); 
+[success,status] = system(sprintf('git -C "%s" branch -vv --no-color',localDir)); 
 
 if success~=0
     branchName=[];

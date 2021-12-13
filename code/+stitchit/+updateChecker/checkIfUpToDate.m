@@ -32,6 +32,9 @@ end
 if ~stitchit.updateChecker.gitAvailable
     isUpToDate = -1;
     status = 'No system Git is available';
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed: %s \n',  status)
+    end
     return
 end
 
@@ -40,17 +43,23 @@ end
 
 %First we do a fetch. This doesn't stop the user then doing a pull
 dirToRepo=fileparts(which('stitcher'));
-[success,status] = system(sprintf('git -C %s fetch',dirToRepo));
+[success,status] = system(sprintf('git -C "%s" fetch',dirToRepo));
 if success ~=0
     %Will return false for stuff like permissions errors
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed to git fetch with error message: %s \n',  status)
+    end
     isUpToDate=-1;
     return
 end
 
 
 %Now check if we're up to date
-[success,status] = system(sprintf('git -C %s status -uno',dirToRepo));
+[success,status] = system(sprintf('git -C "%s" status -uno',dirToRepo));
 if success ~=0
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed to git -C with error message: %s \n',  status)
+    end
     isUpToDate=-1;
     return
 end
@@ -72,7 +81,7 @@ if ~isempty(findstr(status,' have diverged'))
     end
     isUpToDate=-1;
 
-elseif ~isempty(findstr(status,'Your branch is up-to-date'))
+elseif ~isempty(findstr(status,'Your branch is up-to-date')) || ~isempty(findstr(status,'Your branch is up to date'))
     isUpToDate = true;
 
 elseif ~isempty(findstr(status,'Your branch is behind'))
@@ -116,7 +125,9 @@ elseif ~isempty(findstr(status,'Your branch is behind'))
 else
     isUpToDate=-1;
     status = sprintf('UNABLE TO DETERMINE STATE OF REPOSITORY:\n %s', status);
-
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed: %s \n',  status)
+    end
 end
 
 

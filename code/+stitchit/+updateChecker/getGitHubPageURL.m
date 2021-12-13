@@ -18,7 +18,7 @@ if ~stitchit.updateChecker.gitAvailable
     return
 end
 
-[success,status] = system(sprintf('git -C %s remote show origin -n',localDir)); % -n suppresses remote query
+[success,status] = system(sprintf('git -C "%s" remote show origin -n',localDir)); % -n suppresses remote query
 
 if success~=0
     url=[];
