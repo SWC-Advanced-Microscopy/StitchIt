@@ -32,6 +32,9 @@ end
 if ~stitchit.updateChecker.gitAvailable
     isUpToDate = -1;
     status = 'No system Git is available';
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed: %s \n',  status)
+    end
     return
 end
 
@@ -54,6 +57,9 @@ end
 %Now check if we're up to date
 [success,status] = system(sprintf('git -C "%s" status -uno',dirToRepo));
 if success ~=0
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed to git -C with error message: %s \n',  status)
+    end
     isUpToDate=-1;
     return
 end
