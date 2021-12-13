@@ -43,6 +43,9 @@ dirToRepo=fileparts(which('stitcher'));
 [success,status] = system(sprintf('git -C "%s" fetch',dirToRepo));
 if success ~=0
     %Will return false for stuff like permissions errors
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed to git fetch with error message: %s \n',  status)
+    end
     isUpToDate=-1;
     return
 end
