@@ -125,7 +125,9 @@ elseif ~isempty(findstr(status,'Your branch is behind'))
 else
     isUpToDate=-1;
     status = sprintf('UNABLE TO DETERMINE STATE OF REPOSITORY:\n %s', status);
-
+    if ~suppressMessages
+        fprintf('\n\n ** stitchit.updateChecker.checkIfUpToDate failed: %s \n',  status)
+    end
 end
 
 
