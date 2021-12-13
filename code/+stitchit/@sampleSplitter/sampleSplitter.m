@@ -413,7 +413,7 @@ classdef sampleSplitter < handle
         end
 
 
-        function tableHighlightCallback(obj,src,evt)
+        function tableHighlightCallback(obj,~,evt)
             % This callback runs when a new table cell is highlighted
             % It highlights the ROI associated with the selected row
             if isempty(evt.Indices)
@@ -437,16 +437,36 @@ classdef sampleSplitter < handle
         function tableEditCallback(obj,src,evt)
             % This callback runs when an edit is made to the table. We use it to 
             % rotate the ROI image if needed.
-
             if evt.Indices(2) ~= 5 %Then we didn't edit the rot field
                 return
             end
 
+            % If the rot field was edited, we  check that the valu is reasonable
+            % before proceeding
+            if isnan(evt.NewData)
+                % Then it's not a number, so replace with the previous value
+                src.Data{evt.Indices(1),evt.Indices(2)} = evt.PreviousData;
+                return 
+            end
+
+            % Ensure it's an integer
+            if mod(evt.NewData,1)>0
+                src.Data{evt.Indices(1),evt.Indices(2)} = evt.PreviousData;
+                return 
+            end 
+
+            % Ensure it's between -2 and +2
+            if evt.NewData<-2 || evt.NewData>2
+                src.Data{evt.Indices(1),evt.Indices(2)} = evt.PreviousData;
+                return 
+            end 
+
+            
             obj.tableHighlightCallback(src,evt);
         end % tableEditCallback
 
 
-        function tableModifiedCallback(obj,src,evt)
+        function tableModifiedCallback(obj,~,~)
             % This callback runs when the table is modified programatically
 
 
