@@ -81,7 +81,7 @@ if ~isempty(findstr(status,' have diverged'))
     end
     isUpToDate=-1;
 
-elseif ~isempty(findstr(status,'Your branch is up-to-date'))
+elseif ~isempty(findstr(status,'Your branch is up-to-date')) || ~isempty(findstr(status,'Your branch is up to date'))
     isUpToDate = true;
 
 elseif ~isempty(findstr(status,'Your branch is behind'))
