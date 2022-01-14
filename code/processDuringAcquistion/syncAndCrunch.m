@@ -1,4 +1,4 @@
-Âfunction syncAndCrunch(serverDir,chanToPlot,varargin)
+function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Pull data off acquisition system, pre-process, and send sample images to the WWW
 %
 % function syncAndCrunch(serverDir,chanToPlot, ... )
