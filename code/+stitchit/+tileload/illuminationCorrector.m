@@ -64,10 +64,8 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     % It's a bit of a hack to deal with https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145
     correctIllumOffset=true;
     if correctIllumOffset
-        m=min(aveTemplate.pooledRows(:));
-        if m>0
-            m=0;
-        end
+        chan = coords(5);
+        m=stitchit.tools.getOffset(chan);
     else
         m=0;
     end
