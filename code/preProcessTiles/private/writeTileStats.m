@@ -50,29 +50,21 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
         % This is useful for some imaging systems only. For ScanImage it could be helpful
         % but for systems that discard this offset it won't mean anything. So we don't 
         % calculate this for systems where it won't help
-        tileStats.offsetMean(1,thisLayer) = 0; % by default set to zero then over-write if the user asked for an offset
+        tileStats.offsetDimest(1,thisLayer) = 0; % by default set to zero then over-write if the user asked for an offset
         if userConfig.tile.doOffsetSubtraction
             switch M.System.type
             case 'bakingtray'
-                proportionOfDimmestFramesToUse=0.1;
-                nDimmestFrames = floor(length(sortedInds)*proportionOfDimmestFramesToUse);
-
-                if nDimmestFrames==0
-                    nDimmestFrames=1;
-                end
-
-                dimFrames=thisStack(:,:,sortedInds(1:nDimmestFrames));
-                %Take the average of these to get rid of odd outlier bright spots. 
-                %If these are present they can stop the fit from converging
-                muDimFrames = mean(dimFrames,3);
+                dimestFrame=thisStack(:,:,sortedInds(1)); 
                 options = statset('MaxIter', 5000);
-                Gm=fitgmdist(single(muDimFrames(:)),2, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
+                Gm=fitgmdist(single(dimestFrame(:)), 3, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
                 if Gm.Converged
                     [~,maxPropInd]=max(Gm.ComponentProportion);
-                    tileStats.offsetMean(1,thisLayer) = Gm.mu(maxPropInd);
+                    tileStats.offsetDimest(1,thisLayer) = Gm.mu(maxPropInd);
                 else
+                    disp(sprintf('Could not estimate offset of section %d.', thisLayer));
                     % It's already filled with a zero
                 end
+
             end % switch
         end %if userConfig.tile.doOffsetSubtraction
 
