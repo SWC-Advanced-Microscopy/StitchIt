@@ -271,38 +271,15 @@ end
 % is useful in the event that a drifting offset is creating problems. 
 % Can be used to deal with offset amplifiers for a wider dynamic range.
 if doSubtractOffset==1 || doSubtractOffset==-1
-    % Find the first image of that acquisition (not assuming that 1 is
-    % first)
-    dirNames = dir(userConfig.subdir.rawDataDir);
-    dirNames = sort({dirNames.name});
-    dirNames = dirNames(startsWith(dirNames, param.sample.ID));
-    firstSlice = dirNames{1};
-    firstSecNum = sectionDirName2sectionNum(firstSlice);
-    % Get name of the first file, assuming the section start at 1 (that
-    % should be true)
-    firstSectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,firstSecNum,1);
-    firstTiff = fullfile(userConfig.subdir.rawDataDir, firstSlice, firstSectionTiff);
-    if ~exist(firstTiff, 'file')
-        error('Asked for offset subtraction but could not load the first tiff of the acquisition:\n%s', firstTiff)
-    end
-
-    firstImInfo = imfinfo(firstTiff);
-    firstSI=stitchit.tools.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
-
+    % Use the offset calculated from tileStats
+    offset = stitchit.tools.getOffset(channel);
 
     if isa(im,'int16')
         % We will save 16 bit unsigned TIFFs and will need, sadly, to transiently convert to singles if the
         % data are saved as signed 16 bit tiffs.
 
-        offset = single(firstSI.channelOffset);
-
-        % The multiplication by doSubtractOffset is a hacky fix for a scanimage bug that happens 
-        % when acquiring linear scanner data with an FPGA that has the PMTs set to inverted. This causes the 
-        % offset to be th opposite sign, which messes up low values in our images. 
-        % So if the mode and offset are of different signs for linear scanner data we flip
-        % the sign of the offset. Ideally this hacky mess is temporary (TODO)
-        tOffset = offset(channel) * doSubtractOffset; 
-        im = uint16(single(im) - tOffset);
+        offset = single(offset);
+        im = uint16(single(im) - offset);
 
     else
         fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
