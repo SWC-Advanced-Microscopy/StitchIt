@@ -227,7 +227,7 @@ end
 
 % Copy meta-data files and so forth but no experiment data yet.
 % We do this just to make the directory and ensure that all is working
-CMD=sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir);
+CMD=sprintf('rsync -r --exclude="/*/" ''%s%s'' ''%s''', serverDir,filesep,expDir);
 fprintf('Initial rsync with %s\n', CMD)
 exitStatus = unix(CMD); %copies everything not a directory
 if exitStatus ~= 0
@@ -251,7 +251,7 @@ end
 msg=sprintf('STARTING syncAndCrunch!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
 stitchit.tools.writeLineToLogFile(logFileName,msg);
 
-cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
+cmd=sprintf('rsync %s ''%s%s'' ''%s''',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
 msg = sprintf('Running:\n%s\n',cmd);
 stitchit.tools.writeLineToLogFile(logFileName,msg)
 unix(cmd);
@@ -286,7 +286,7 @@ tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir)); %First ensure we can t
 pathToScript=fileparts(which(mfilename));
 pathToScript=fullfile(pathToScript,'syncer.sh');
 
-CMD = sprintf('%s -r %s -s %s -l %s &', ...
+CMD = sprintf('%s -r %s -s ''%s'' -l ''%s'' &', ...
     pathToScript, ...
     config.syncAndCrunch.rsyncFlag, ...
     serverDir, ...
