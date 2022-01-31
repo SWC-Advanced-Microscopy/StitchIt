@@ -48,7 +48,7 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
     % For now we just load the brute-force average template 
     % TOOD: handle other template types, such as CIDRE
-    aveTemplate = loadBruteForceMeanAveFile(coords,userConfig);
+    aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
 
     if isempty(aveTemplate) || ~isstruct(aveTemplate)
         fprintf('Illumination correction requested but not performed\n')
@@ -60,16 +60,11 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
 
-    % The following stops the average template from containing negative numbers
-    % It's a bit of a hack to deal with https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145
-    correctIllumOffset=true;
-    if correctIllumOffset
-        m=min(aveTemplate.pooledRows(:));
-        if m>0
-            m=0;
-        end
+    % Optionally correct the illumination offset to avoid negative numbers in the final image
+    if userConfig.tile.doOffsetSubtraction
+        m = stitchit.tools.getOffset(coords);
     else
-        m=0;
+        m = 0;
     end
 
     switch userConfig.tile.illumCorType
@@ -99,26 +94,3 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
 
 
-
-
-function avData = loadBruteForceMeanAveFile(coords,userConfig)
-    % Determine the average filename (correct channel and optical plane/layer) from tile coordinates.
-
-    layer=coords(2); %optical section
-    chan=coords(5);
-
-    %If we find a .bin file. Prompt the user to re-run collate average images to make the new-style files. 
-    fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, num2str(chan), sprintf('%02d.bin',layer));
-    if exist(fname)
-        fprintf('\n ===> ERROR: Found an old-style .bin file. Plase re-run collateAverageImages <===\n\n')
-        avData=[];
-    end
-
-    fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, num2str(chan), sprintf('%02d_bruteAverageTrimmean.mat',layer));
-
-    if exist(fname,'file')
-        load(fname) % Will produce the "avData" variable <------
-    else
-        avData=[];
-        fprintf('%s Can not find average template file %s\n',mfilename,fname)
-    end

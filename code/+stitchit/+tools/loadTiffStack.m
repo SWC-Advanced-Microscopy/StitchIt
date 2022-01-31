@@ -88,7 +88,7 @@ else %load sub-set of frames
     f=find(frames>numFrames | frames<1);
     frames(f)=[];
     if length(frames)<1
-        error('No frames selected');
+        error('No frames selected from file %s',FileName);
     end
     
     imSize=[imageInfo(1).Height,imageInfo(1).Width,length(frames)];
