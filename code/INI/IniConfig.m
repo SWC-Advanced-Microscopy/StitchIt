@@ -120,21 +120,33 @@ classdef IniConfig < handle
         % Public Methods
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %------------------------------------------------------------------
-        function obj = IniConfig()
+        function obj = IniConfig(fname)
             %IniConfig - constructor
-            % To Create new object with empty default configuration.
+            % To Create new object with empty default configuration or (optionally).
+            % to read in a existing file
             %
             % Using:
-            %   obj = IniConfig()
+            %   obj = IniConfig(fname)
             %
             % Input:
-            %   none
+            %   fname - if exists, we read it in
             %
             % Output:
             %   obj - an instance of class IniConfig
             % -------------------------------------------------------------
             
+
+            if nargin<1
+                fname = [];
+            end
+
+            % create a new empty config
             obj.CreateIni();
+
+            % Optionally read the file
+            if ~isempty(fname) && exist(fname,'file')
+                obj.ReadFile(fname)
+            end
         end
         
         %------------------------------------------------------------------
@@ -400,8 +412,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, tf_set_values] = ...
-                AddKeys(obj, section_name, key_names, key_values, value_formats)
+        function [status, tf_set_values] = AddKeys(obj, section_name, key_names, key_values, value_formats)
             %AddKeys - add keys in a end given section
             %
             % Using:
@@ -449,8 +460,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, tf_set_values] = InsertKeys(obj, ...
-                section_name, key_positions, key_names, key_values, value_formats)
+        function [status, tf_set_values] = InsertKeys(obj, section_name, key_positions, key_names, key_values, value_formats)
             %InsertKeys - insert keys into the specified positions in a given section
             %
             % Using:
@@ -1102,8 +1112,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, write_value] = ...
-                addKey(obj, section_name, key_name, key_value, value_formats)
+        function [status, write_value] = addKey(obj, section_name, key_name, key_value, value_formats)
             %addKey - add key in a end given section
             
             [inds, count_keys] = obj.getKeysIndexes(section_name);
@@ -1113,8 +1122,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, set_status] = ...
-                insertKey(obj, section_name, key_pos, key_name, key_value, value_formats)
+        function [status, set_status] = insertKey(obj, section_name, key_pos, key_name, key_value, value_formats)
             %insertKey - insert key into the specified position in a given section
             
             CheckIsScalarPositiveInteger(key_pos);
@@ -1258,10 +1266,8 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [key_value, status] = getValue(obj, ...
-                section_name, key_name, default_value)
+        function [key_value, status] = getValue(obj, section_name, key_name, default_value)
             %getValue - get key value
-            
             status = false;
             
             if ~obj.isSection(section_name)
@@ -1304,6 +1310,8 @@ classdef IniConfig < handle
             obj.updateEmptyStringsInfo();
             obj.updateCountKeysInfo();
         end
+
+
     end % private methods
     %----------------------------------------------------------------------
     
