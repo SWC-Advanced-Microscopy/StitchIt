@@ -696,11 +696,11 @@ classdef IniConfig < handle
             %GetComment - get comments from one or more keys from a section
             %
             % Using:
-            %   values = GetComment(section_name, key_names)
+            %   values = GetComment(section_name, key_name)
             %
             % Input:
             %   section_name -- name of given section
-            %   key_names -- names of given keys
+            %   key_name -- names of given keys
             %
             % Output:
             %   comments -- cell array of comments.
@@ -710,7 +710,6 @@ classdef IniConfig < handle
 
             key_index = obj.getKeyIndex(section_name, key_name);
             comments = obj.getCommentStringFromKeyIndex(key_index);
-
         end
 
 
@@ -1679,6 +1678,11 @@ function out = StringToCommentCell(thisStr)
     % standard in the INI data.
     if ~iscell(thisStr)
         out = strsplit(thisStr,'\n')';
+    end
+
+    % Do not leave a trailing newline
+    if isempty(out{end})
+        out(end)=[];
     end
 
     % Ensure each line starts with ;; to make it an INI comment
