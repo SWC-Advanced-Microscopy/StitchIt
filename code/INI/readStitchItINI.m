@@ -133,15 +133,5 @@ end
 
 
 function out=readThisINI(fname)
-    ini = IniConfig();
-    ini.ReadFile(fname);
-
-    sections = ini.GetSections;
-
-    for ii=1:length(sections)
-        keys = ini.GetKeys(sections{ii});
-        values = ini.GetValues(sections{ii}, keys);
-        for jj=1:length(values)
-            out.(sections{ii}(2:end-1)).(keys{jj})=values{jj};
-        end
-    end
+    ini = IniConfig(fname);
+    out = ini.returnAsStruct;
