@@ -47,32 +47,22 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
         [mu,sortedInds] = sort(mu);
 
         % Find the offset value using a mixture of Gaussians based on the dimmest tiles
-        % This is useful for some imaging systems only. For ScanImage it could be helpful
-        % but for systems that discard this offset it won't mean anything. So we don't 
-        % calculate this for systems where it won't help
-        tileStats.offsetMean(1,thisLayer) = 0; % by default set to zero then over-write if the user asked for an offset
+        % This is particularly useful for imaging systems that record signed TIFFs.
+        tileStats.offsetDimest(1,thisLayer) = 0; % by default set to zero then over-write if the user asked for an offset
         if userConfig.tile.doOffsetSubtraction
             switch M.System.type
             case 'bakingtray'
-                proportionOfDimmestFramesToUse=0.1;
-                nDimmestFrames = floor(length(sortedInds)*proportionOfDimmestFramesToUse);
-
-                if nDimmestFrames==0
-                    nDimmestFrames=1;
-                end
-
-                dimFrames=thisStack(:,:,sortedInds(1:nDimmestFrames));
-                %Take the average of these to get rid of odd outlier bright spots. 
-                %If these are present they can stop the fit from converging
-                muDimFrames = mean(dimFrames,3);
+                dimestFrame=thisStack(:,:,sortedInds(1));
                 options = statset('MaxIter', 5000);
-                Gm=fitgmdist(single(muDimFrames(:)),2, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
+                Gm=fitgmdist(single(dimestFrame(:)), 3, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
                 if Gm.Converged
                     [~,maxPropInd]=max(Gm.ComponentProportion);
-                    tileStats.offsetMean(1,thisLayer) = Gm.mu(maxPropInd);
+                    tileStats.offsetDimest(1,thisLayer) = Gm.mu(maxPropInd);
                 else
+                    disp(sprintf('Could not estimate offset of section %d.', thisLayer));
                     % It's already filled with a zero
                 end
+
             end % switch
         end %if userConfig.tile.doOffsetSubtraction
 
@@ -83,7 +73,7 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
         % Create a threshold that should capture most of the empty tiles.
         % This will allow us to exclude most of them without having to resort
         % to fixed thresholds.
-        % TODO: Possibly we can use the model fit from above to help with this, 
+        % TODO: Possibly we can use the model fit from above to help with this,
         %       but I'm not sure how.
 
         bottomFivePercent = mu(1:round(length(mu)*0.05));
@@ -107,14 +97,14 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
         tileStats.histogram{1,thisLayer} = cell(1,size(thisStack,3));
         for thisTile = 1:size(thisStack,3)
             tmp = single(thisStack(:,:,thisTile));
-            [n,x] = hist(tmp(1:10:end), 1000); %every 10th for speed, even though it means we'll miss the extreme values. 
+            [n,x] = hist(tmp(1:10:end), 1000); %every 10th for speed, even though it means we'll miss the extreme values.
             tileStats.histogram{1,thisLayer}{thisTile} = [n;x];
         end
     end
-    
+
     save(statsFile,'tileStats')
 
-    % If a second output (the offset-corrected image stack) is requested, then create this, 
+    % If a second output (the offset-corrected image stack) is requested, then create this,
     % otherwise just return.
     if nargout<2
         return
@@ -123,7 +113,7 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
     % Apply the tile offset. (It will be zero if it was not calculated)
 
 
-    offsetMu = mean(tileStats.offsetMean(1,:)); %since all depths will have the same underlying value
+    offsetMu = mean(tileStats.offsetDimest(1,:)); %since all depths will have the same underlying value
     offsetMu = cast(offsetMu,class(imStack{1,1}));
 
     for thisLayer = 1:size(imStack,2) % Optical sections

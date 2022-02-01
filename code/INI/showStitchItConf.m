@@ -16,7 +16,7 @@ function varargout=showStitchItConf(rawFile,INIfname)
 %
 % Rob Campbell - Basel 2015
 
-if nargin<1
+if nargin<1 || isempty(rawFile)
     rawFile=0;
 end
 
@@ -29,16 +29,14 @@ if ~exist(INIfname,'file')
 end
 
 %Read INI file
-ini = IniConfig();
-ini.ReadFile(INIfname);
-
+ini = IniConfig(INIfname);
 
 if rawFile==1 | nargout>0
     fileContents=ini.ToString();
 end
 
 if rawFile==1
-    fprintf(fileContents)
+    fprintf('%s',fileContents)
 end
 
 

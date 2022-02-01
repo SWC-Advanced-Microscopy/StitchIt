@@ -83,6 +83,8 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
         row(lowVals)=[];
         thisStack(:,:,lowVals)=[]; % <--- Tiles with low values deleted here
 
+
+
         if size(thisStack,3)<2
             fprintf('** WARNING: stack size for generating average images is %d. SKIPPING THIS SECTION\n',size(thisStack,3))
             continue

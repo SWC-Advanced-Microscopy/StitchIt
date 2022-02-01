@@ -97,14 +97,13 @@ classdef IniConfig < handle
     %
     
     
-    properties (GetAccess = 'public', SetAccess = 'private')
+    properties (GetAccess = 'public', SetAccess = 'private', Hidden=true)
         comment_style = ';' % style of comments
         count_sections = 0  % number of sections
         count_all_keys = 0  % number of all keys
-    end
-    
-    properties (GetAccess = 'private', SetAccess = 'private')
-        config_data_array = {}
+
+        config_data_array = {} % Line by line breakdown of INI file
+                               % col 1: key name; col 2: value of key; col 3: comment string
         indicies_of_sections
         indicies_of_empty_strings
         
@@ -121,21 +120,33 @@ classdef IniConfig < handle
         % Public Methods
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %------------------------------------------------------------------
-        function obj = IniConfig()
+        function obj = IniConfig(fname)
             %IniConfig - constructor
-            % To Create new object with empty default configuration.
+            % To Create new object with empty default configuration or (optionally).
+            % to read in a existing file
             %
             % Using:
-            %   obj = IniConfig()
+            %   obj = IniConfig(fname)
             %
             % Input:
-            %   none
+            %   fname - if exists, we read it in
             %
             % Output:
             %   obj - an instance of class IniConfig
             % -------------------------------------------------------------
             
+
+            if nargin<1
+                fname = [];
+            end
+
+            % create a new empty config
             obj.CreateIni();
+
+            % Optionally read the file
+            if ~isempty(fname) && exist(fname,'file')
+                obj.ReadFile(fname);
+            end
         end
         
         %------------------------------------------------------------------
@@ -401,8 +412,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, tf_set_values] = ...
-                AddKeys(obj, section_name, key_names, key_values, value_formats)
+        function [status, tf_set_values] = AddKeys(obj, section_name, key_names, key_values, value_formats)
             %AddKeys - add keys in a end given section
             %
             % Using:
@@ -450,8 +460,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, tf_set_values] = InsertKeys(obj, ...
-                section_name, key_positions, key_names, key_values, value_formats)
+        function [status, tf_set_values] = InsertKeys(obj, section_name, key_positions, key_names, key_values, value_formats)
             %InsertKeys - insert keys into the specified positions in a given section
             %
             % Using:
@@ -503,7 +512,66 @@ classdef IniConfig < handle
                 section_names, key_positions, key_names, ...
                 key_values, value_formats, 'UniformOutput', true);
         end
-        
+
+        %------------------------------------------------------------------
+        function status = InsertComment(obj, comment, insert_index)
+            %InsertComment - add a comment at a given location
+            %
+            % Using:
+            %   status = InsertComment(comment,key_position)
+            %
+            % Input:
+            %   comment - a string or cell array. If a cell array, it is assumed to be formatted
+            %             as "one cell one line", which is how data are imported. If a string, it
+            %             is split by newline and inserted as one line one cell.
+            %    insert_index -- location at which to add. Either an index in the file or a cell
+            %                   array defining the section and key. e.g. {'[section a]', 'myKey'}
+            %
+            %
+            % Output:
+            %   status - 1 (true) - success, 0 (false) - failed
+            % -------------------------------------------------------------
+
+
+            status = false;
+
+            % Convert to cell array and add INI comment characters if needed.
+            comment = StringToCommentCell(comment);
+
+            % Add an empty leading line if the comment does not start with it.
+            if ~isempty(comment{1})
+                comment = [' '; comment];
+            end
+
+            % Convert to format expercted by InsertCell
+            new_data = repmat({char}, [length(comment),3]);
+            new_data(:,end) = comment;
+
+
+            % Get the index of section and key if a cell array was provided
+            if iscell(insert_index)
+                if length(insert_index) ~= 2
+                    return
+                end
+
+                if ~obj.isSection(insert_index{1})
+                    return
+                end
+
+                if ~ obj.IsKeys(insert_index{1},insert_index{2})
+                    return
+                end
+
+                insert_index = obj.getKeyIndex(insert_index{1}, insert_index{2});
+            end
+
+            status=true;
+            obj.config_data_array = InsertCell(obj.config_data_array, ...
+                    insert_index, new_data);
+
+            obj.updateAll;
+        end
+
         %------------------------------------------------------------------
         function status = RemoveKeys(obj, section_name, key_names)
             %RemoveKeys - remove the keys from a given section
@@ -581,19 +649,6 @@ classdef IniConfig < handle
             
             narginchk(2, 4)
             
-%             if (nargin < 2)
-%                 % get all values
-%                 sections = obj.GetSections();
-%                 
-%                 values = {};
-%                 status = [];
-%                 for i = 1:numel(sections)
-%                     [vals, tf] = obj.GetValues(sections{i});
-%                     values = cat(1, values, vals);
-%                     status = cat(1, status, tf);
-%                 end
-%                 return;
-%             end
             
             section_name = obj.validateSectionName(section_name);
             
@@ -603,7 +658,7 @@ classdef IniConfig < handle
                 if isempty(key_names)
                     values = {};
                     status = false;
-                    return;
+                    return
                 end
             end
             
@@ -626,7 +681,7 @@ classdef IniConfig < handle
             
             section_names = PadDataToCell(section_name, numel(key_names));
             
-            [values, status] = cellfun(@(x, y, z) obj.getValue(x, y, z), ...
+            [values, status] = cellfun(@(tSec, tKey, tDeflt) obj.getValue(tSec, tKey, tDeflt), ...
                 section_names, key_names, default_values, 'UniformOutput', false);
             
             if (~is_cell)
@@ -635,6 +690,29 @@ classdef IniConfig < handle
             status = cell2mat(status);
         end
         
+
+        %------------------------------------------------------------------
+        function comments = GetComment(obj, section_name, key_name)
+            %GetComment - get comments from one or more keys from a section
+            %
+            % Using:
+            %   values = GetComment(section_name, key_name)
+            %
+            % Input:
+            %   section_name -- name of given section
+            %   key_name -- names of given keys
+            %
+            % Output:
+            %   comments -- cell array of comments.
+            %   status -- 1 (true) - success, 0 (false) - failed
+            % -------------------------------------------------------------
+
+
+            key_index = obj.getKeyIndex(section_name, key_name);
+            comments = obj.getCommentStringFromKeyIndex(key_index);
+        end
+
+
         %------------------------------------------------------------------
         function status = SetValues(obj, section_name, key_names, key_values, value_formats)
             %SetValues - set values for given keys from given section
@@ -693,17 +771,18 @@ classdef IniConfig < handle
             %   str - string with full or section configuration (optional)
             % -------------------------------------------------------------
             
-            %FIXME: возможно, нужно разбить этот метод на несколько, он слишком длинный 
             
             narginchk(1, 2)
             
             if (nargin < 2)
+                % A full export means that the whole file is dumped to a string.
                 is_full_export = true;
             else
                 section_name = obj.validateSectionName(section_name);
                 is_full_export = false;
             end
             
+            % Determine which indexes are to be returned
             if is_full_export
                 count_str = obj.count_strings;
                 indicies = 1:count_str;
@@ -722,11 +801,15 @@ classdef IniConfig < handle
             
             indicies_of_sect = obj.indicies_of_sections;
             config_data = obj.config_data_array;
-            
+
+
+            % Start building the return string
             str = '';
             conf_str = sprintf('\n');
                 
             for k = indicies
+
+                % Print comment line if applicable
                 if isempty(config_data{k,1})
                     if isempty(config_data{k,3})
                         str = sprintf('\n');
@@ -735,6 +818,7 @@ classdef IniConfig < handle
                         str = sprintf('%s\n', comment_str);
                     end
                     
+                
                 elseif ~isempty(indicies_of_sect(indicies_of_sect == k))
                     if is_full_export
                         if isempty(config_data{k,3})
@@ -771,6 +855,8 @@ classdef IniConfig < handle
                 conf_str = sprintf('%s%s', conf_str, str);
             end
             
+
+            % Output argument handling
             if (nargout == 0)
                 fprintf(1, '%s\n', conf_str);
             elseif (nargout == 1)
@@ -779,7 +865,33 @@ classdef IniConfig < handle
                 error('Too many output arguments.')
             end
         end
-        
+
+        %------------------------------------------------------------------
+        function tStruct = returnAsStruct(obj)
+            %returnAsStruct - return INI file as a structure
+            %
+            % Using:
+            %   myStruct = returnAsStruct()
+            %
+            % Input:
+            %   none
+            %
+            % Output:
+            %   myStruct - a structure containing the values and keys of the INI file
+            % -------------------------------------------------------------
+
+            sections = obj.GetSections;
+
+            for ii=1:length(sections)
+                keys = obj.GetKeys(sections{ii});
+                values = obj.GetValues(sections{ii}, keys);
+                for jj=1:length(values)
+                    tStruct.(sections{ii}(2:end-1)).(keys{jj})=values{jj};
+                end
+            end
+
+        end
+
         %------------------------------------------------------------------
         function status = WriteFile(obj, file_name)
             %WriteFile - write to the configuration INI file on disk
@@ -807,7 +919,7 @@ classdef IniConfig < handle
                 status = true;
             else
                 status = false;
-                return;
+                return
             end
         end
         
@@ -816,7 +928,7 @@ classdef IniConfig < handle
     
     
     %======================================================================
-    methods (Access = 'private')
+    methods (Hidden = true)
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Private Methods
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -852,7 +964,7 @@ classdef IniConfig < handle
             if isempty(sect_num)
                 key_indicies = [];
                 count_keys = 0;
-                return;
+                return
                 
             elseif (sect_num == obj.count_sections)
                 key_indicies = ...
@@ -864,10 +976,7 @@ classdef IniConfig < handle
             
             indicies_of_empty = obj.indicies_of_empty_strings;
             empty_indicies = ismember(key_indicies, indicies_of_empty);
-            
-%             empty_indicies = cellfun('isempty', ...
-%                 obj.config_data_array(key_indicies, 1));
-            
+
             key_indicies(empty_indicies) = [];
             key_indicies = key_indicies(:);
             count_keys = length(key_indicies);
@@ -940,9 +1049,7 @@ classdef IniConfig < handle
         %------------------------------------------------------------------
         function status = isSection(obj, section_name)
             %isSection - determine whether there is a section
-            
-%             section_names = obj.GetSections();
-            
+
             data = obj.config_data_array(:, 1);
             int_ind = find(strcmp(data, section_name), 1);
             
@@ -971,7 +1078,7 @@ classdef IniConfig < handle
                 
                 if ~isempty(indicies_cell_comment)
                     section_name = [];
-                    return;
+                    return
                 end
                 
                 if isempty(sect_indicies_cell)
@@ -1004,7 +1111,7 @@ classdef IniConfig < handle
                 
                 if ~is_unique_sect
                     status = false;
-                    return;
+                    return
                 end
                 
                 if (section_pos <= obj.count_sections && obj.count_sections > 0)
@@ -1053,12 +1160,9 @@ classdef IniConfig < handle
                 end
                 
                 obj.config_data_array(first_ind:last_ind,:) = [];
-                
-                obj.updateCountStrings();
-                obj.updateSectionsInfo();
-                obj.updateEmptyStringsInfo();
-                obj.updateCountKeysInfo();
-                
+
+                obj.updateAll;
+
                 status = true;
             else
                 status = false;
@@ -1116,8 +1220,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, write_value] = ...
-                addKey(obj, section_name, key_name, key_value, value_formats)
+        function [status, write_value] = addKey(obj, section_name, key_name, key_value, value_formats)
             %addKey - add key in a end given section
             
             [inds, count_keys] = obj.getKeysIndexes(section_name);
@@ -1127,8 +1230,7 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [status, set_status] = ...
-                insertKey(obj, section_name, key_pos, key_name, key_value, value_formats)
+        function [status, set_status] = insertKey(obj, section_name, key_pos, key_name, key_value, value_formats)
             %insertKey - insert key into the specified position in a given section
             
             CheckIsScalarPositiveInteger(key_pos);
@@ -1143,14 +1245,14 @@ classdef IniConfig < handle
                 
                 if ~is_unique_key
                     status = false;
-                    return;
+                    return
                 end
                 
                 [key_indicies, count_keys] = obj.getKeysIndexes(section_name);
-                if (count_keys > 0)
-                    if (key_pos <= count_keys)
+                if count_keys > 0
+                    if key_pos <= count_keys
                         insert_index = key_indicies(key_pos);
-                    elseif (key_pos > count_keys)
+                    elseif key_pos > count_keys
                         insert_index = key_indicies(end) + 1;
                     end
                 else
@@ -1159,14 +1261,12 @@ classdef IniConfig < handle
                 
                 new_data = {key_name, '', ''};
                 
-                obj.config_data_array = InsertCell(obj.config_data_array, ...
-                    insert_index, new_data);
+                % Insert key *after* the named index because it is common for there to be
+                % comments associated with the key in the lines preceeding it
+                obj.config_data_array = InsertCell(obj.config_data_array, insert_index, new_data,false);
                 
-                obj.updateCountStrings();
-                obj.updateSectionsInfo();
-                obj.updateEmptyStringsInfo();
-                obj.updateCountKeysInfo();
-                
+                obj.updateAll;
+
                 if ~isempty(key_value)
                     set_status = obj.setValue(section_name, key_name, ...
                         key_value, value_formats);
@@ -1190,7 +1290,7 @@ classdef IniConfig < handle
                 is_unique_key = obj.isUniqueKeyName(section_name, key_name);
                 if is_unique_key
                     status = false;
-                    return;
+                    return
                 end
                 
                 status = find(strcmp(key_name, keys), 1, 'last');
@@ -1199,10 +1299,7 @@ classdef IniConfig < handle
                 key_index = key_indicies(status);
                 obj.config_data_array(key_index, :) = [];
                 
-                obj.updateCountStrings();
-                obj.updateSectionsInfo();
-                obj.updateEmptyStringsInfo();
-                obj.updateCountKeysInfo();
+                obj.updateAll;
                 
                 status = true;
             else
@@ -1227,7 +1324,7 @@ classdef IniConfig < handle
                 
                 if is_unique_key
                     status = false;
-                    return;
+                    return
                 end
                 
                 status = find(strcmp(old_key_name, keys), 1, 'last');
@@ -1250,11 +1347,11 @@ classdef IniConfig < handle
             
             if ~obj.isSection(section_name)
                 status = false;
-                return;
+                return
             end
             if ~obj.isKey(section_name, key_name)
                 status = false;
-                return;
+                return
             end
             
             key_index = obj.getKeyIndex(section_name, key_name);
@@ -1266,7 +1363,7 @@ classdef IniConfig < handle
                 str_value = num2str(key_value, value_format);
             end
             
-            if (isvector(key_value) && isnumeric(key_value))
+            if isvector(key_value) && isnumeric(key_value)
                 str_value = CorrectionNumericArrayStrings(str_value);
             end
             
@@ -1275,23 +1372,21 @@ classdef IniConfig < handle
         end
         
         %------------------------------------------------------------------
-        function [key_value, status] = getValue(obj, ...
-                section_name, key_name, default_value)
+        function [key_value, status] = getValue(obj, section_name, key_name, default_value)
             %getValue - get key value
-            
             status = false;
             
             if ~obj.isSection(section_name)
                 key_value = default_value;
-                return;
+                return
             end
             if ~obj.isKey(section_name, key_name)
                 key_value = default_value;
-                return;
+                return
             end
             
             key_index = obj.getKeyIndex(section_name, key_name);
-            
+
             str_value = obj.config_data_array{key_index, 2};
             key_value = ParseValue(str_value);
             
@@ -1311,6 +1406,57 @@ classdef IniConfig < handle
             end
         end
         
+        %------------------------------------------------------------------
+        function [comment_str,comment_cell] = getCommentStringFromKeyIndex(obj, key_index)
+            % Read the comment string associated with a key index in the file
+            % This method should be called by something such as GetComment. The
+            % idea is that this method returns all comment lines until the next
+            % section, key/value, or empty line is found. So a new line in a comment
+            % is not considered to indicate a separate comment.
+
+            key_index = key_index - 1; %Because we need to back up one from data line itself
+            comment_str = '';
+            comment_cell = {};
+
+
+            comment_ind = [];
+            while key_index>0
+                if ~isempty(obj.config_data_array{key_index, 1}) || ...
+                    ~isempty(obj.config_data_array{key_index, 2}) || ...
+                    isempty(obj.config_data_array{key_index, 3})
+                    break
+                end
+                comment_ind(end+1) = key_index;
+                key_index = key_index - 1; %Because we need to back up one from data line itself
+            end
+
+            % Build the comment string
+            comment_ind = fliplr(comment_ind); % because we read the lines in backwards
+
+            for ii=1:length(comment_ind)
+                tStr = obj.config_data_array{comment_ind(ii), 3};
+                if ~isempty(tStr)
+                    comment_str = sprintf('%s%s\n',comment_str,tStr);
+                else
+                    comment_str = sprintf('%s\n',comment_str);
+                end
+            end
+
+            comment_cell = obj.config_data_array(comment_ind, 3);
+
+        end
+
+        %------------------------------------------------------------------
+        function updateAll(obj, section_name)
+            % Update various properties. This method is called when data
+            % are changed because keys are added or removed, etc.
+            obj.updateCountStrings();
+            obj.updateSectionsInfo();
+            obj.updateEmptyStringsInfo();
+            obj.updateCountKeysInfo();
+        end
+
+
     end % private methods
     %----------------------------------------------------------------------
     
@@ -1374,11 +1520,10 @@ end
 function value = ParseValue(value)
     %ParseValue - classify the data types and convert them
 
-    % определяем, содержит ли строка value не числовые символы
     start_idx = regexp(value, '[^\.\s-+,0-9ij]', 'once');
     
     if ~isempty(start_idx)
-        return;
+        return
     end
     
     num = StringToNumeric(value);
@@ -1395,7 +1540,7 @@ function num = StringToNumeric(str)
     
     if isempty(str)
         num = NaN;
-        return;
+        return
     end
     
     delimiter = ',';
@@ -1526,11 +1671,50 @@ end
 %--------------------------------------------------------------------------
 
 %==========================================================================
-function B = InsertCell(C, i, D)
-    %InsertCell - insert a new cell or several cells in a two-dimensional
-    % array of cells on the index
-    
-    B = [C(1:i-1, :); D; C(i:end, :)];
+function out = StringToCommentCell(thisStr)
+    % StringToCommentCell
+    %
+    % Convert a string to a cell array that matches the one line one cell
+    % standard in the INI data.
+    if ~iscell(thisStr)
+        out = strsplit(thisStr,'\n')';
+    end
+
+    % Do not leave a trailing newline
+    if isempty(out{end})
+        out(end)=[];
+    end
+
+    % Ensure each line starts with ;; to make it an INI comment
+    %
+    for ii=1:length(out)
+        % Remove leading comments just in case they are there with unusual
+        % spacings, etc
+        out{ii} = regexprep(out{ii},'^ *;; *','');
+
+        %Now add them
+        out{ii} = sprintf(';; %s', out{ii});
+    end
 end
 %--------------------------------------------------------------------------
 
+%==========================================================================
+function out = InsertCell(dataArray, insert_index, newData, insertBefore)
+    %InsertCell - insert a new cell or several cells in a two-dimensional
+    % array of cells on the index
+    
+    if nargin < 4
+        insertBefore = true;
+    end
+
+    if insertBefore
+        out = [dataArray(1:insert_index-1, :); ...
+             newData; ...
+             dataArray(insert_index:end, :)];
+    else
+        out = [dataArray(1:insert_index, :); ...
+             newData; ...
+             dataArray(insert_index+1:end, :)];
+    end
+end
+%--------------------------------------------------------------------------

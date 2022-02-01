@@ -96,52 +96,7 @@ if ~exist(INIfname,'file')
 end
 
 
-%Read INI file
-out = readThisINI(INIfname);
+%Read INI file and add missing fields
+out = addMissingDefaultsToFile(INIfname);
+
 pathToINI = which(INIfname); %So we optionally return the path to the INI file
-
-%Load the default INI file
-default = readThisINI('stitchitConf_DEFAULT.ini');
-
-
-%Check that the user INI file contains all the keys that are in the default
-fO=fields(out);
-fD=fields(default);
-
-for ii=1:length(fD)
-    %Reads TV objectives in by force TODO: fix this
-    if isempty(strmatch(fD{ii},fO,'exact'))
-        fprintf('Missing section %s in INI file %s. Using default values\n', fD{ii}, which(INIfname))
-        out.(fD{ii}) = default.(fD{ii}) ;
-        continue
-    end
-
-
-
-    %Warning: descends down only one layer
-    sO = fields(out.(fD{ii}));
-    sD = fields(default.(fD{ii}));
-    for jj=1:length(sD)
-        if isempty(strmatch(sD{jj},sO,'exact'))
-           fprintf('Missing field %s in INI file %s. Using default value.\n',sD{jj}, which(INIfname))
-           out.(fD{ii}).(sD{jj}) = default.(fD{ii}).(sD{jj});
-        end
-    end
-
-end
-
-
-
-function out=readThisINI(fname)
-    ini = IniConfig();
-    ini.ReadFile(fname);
-
-    sections = ini.GetSections;
-
-    for ii=1:length(sections)
-        keys = ini.GetKeys(sections{ii});
-        values = ini.GetValues(sections{ii}, keys);
-        for jj=1:length(values)
-            out.(sections{ii}(2:end-1)).(keys{jj})=values{jj};
-        end
-    end
