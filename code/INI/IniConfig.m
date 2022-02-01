@@ -97,14 +97,13 @@ classdef IniConfig < handle
     %
     
     
-    properties (GetAccess = 'public', SetAccess = 'private')
+    properties (GetAccess = 'public', SetAccess = 'private', Hidden=true)
         comment_style = ';' % style of comments
         count_sections = 0  % number of sections
         count_all_keys = 0  % number of all keys
-    end
-    
-    properties (GetAccess = 'private', SetAccess = 'private')
-        config_data_array = {}
+
+        config_data_array = {} % Line by line breakdown of INI file
+                               % col 1: key name; col 2: value of key; col 3: comment string
         indicies_of_sections
         indicies_of_empty_strings
         
@@ -581,19 +580,6 @@ classdef IniConfig < handle
             
             narginchk(2, 4)
             
-%             if (nargin < 2)
-%                 % get all values
-%                 sections = obj.GetSections();
-%                 
-%                 values = {};
-%                 status = [];
-%                 for i = 1:numel(sections)
-%                     [vals, tf] = obj.GetValues(sections{i});
-%                     values = cat(1, values, vals);
-%                     status = cat(1, status, tf);
-%                 end
-%                 return;
-%             end
             
             section_name = obj.validateSectionName(section_name);
             
@@ -603,7 +589,7 @@ classdef IniConfig < handle
                 if isempty(key_names)
                     values = {};
                     status = false;
-                    return;
+                    return
                 end
             end
             
@@ -626,7 +612,7 @@ classdef IniConfig < handle
             
             section_names = PadDataToCell(section_name, numel(key_names));
             
-            [values, status] = cellfun(@(x, y, z) obj.getValue(x, y, z), ...
+            [values, status] = cellfun(@(tSec, tKey, tDeflt) obj.getValue(tSec, tKey, tDeflt), ...
                 section_names, key_names, default_values, 'UniformOutput', false);
             
             if (~is_cell)
@@ -693,17 +679,18 @@ classdef IniConfig < handle
             %   str - string with full or section configuration (optional)
             % -------------------------------------------------------------
             
-            %FIXME: возможно, нужно разбить этот метод на несколько, он слишком длинный 
             
             narginchk(1, 2)
             
             if (nargin < 2)
+                % A full export means that the whole file is dumped to a string.
                 is_full_export = true;
             else
                 section_name = obj.validateSectionName(section_name);
                 is_full_export = false;
             end
             
+            % Determine which indexes are to be returned
             if is_full_export
                 count_str = obj.count_strings;
                 indicies = 1:count_str;
@@ -722,11 +709,15 @@ classdef IniConfig < handle
             
             indicies_of_sect = obj.indicies_of_sections;
             config_data = obj.config_data_array;
-            
+
+
+            % Start building the return string
             str = '';
             conf_str = sprintf('\n');
                 
             for k = indicies
+
+                % Print comment line if applicable
                 if isempty(config_data{k,1})
                     if isempty(config_data{k,3})
                         str = sprintf('\n');
@@ -735,6 +726,7 @@ classdef IniConfig < handle
                         str = sprintf('%s\n', comment_str);
                     end
                     
+                
                 elseif ~isempty(indicies_of_sect(indicies_of_sect == k))
                     if is_full_export
                         if isempty(config_data{k,3})
@@ -771,6 +763,8 @@ classdef IniConfig < handle
                 conf_str = sprintf('%s%s', conf_str, str);
             end
             
+
+            % Output argument handling
             if (nargout == 0)
                 fprintf(1, '%s\n', conf_str);
             elseif (nargout == 1)
@@ -807,7 +801,7 @@ classdef IniConfig < handle
                 status = true;
             else
                 status = false;
-                return;
+                return
             end
         end
         
@@ -816,7 +810,7 @@ classdef IniConfig < handle
     
     
     %======================================================================
-    methods (Access = 'private')
+    methods (Hidden = true)
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Private Methods
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -852,7 +846,7 @@ classdef IniConfig < handle
             if isempty(sect_num)
                 key_indicies = [];
                 count_keys = 0;
-                return;
+                return
                 
             elseif (sect_num == obj.count_sections)
                 key_indicies = ...
@@ -864,10 +858,7 @@ classdef IniConfig < handle
             
             indicies_of_empty = obj.indicies_of_empty_strings;
             empty_indicies = ismember(key_indicies, indicies_of_empty);
-            
-%             empty_indicies = cellfun('isempty', ...
-%                 obj.config_data_array(key_indicies, 1));
-            
+
             key_indicies(empty_indicies) = [];
             key_indicies = key_indicies(:);
             count_keys = length(key_indicies);
@@ -940,9 +931,7 @@ classdef IniConfig < handle
         %------------------------------------------------------------------
         function status = isSection(obj, section_name)
             %isSection - determine whether there is a section
-            
-%             section_names = obj.GetSections();
-            
+
             data = obj.config_data_array(:, 1);
             int_ind = find(strcmp(data, section_name), 1);
             
@@ -971,7 +960,7 @@ classdef IniConfig < handle
                 
                 if ~isempty(indicies_cell_comment)
                     section_name = [];
-                    return;
+                    return
                 end
                 
                 if isempty(sect_indicies_cell)
@@ -1004,7 +993,7 @@ classdef IniConfig < handle
                 
                 if ~is_unique_sect
                     status = false;
-                    return;
+                    return
                 end
                 
                 if (section_pos <= obj.count_sections && obj.count_sections > 0)
@@ -1053,12 +1042,9 @@ classdef IniConfig < handle
                 end
                 
                 obj.config_data_array(first_ind:last_ind,:) = [];
-                
-                obj.updateCountStrings();
-                obj.updateSectionsInfo();
-                obj.updateEmptyStringsInfo();
-                obj.updateCountKeysInfo();
-                
+
+                obj.updateAll;
+
                 status = true;
             else
                 status = false;
@@ -1143,14 +1129,14 @@ classdef IniConfig < handle
                 
                 if ~is_unique_key
                     status = false;
-                    return;
+                    return
                 end
                 
                 [key_indicies, count_keys] = obj.getKeysIndexes(section_name);
-                if (count_keys > 0)
-                    if (key_pos <= count_keys)
+                if count_keys > 0
+                    if key_pos <= count_keys
                         insert_index = key_indicies(key_pos);
-                    elseif (key_pos > count_keys)
+                    elseif key_pos > count_keys
                         insert_index = key_indicies(end) + 1;
                     end
                 else
@@ -1190,7 +1176,7 @@ classdef IniConfig < handle
                 is_unique_key = obj.isUniqueKeyName(section_name, key_name);
                 if is_unique_key
                     status = false;
-                    return;
+                    return
                 end
                 
                 status = find(strcmp(key_name, keys), 1, 'last');
@@ -1199,10 +1185,7 @@ classdef IniConfig < handle
                 key_index = key_indicies(status);
                 obj.config_data_array(key_index, :) = [];
                 
-                obj.updateCountStrings();
-                obj.updateSectionsInfo();
-                obj.updateEmptyStringsInfo();
-                obj.updateCountKeysInfo();
+                obj.updateAll;
                 
                 status = true;
             else
@@ -1227,7 +1210,7 @@ classdef IniConfig < handle
                 
                 if is_unique_key
                     status = false;
-                    return;
+                    return
                 end
                 
                 status = find(strcmp(old_key_name, keys), 1, 'last');
@@ -1250,11 +1233,11 @@ classdef IniConfig < handle
             
             if ~obj.isSection(section_name)
                 status = false;
-                return;
+                return
             end
             if ~obj.isKey(section_name, key_name)
                 status = false;
-                return;
+                return
             end
             
             key_index = obj.getKeyIndex(section_name, key_name);
@@ -1266,7 +1249,7 @@ classdef IniConfig < handle
                 str_value = num2str(key_value, value_format);
             end
             
-            if (isvector(key_value) && isnumeric(key_value))
+            if isvector(key_value) && isnumeric(key_value)
                 str_value = CorrectionNumericArrayStrings(str_value);
             end
             
@@ -1283,15 +1266,15 @@ classdef IniConfig < handle
             
             if ~obj.isSection(section_name)
                 key_value = default_value;
-                return;
+                return
             end
             if ~obj.isKey(section_name, key_name)
                 key_value = default_value;
-                return;
+                return
             end
             
             key_index = obj.getKeyIndex(section_name, key_name);
-            
+
             str_value = obj.config_data_array{key_index, 2};
             key_value = ParseValue(str_value);
             
@@ -1311,6 +1294,16 @@ classdef IniConfig < handle
             end
         end
         
+
+        %------------------------------------------------------------------
+        function updateAll(obj, section_name)
+            % Update various properties. This method is called when data
+            % are changed because keys are added or removed, etc.
+            obj.updateCountStrings();
+            obj.updateSectionsInfo();
+            obj.updateEmptyStringsInfo();
+            obj.updateCountKeysInfo();
+        end
     end % private methods
     %----------------------------------------------------------------------
     
@@ -1374,11 +1367,10 @@ end
 function value = ParseValue(value)
     %ParseValue - classify the data types and convert them
 
-    % определяем, содержит ли строка value не числовые символы
     start_idx = regexp(value, '[^\.\s-+,0-9ij]', 'once');
     
     if ~isempty(start_idx)
-        return;
+        return
     end
     
     num = StringToNumeric(value);
@@ -1395,7 +1387,7 @@ function num = StringToNumeric(str)
     
     if isempty(str)
         num = NaN;
-        return;
+        return
     end
     
     delimiter = ',';
