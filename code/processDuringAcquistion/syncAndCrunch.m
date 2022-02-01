@@ -72,6 +72,25 @@ if nargin==0
     return
 end
 
+% Read the INI file  (Initial INI file read)
+curDir=pwd;
+try
+    cd(serverDir)
+
+    config=readStitchItINI;
+
+    if config.syncAndCrunch.landingDirectory == 0
+    fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
+        '\tSee the shipped default INI file in %s as an example\n\n'],  fileparts(which('readStitchItINI')) )
+    return
+    end
+
+catch ME
+    cd(curDir)
+    rethrow(ME)
+end
+
+
 if  ~exist(serverDir,'file')
     systemID = serverDir; % Rename variable for clarity of purpose
     ACQ=findCurrentlyRunningAcquisition(systemID);
@@ -88,23 +107,6 @@ if  ~exist(serverDir,'file')
     return % <-- bail out of this instance
 end
 
-% Read the INI file  (Initial INI file read)
-curDir=pwd;
-try
-    cd(serverDir)
-  
-    config=readStitchItINI;
-
-    if config.syncAndCrunch.landingDirectory == 0 
-    fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
-        '\tSee the shipped default INI file in %s as an example\n\n'],  fileparts(which('readStitchItINI')) )
-    return
-    end
-
-catch ME
-    cd(curDir)
-    rethrow(ME)
-end
 
 % Parse optional inputs
 P=inputParser;
@@ -205,7 +207,7 @@ if strcmp(localTargetRoot,expName)
     landingDir = landingDirMinusExtension;
 end
 
-if ~isWritable(landingDir)
+if ~stitchit.tools.isWritable(landingDir)
     fprintf('\nWARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir);
 end
 
