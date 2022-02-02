@@ -100,6 +100,7 @@ switch offsetType
         if m>0
             m=0;
         end
+        offset.(offsetType) = m;
     case 'scanimage'
             % Find the first image of that acquisition (not assuming that 1 is
     % first)
@@ -117,9 +118,12 @@ switch offsetType
 
     firstImInfo = imfinfo(firstTiff);
     firstSI=stitchit.tools.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
-
+    offset = single(firstSI.channelOffset);
+    offset.(offsetType) = offset(chan);
 end
 
 save(offsetFileName, 'offset');
+% get value to return
+offsetValue = offset.(offsetType);
 
 
