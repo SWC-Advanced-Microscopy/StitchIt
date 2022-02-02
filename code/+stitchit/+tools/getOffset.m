@@ -118,8 +118,8 @@ switch offsetType
 
     firstImInfo = imfinfo(firstTiff);
     firstSI=stitchit.tools.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
-    offset = single(firstSI.channelOffset);
-    offset.(offsetType) = offset(chan);
+    siOffset = single(firstSI.channelOffset);
+    offset.(offsetType) = siOffset(chan);
 end
 
 save(offsetFileName, 'offset');
