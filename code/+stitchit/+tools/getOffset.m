@@ -24,8 +24,12 @@ function offsetValue = getOffset(coords, redo, offsetType)
 %
 
 offsetValue = [];
+
+%Load ini file variables and see if an offset file exists
+userConfig=readStitchItINI;
+
 if nargin<1
-    fprintf('getOffset requires at least on einput argument\n')
+    fprintf('getOffset requires at least one input argument\n')
     return
 end
 
@@ -38,13 +42,14 @@ if ~exist('redo', 'var') || isempty(redo)
 end
 
 if ~exist('offsetType', 'var') || isempty(offsetType)
-    offsetType = 'offsetDimest';
+    offsetType = userConfig.tile.offsetType;
 end
 
 
 % Convenience variables
 opticalPlane = coords(2);
 chan=coords(5);
+
 
 
 % Valid values for the offset
@@ -58,9 +63,6 @@ if isempty(strmatch(offsetType,validOffsetTypes,'exact'))
 end
 
 
-
-%Load ini file variables and see if an offset file exists
-userConfig=readStitchItINI;
 
 offsetFileName = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.preProcessDir, ...
     sprintf('offset_ch%.0f.mat', chan));
