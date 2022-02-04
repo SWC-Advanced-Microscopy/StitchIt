@@ -92,6 +92,7 @@ tileStats = stitchit.tools.loadAllTileStatsFiles(chan);
 switch offsetType
     case 'offsetDimest'
         offset.(offsetType) = median([tileStats.offsetDimest]);
+
     case 'averageMin'
         % This is a bit of hack. It was added to deal with issue
         % https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145 and just stayed in
@@ -101,28 +102,30 @@ switch offsetType
             m=0;
         end
         offset.(offsetType) = m;
-    case 'scanimage'
-            % Find the first image of that acquisition (not assuming that 1 is
-    % first)
-    dirNames = dir(userConfig.subdir.rawDataDir);
-    dirNames = sort({dirNames.name});
-    dirNames = dirNames(startsWith(dirNames, param.sample.ID));
-    firstSlice = dirNames{1};
-    firstSecNum = sectionDirName2sectionNum(firstSlice);
-    % Get name of the first file, assuming the section starts at 1 (which should be true)
-    firstSectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,firstSecNum,1);
-    firstTiff = fullfile(userConfig.subdir.rawDataDir, firstSlice, firstSectionTiff);
-    if ~exist(firstTiff, 'file')
-        error('Asked for offset subtraction but could not load the first tiff of the acquisition:\n%s', firstTiff)
-    end
 
-    firstImInfo = imfinfo(firstTiff);
-    firstSI=stitchit.tools.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
-    siOffset = single(firstSI.channelOffset);
-    offset.(offsetType) = siOffset(chan);
+    case 'scanimage'
+        % Find the first image of that acquisition (not assuming that 1 is first)
+        dirNames = dir(userConfig.subdir.rawDataDir);
+        dirNames = sort({dirNames.name});
+        dirNames = dirNames(startsWith(dirNames, param.sample.ID));
+        firstSlice = dirNames{1};
+        firstSecNum = sectionDirName2sectionNum(firstSlice);
+        % Get name of the first file, assuming the section starts at 1 (which should be true)
+        firstSectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,firstSecNum,1);
+        firstTiff = fullfile(userConfig.subdir.rawDataDir, firstSlice, firstSectionTiff);
+        if ~exist(firstTiff, 'file')
+            error('Asked for offset subtraction but could not load the first tiff of the acquisition:\n%s', firstTiff)
+        end
+
+        firstImInfo = imfinfo(firstTiff);
+        firstSI=stitchit.tools.parse_si_header(firstImInfo(1),'Software'); % Parse the ScanImage TIFF header
+        siOffset = single(firstSI.channelOffset);
+        offset.(offsetType) = siOffset(chan);
 end
 
+
 save(offsetFileName, 'offset');
+
 % get value to return
 offsetValue = offset.(offsetType);
 
