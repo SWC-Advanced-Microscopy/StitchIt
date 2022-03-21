@@ -4,8 +4,7 @@
 
 *StitchIt* is a MATLAB package for stitching data acquired via our [ScanImage](http://scanimage.vidriotechnologies.com/))-based acquisition system (BakingTray).
 To get started, please read the [Documentation](https://stitchit.mouse.vision/). 
-There is a [changelog](https://raw.githubusercontent.com/SainsburyWellcomeCentre
-/StitchIt/master/changelog.txt).
+There is a [changelog](https://raw.githubusercontent.com/SainsburyWellcomeCentre/StitchIt/master/changelog.txt).
 
 ## Features
 
