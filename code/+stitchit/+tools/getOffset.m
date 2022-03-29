@@ -19,7 +19,8 @@ function offsetValue = getOffset(coords, redo, offsetType)
 %
 %
 % OUTPUTS
-% offsetValue - the offset (scalar) based on the requested offset type
+% offsetValue - the offset (scalar) based on the requested offset type. 
+%               returns empty if no offset could be obtained.
 %
 %
 
@@ -90,6 +91,11 @@ end
 
 % If here then we need to save and calculate the offset.
 tileStats = stitchit.tools.loadAllTileStatsFiles(chan);
+
+if isempty(tileStats)
+    offsetValue=[];
+    return
+end
 
 switch offsetType
     case 'offsetDimest'

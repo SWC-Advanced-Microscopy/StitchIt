@@ -270,7 +270,7 @@ end
 % If requested and possible, subtract the calculated offset from the tiles.
 if doSubtractOffset==1
     offset = stitchit.tools.getOffset(coords);
-    if isa(im,'int16')
+    if ~isempty(offset) && isa(im,'int16')
         % We will save 16 bit unsigned TIFFs and will need, sadly, to transiently convert to singles
         % if the data are saved as signed 16 bit tiffs.
         offset = single(offset);
