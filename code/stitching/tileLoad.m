@@ -270,14 +270,18 @@ end
 % If requested and possible, subtract the calculated offset from the tiles.
 if doSubtractOffset==1
     offset = stitchit.tools.getOffset(coords);
-    if ~isempty(offset) && isa(im,'int16')
-        % We will save 16 bit unsigned TIFFs and will need, sadly, to transiently convert to singles
-        % if the data are saved as signed 16 bit tiffs.
-        offset = single(offset);
-        im = uint16(single(im) - offset);
+    if ~isempty(offset)
+        if isa(im,'int16')
+             % We will save 16 bit unsigned TIFFs and will need, sadly, to transiently convert to singles
+            % if the data are saved as signed 16 bit tiffs.
+            offset = single(offset);
+            im = uint16(single(im) - offset);
+        else
+            fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
+                mfilename, class(im))
+        end
     else
-        fprintf('\n\nWARNING: %s finds save data are of class %s. Not subtracting offset\n. Contact developer!\n\n', ...
-            mfilename, class(im))
+        fprintf('No offset found and so none subtracted in tileLoad.\n')
     end
 
 end
