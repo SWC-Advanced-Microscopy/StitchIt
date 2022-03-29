@@ -72,6 +72,22 @@ if nargin==0
     return
 end
 
+if  ~exist(serverDir,'file')
+    systemID = serverDir; % Rename variable for clarity of purpose
+    ACQ=findCurrentlyRunningAcquisition(systemID);
+
+    if isempty(ACQ)
+      config=readStitchItINI('systemType',systemID);
+      MP = config.syncAndCrunch.acqMountPoint;
+      fprintf('Can not find any currently running acquisitions at %s\n',MP)
+      return
+    end
+
+    % Recursive call
+    syncAndCrunch(ACQ.samplePath,ACQ.chanToDisplay);
+    return % <-- bail out of this instance
+end
+
 % Read the INI file  (Initial INI file read)
 curDir=pwd;
 try
