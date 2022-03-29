@@ -312,6 +312,16 @@ sentConfigWarning=0; %Record if we failed to read INI file
 sentCollateWarning=0;
 
 
+% If there is a FINISHED file locally but not on the acquisition PC, then we delete the local
+% copy. This could happen if the user left the FINISHED checkbox checked on the BakingTray acq
+% PC then resumed an acquisition, which deletes this file.
+if exist(fullfile(expDir,'FINISHED')) && ~exist(fullfile(serverDir,'FINISHED'))
+    fprintf('FINISHED file exists on analysis PC but not acquisition PC. Deleting local copy\n')
+    delete(fullfile(expDir,'FINISHED'))
+end
+
+
+
 
 % Start background web preview thread
 if chanToPlot ~= 0
