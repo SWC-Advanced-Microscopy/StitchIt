@@ -104,7 +104,7 @@ switch offsetType
     case 'averageMin'
         % This is a bit of hack. It was added to deal with issue
         % https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145 and just stayed in
-        aveTemplate = stitchit.tileLoad.loadBruteForceMeanAveFile(coords,userConfig);
+        aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
         m=min(aveTemplate.pooledRows(:));
         if m>0
             m=0;
@@ -113,6 +113,7 @@ switch offsetType
 
     case 'scanimage'
         % Find the first image of that acquisition (not assuming that 1 is first)
+        param=readMetaData2Stitchit;
         dirNames = dir(userConfig.subdir.rawDataDir);
         dirNames = sort({dirNames.name});
         dirNames = dirNames(startsWith(dirNames, param.sample.ID));
