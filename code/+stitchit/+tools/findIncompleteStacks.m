@@ -27,7 +27,12 @@ end
 
 out = readtable(temp_name,'Format','%d %s');
 
-u_fileSizes = unique(out.Var1);
+% Can not just unique the file sizes as meta-data means there are small differences
+% between stacks. So we look for differences greater than one 32 by 32 image.
+
+f_size = round(out.Var1 / (32^2 * 2));
+
+u_fileSizes = unique(f_size);
 
 if length(u_fileSizes) == 1
     % Then there are no stacks with missing data
@@ -46,7 +51,7 @@ end
 % missing data will be the last plane. We write this information to the folder, display to screen,
 % and return a list of paths with missing data to the CLI.
 
-missing_inds = find(out.Var1 ~= u_fileSizes(end));
+missing_inds = find(f_size ~= u_fileSizes(end));
 missing_paths = out.Var2(missing_inds)
 
 msg = sprintf('%s\n\nfindIncompleteStacks identified %d/%d z-stacks as having a missing plane:\n', ...
@@ -62,5 +67,5 @@ fid = fopen('stacks_with_missing_final_planes.txt','w+');
 fprintf(fid,msg);
 fclose(fid);
 
-
+% TODO -- will need to report disk sizes and perhaps also determine what is missing.
 out = missing_paths_str(1:end-1); % because last line is empty
