@@ -14,6 +14,9 @@ function out = findIncompleteStacks
 temp_name = [tempname,'_findIncomplete'];
 cmd = ['find rawData -name ''*-*_*.tif'' -exec ls -l {} \; | awk ''{ print $5, $9 }'' > ',temp_name];
 
+
+fprintf('Searching for stacks with missing data. This could take some time\n')
+
 status=system(cmd);
 
 if status ~= 0
@@ -35,8 +38,7 @@ end
 if length(u_fileSizes)>2
     % This is not covered as a case
     fprintf('%s -- It seems like there are three different classes of stack size. Something is very wrong!\n', mfilename)
-    out = [];
-    return
+    u_fileSizes
 end
 
 
@@ -44,7 +46,7 @@ end
 % missing data will be the last plane. We write this information to the folder, display to screen,
 % and return a list of paths with missing data to the CLI.
 
-missing_inds = find(out.Var1==u_fileSizes(1));
+missing_inds = find(out.Var1 ~= u_fileSizes(end));
 missing_paths = out.Var2(missing_inds)
 
 msg = sprintf('%s\n\nfindIncompleteStacks identified %d/%d z-stacks as having a missing plane:\n', ...
