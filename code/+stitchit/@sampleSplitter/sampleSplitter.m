@@ -64,7 +64,7 @@ classdef sampleSplitter < handle
         imStack             % The 3D stack that was loaded and used for the max projection
         origImage           % The image upon which we draw ROIs
         splitBrainParams    % A structure containing the ROIs and their orientations 
-        micsPerPixel = 50   % scale of the downsampled image fed into this class
+        micsPerPixel = 25   % scale of the downsampled image fed into this class
         stitchedDataInfo
     end % properties
 
@@ -119,10 +119,10 @@ classdef sampleSplitter < handle
 
             if isempty(varargin)
               %Look for an MHD file 
-              d=dir('downsampled_stacks/050_micron/*.mhd');
+              d=dir(sprintf('downsampled_stacks/%03d_micron/*.mhd',obj.micsPerPixel));
               %If that fails search for a tiff stack
               if isempty(d)
-                d=dir('downsampled_stacks/050_micron/*.tif');
+                d=dir(sprintf('downsampled_stacks/%03d_micron/*.tif',obj.micsPerPixel));
               end
 
               if isempty(d)
@@ -167,13 +167,14 @@ classdef sampleSplitter < handle
                     obj.origImage(1:n,1:n) = p+rot90(p,2);
                     obj.origImage(n+1:end,n+1:end) = p-rot90(p,1)+flipud(p);
                 elseif ischar(fname) && exist(fname,'file') || iscell(fname)
+                    loadEvery = -4;
                     if isstr(fname)
                         fprintf('Loading %s\n', fname)
-                        im = stitchit.tools.loadTiffStack(fname);
+                        im = stitchit.tools.loadTiffStack(fname,'frames',loadEvery);
                     elseif iscell(fname)
                         for ii=1:length(fname)
                             fprintf('loading %s\n', fname{ii})
-                            im(:,:,:,ii) = stitchit.tools.loadTiffStack(fname{ii});
+                            im(:,:,:,ii) = stitchit.tools.loadTiffStack(fname{ii},'frames',loadEvery);
                         end %for ii
                         im = mean(im,4);
                     end %if isstr
@@ -314,11 +315,13 @@ classdef sampleSplitter < handle
         % The following are short methods or callbacks that we might want exposed to the user        
         function applyROIsToStitchedData(obj,~,~)
             % hButton_applyROIs callback
-            % Split up sample based on the current ROIs
+            % Split up or crop sample based on the current ROIs. Then closes the GUI
+            % once the task is complete.
             q = questdlg(sprintf('Really apply these ROIs?'));
             if strcmp(q,'Yes')
                 stitchit.sampleSplitter.cropStitchedSections(obj.returnROIparams);
             end
+            obj.figClose
         end % applyROIsToStitchedData
 
 
