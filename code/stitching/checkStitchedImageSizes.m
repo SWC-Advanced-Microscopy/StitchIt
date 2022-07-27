@@ -63,7 +63,8 @@ parfor ii=1:length(tifs)
     try
         I=imfinfo(fname);
     catch
-        fprintf('*** %s failed to read info from file %s ***\n',mfilename,fname)
+        s = sprintf('*** %s failed to read info from file ',mfilename);
+        disp([s,fname])
     end
     imSizes(ii,:) = [I.Width, I.Height];
 end
