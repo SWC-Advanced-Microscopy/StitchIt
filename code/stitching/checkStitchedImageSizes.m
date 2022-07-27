@@ -62,11 +62,11 @@ for ii=1:length(tifs)
     fname = [sectionDir,filesep,tifs(ii).name];
     try
         I=imfinfo(fname);
+        imSizes(ii,:) = [I.Width, I.Height];
     catch
         s = sprintf('*** %s failed to read info from file ',mfilename);
         disp([s,fname])
     end
-    imSizes(ii,:) = [I.Width, I.Height];
 end
 
 
