@@ -58,7 +58,7 @@ end
 
 imSizes=ones(length(tifs),2);
 
-parfor ii=1:length(tifs)
+for ii=1:length(tifs)
     fname = [sectionDir,filesep,tifs(ii).name];
     try
         I=imfinfo(fname);
