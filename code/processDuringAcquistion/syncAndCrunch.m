@@ -88,21 +88,20 @@ if  ~exist(serverDir,'file')
     return % <-- bail out of this instance
 end
 
-% Read the INI file  (Initial INI file read)
-curDir=pwd;
-try
-    cd(serverDir)
 
-    config=readStitchItINI;
-
-    if config.syncAndCrunch.landingDirectory == 0
+% Do not proceed if no landing directory has been defined.
+if config.syncAndCrunch.landingDirectory == 0
     fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
         '\tSee the shipped default INI file in %s as an example\n\n'],  fileparts(which('readStitchItINI')) )
     return
-    end
+end
 
+% Initial read of the INI file from the acquisition directory
+try
+    cd(serverDir)
+    config=readStitchItINI;
 catch ME
-    cd(curDir)
+    cd(config.syncAndCrunch.landingDirectory)
     rethrow(ME)
 end
 

@@ -51,7 +51,7 @@ end
 n=1;
 for ii = 3:length(d)
     if d(ii).isdir
-        t = getDirDetails(d(ii));
+        t = getDirDetails(d(ii)); % internal function
         if t.isAcqDir 
             dirDetails(n) = t;
             n=n+1;
@@ -71,6 +71,8 @@ if ~dirDetails(1).containsFINISHED && ...
             dirDetails(1).secondsSinceLastAcqLogUpdate<60*10
     currentAcq = dirDetails(1);
 end
+
+
 
 
 function dirDetails = getDirDetails(dirStruct)
