@@ -89,13 +89,6 @@ if  ~exist(serverDir,'file')
 end
 
 
-% Do not proceed if no landing directory has been defined.
-if config.syncAndCrunch.landingDirectory == 0
-    fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
-        '\tSee the shipped default INI file in %s as an example\n\n'],  fileparts(which('readStitchItINI')) )
-    return
-end
-
 % Initial read of the INI file from the acquisition directory
 try
     cd(serverDir)
@@ -105,6 +98,12 @@ catch ME
     rethrow(ME)
 end
 
+% Do not proceed if no landing directory has been defined.
+if config.syncAndCrunch.landingDirectory == 0
+    fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
+        '\tSee the shipped default INI file in %s as an example\n\n'],  fileparts(which('readStitchItINI')) )
+    return
+end
 
 
 % Parse optional inputs
