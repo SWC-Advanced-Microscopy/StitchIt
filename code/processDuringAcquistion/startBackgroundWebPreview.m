@@ -11,8 +11,9 @@ function startBackgroundWebPreview(chanToPlot,config)
     % The script file name we will build to run the background task
     params = readMetaData2Stitchit;
     micName = strrep(params.System.ID,' ','_');
-    pathToBSfile = fullfile(tempdir,['webPreviewBootstrap_',micName,'.m']);
-    logFilePath = fullfile(tempdir,['webPreviewLogFile_',micName]);
+    username = getenv('username');
+    pathToBSfile = fullfile(tempdir,['webPreviewBootstrap_', username, '_', ,micName,'.m']);
+    logFilePath = fullfile(tempdir,['webPreviewLogFile_', username, '_', micName]);
     
     % Before proceeding, let's kill any currently running background web previews
     PIDs=stitchit.tools.findProcesses(pathToBSfile);
