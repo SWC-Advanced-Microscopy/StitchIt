@@ -47,8 +47,9 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
 
     % For now we just load the brute-force average template 
-    % TOOD: handle other template types, such as CIDRE
+    % TODO: we might in the future want to handle other template types, such as CIDRE.
     aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
+
 
     if isempty(aveTemplate) || ~isstruct(aveTemplate)
         fprintf('Illumination correction requested but not performed\n')
