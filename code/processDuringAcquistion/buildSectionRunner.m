@@ -91,18 +91,24 @@ function buildSectionRunner(chan,runInPath)
     end
 
 
-    fprintf('Current number of sections is %d\n', curN)
+    % If more than one section is complete, let's just run a web preview right away anyway. 
+    if curN > 1
+        buildSectionPreview([],chanToPlotNext)
+    end
+
+
+    fprintf(' - buildSectionRunner finds current number of completed  sections is %d\n', curN)
     while ~exist('./FINISHED','file')
         t=generateTileIndex;
         if t~=curN
-            fprintf('Current number of sections has incremented to %d.\n', t)
+            fprintf(' - buildSectionRunner finds current number of sections has incremented to %d.\n', t)
             curN=t;
             readChan % assigns the variable chanToPlotNext
             fprintf('%s calling buildSectionPreview with channel %d\n', ...
                     mfilename,chanToPlotNext)
             buildSectionPreview([],chanToPlotNext)
         else
-            fprintf('Current number of sections is still %d.\n', curN)
+            fprintf(' - buildSectionRunner finds current number of completed sections is still %d.\n', curN)
         end
         pause(10)
     end
