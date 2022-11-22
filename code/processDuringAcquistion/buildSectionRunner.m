@@ -91,14 +91,18 @@ function buildSectionRunner(chan,runInPath)
     end
 
 
+    fprintf('Current number of sections is %d\n', curN)
     while ~exist('./FINISHED','file')
         t=generateTileIndex;
         if t~=curN
+            fprintf('Current number of sections has incremented to %d.\n', t)
             curN=t;
             readChan % assigns the variable chanToPlotNext
             fprintf('%s calling buildSectionPreview with channel %d\n', ...
                     mfilename,chanToPlotNext)
             buildSectionPreview([],chanToPlotNext)
+        else
+            fprintf('Current number of sections is still %d.\n', curN)
         end
         pause(10)
     end
