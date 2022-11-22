@@ -93,6 +93,7 @@ function buildSectionRunner(chan,runInPath)
 
     % If more than one section is complete, let's just run a web preview right away anyway. 
     if curN > 1
+        fprintf(' - buildSectionRunner finds there are already sections present and makes a first preview image.\n')
         buildSectionPreview([],chanToPlotNext)
     end
 
