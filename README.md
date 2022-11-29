@@ -54,6 +54,7 @@ Please use the project's [issue tracker](https://github.com/BaselLaserMouse/Stit
 Please do get in touch if use the software: especially if you are publishing with it!
 You may also join the [StitchIt Gitter](https://gitter.im/open-serial-section/stitchit) room for discussions.
 
+
 ## Licensing 
 This software is distributed under the GPL v3 licence. This repository may be freely forked and shared so long as this licence is attached.
 
