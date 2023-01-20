@@ -72,6 +72,10 @@ if nargin==0
     return
 end
 
+% To avoid a bug that happens when the user is in the microscope directory mount point, we will
+% cd to the temporary directory now
+cd(tempdir)
+
 if  ~exist(serverDir,'file')
     systemID = serverDir; % Rename variable for clarity of purpose
     ACQ=findCurrentlyRunningAcquisition(systemID);
