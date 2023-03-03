@@ -11,7 +11,7 @@ classdef sampleSplitter < handle
     % Usage
     % - cd to sample directory
     % - run stitchit.sampleSplitter without input arguments. This will search for
-    %   downsampled data in downsampled_stacks/050_micron and load it. If this is 
+    %   downsampled data in downsampled_stacks/025_micron and load it. If this is
     %   missing you will need to either make it or supply an input argument (see below)
     % - GUI appears with max intensity projection of brains.
     % - Hit "Auto Find Brains" to draw boxes around brains.
@@ -51,7 +51,7 @@ classdef sampleSplitter < handle
     % 
     %
     % EXAMPLES
-    % 1. Loads a 50 micron downsampled stack and works with that.
+    % 1. Loads a 25 micron downsampled stack and works with that.
     % >> stitchit.sampleSplitter
     % 2. User defines a 25 micron downsampled stack.
     % >> stitchit.sampleSplitter('downsampled_stacks/025_micron/ds_xyz_123_25_25_ch02_green.tif' )
@@ -129,7 +129,9 @@ classdef sampleSplitter < handle
                 % Warn user if there is no stitched data in the directory
                 s=findStitchedData;
 
-                msg = sprintf('Could not find 50 micron downsampled stack provide a downsampled MHD or tiff stack filename, a stack, or an intensity projection\n');
+                msg = sprintf(['Could not find %d micron downsampled stack provide a downsampled ',...
+                                'MHD or tiff stack filename, a stack, or an intensity projection\n'], ...
+                                obj.micsPerPixel);
                 fprintf(msg)
                 if isempty(s)
                     msg = [msg,'STITCHING SEEMS TO HAVE FAILED: see command line for suggestions'];
