@@ -1,8 +1,15 @@
 StitchIt Change-Log
 
 
+22/06/2023:
+- USER (Major): add new options for calculating background tiles. Valid options are now:
+'offsetDimmestGMM' ('offsetDimest')
+'averageTileMin' ('averageMin')
+'averageTileMean'
+'scanimage'
+
 13/12/2021:
-- USER Bugfix (Dev): updatechecker handles cases where stitchit is installed in a path that contains spaces. Add error report to git fetch step. 
+- USER Bugfix (Dev): updatechecker handles cases where stitchit is installed in a path that contains spaces. Add error report to git fetch step.
 
 
 30/06/2021:
@@ -13,7 +20,7 @@ The new INI file settings are:
 ;; The following two settings relate to whether the TIFFs should be compressed. Likely the
 ;; most sensible configuration if you want compression is to save compressed cropped images
 ;; but not compressed the stitched data, as these will discarded and compression slows down
-;; processing. 
+;; processing.
 
 ;; save LZW compressed tiffs after stitching? Set to 0 for no compression and 1 for compression
 saveCompressedStitched=0
@@ -21,21 +28,21 @@ saveCompressedStitched=0
 ;; save LZW compressed tiffs after cropping? Set to 0 for no compression and 1 for compression
 saveCompressedCropped=0
 
-Copy the above into your INI file. 
+Copy the above into your INI file.
 
 
 21/06/2021:
 - USER: add new stitching.saveCompressed feature to INI file. If this is set to 1 then TIFFs are saved LZW compressed. If it is set to 0, TIFFs are not compressed. By default TIFFs are not compressed (the current situation). After pulling this commit, you will receive a message stating:
 Missing field saveCompressed in INI file /path/to/file/stitchitConf_local.ini. Using default value.
-When the INI file is loaded. 
+When the INI file is loaded.
 You can get rid of the message by copying "saveCompressed=0" into the "[stitching]" section of the INI file.
-Obviously set that to 1 if you want compression. For an example of what it should look like see the stitchitConf_DEFAULT.ini file. 
+Obviously set that to 1 if you want compression. For an example of what it should look like see the stitchitConf_DEFAULT.ini file.
 
 
 
 04/06/2021:
 - Bugfix : remove ":" characters from downsampled stack names
-Also: have been working on code for fixing bidi scan errors. Code is in dev but sort of works and not documented. Merge to master anyway. 
+Also: have been working on code for fixing bidi scan errors. Code is in dev but sort of works and not documented. Merge to master anyway.
 
 06/04/2021:
 - Bugfix that was causing chessboard stitching to fail
@@ -52,7 +59,7 @@ Also: have been working on code for fixing bidi scan errors. Code is in dev but 
 - USER: downsampled stacks made at conclusion of acquisition for sampleSplitter
 
 06/01/2021:
-- USER - MAJOR: fixes bug that was losing the upper half of the dynamic range in stitched images. 
+- USER - MAJOR: fixes bug that was losing the upper half of the dynamic range in stitched images.
 - USER - stitchSection now handles an optional bidirectional phase correction. This is a fixed, user-provided,
      value that must be an integer. e.g. stitchSection([100,1],2,'bidishiftpixels',-1)
 
@@ -71,7 +78,7 @@ Also: have been working on code for fixing bidi scan errors. Code is in dev but 
 
 
 25/09/2020:
-- Bugfix - since May 12th the sample splitter was not renaming acquisitions. Only directories. This is now fixed. 
+- Bugfix - since May 12th the sample splitter was not renaming acquisitions. Only directories. This is now fixed.
 
 
 24/06/2020:
@@ -79,11 +86,11 @@ Also: have been working on code for fixing bidi scan errors. Code is in dev but 
 
 
 09/06/2020:
-- User/DEVELOPER [branch dev]: Remove TissueCyte settings from INI file. The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
+- User/DEVELOPER [branch dev]: Remove TissueCyte settings from INI file. The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example.
 
 
 13/03/2020
-- DEVELOPER MAJOR: Dev branch. Drop TissueCyte support. StitchIt handles only BakingTray data now. There is a release associated with this commit. Refactor BakingTray stitching files and remove possibility of adding other stitching system systems. The flexibility isn't being used and it's worth the confusion. 
+- DEVELOPER MAJOR: Dev branch. Drop TissueCyte support. StitchIt handles only BakingTray data now. There is a release associated with this commit. Refactor BakingTray stitching files and remove possibility of adding other stitching system systems. The flexibility isn't being used and it's worth the confusion.
 - USER MAJOR: Stitching using stage positions now works.
 
 11/06/2020
@@ -99,7 +106,7 @@ Also: have been working on code for fixing bidi scan errors. Code is in dev but 
 
 
 23/01/2020
-- USER: Sample splitter tidies away meta-data in sample root directory when finished. 
+- USER: Sample splitter tidies away meta-data in sample root directory when finished.
 
 
 07/10/19
@@ -107,12 +114,12 @@ Also: have been working on code for fixing bidi scan errors. Code is in dev but 
 
 
 03/10/2019
-- USER: syncAndCrunch now *requires* the name of the acquisition system as an input argument 
+- USER: syncAndCrunch now *requires* the name of the acquisition system as an input argument
         so we can handle multiple microscopes at once from one analysis PC.
 
 
 26/09/2019
-- USER: Slightly improve appearance of montage images in web preview. 
+- USER: Slightly improve appearance of montage images in web preview.
 
 
 05/06/2019
@@ -121,28 +128,28 @@ Elastix is now happy with these.
 
 
 28/04/2019
-- USER: The auto-threshold algorithm is tweaked to deal with small brain areas. 
+- USER: The auto-threshold algorithm is tweaked to deal with small brain areas.
     **Involves a small change in the threshold parameter** You will need to use
-    larger values and the cut-off before absolyte thresholding is now 25 not 10. 
+    larger values and the cut-off before absolyte thresholding is now 25 not 10.
 
 
 20/03/2019
 - USER: Main web preview image is RGB.
-- USER: New adaptive option for setting web preview threshold (see default INI file) 
-SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the new comment text is 
-                added in from the default INI file. 
+- USER: New adaptive option for setting web preview threshold (see default INI file)
+SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the new comment text is
+                added in from the default INI file.
 - USER: stitchit.sampleSplitter ready for beta use by users
 
 
 15/03/2019
-- USER: Add GUI (stitchit.sampleSplitter) for breaking up acquisitions with two brains into two separate 
-        folders. Also allows cropping of a 
+- USER: Add GUI (stitchit.sampleSplitter) for breaking up acquisitions with two brains into two separate
+        folders. Also allows cropping of a
  single brain. GUI not heavily tested yet but it works.
 
 
 02/01/2019
 - Tidy files to make discovery of StitchIt features easier for users.
-- DEVELOPER: New function "findStitchedData" to aid more flexible handling of already stitched data. 
+- DEVELOPER: New function "findStitchedData" to aid more flexible handling of already stitched data.
 
 
 04/01/2019
@@ -162,62 +169,62 @@ SUGGESTED ACTION: users modify their INI file such the rescale thresh=4 and the 
 
 18/06/2018
 - MAJOR - BakingTray tiles can be manipulated (undistorted and affine transformed) to allow for better stitching. User must edit StitchingParameters.VoxelSize in recipe to tweak mics per pixel if needed.
-- MAJOR - Bugfix in BakingTray tile loader means the tileRotate parameter in the INI file will likely 
-need changing. 
+- MAJOR - Bugfix in BakingTray tile loader means the tileRotate parameter in the INI file will likely
+need changing.
 
 
 2018/05/02
-- MAJOR: Allow for optional tile rotation during image loading. Note the new tileRotate argument to the INI file under the "tile" section. 
-- Average image tile collation is now only performed during syncAndCrunch for the first few sections and then again at the end. 
+- MAJOR: Allow for optional tile rotation during image loading. Note the new tileRotate argument to the INI file under the "tile" section.
+- Average image tile collation is now only performed during syncAndCrunch for the first few sections and then again at the end.
 
-2017/12/10 
+2017/12/10
 - preProcessTiles now takes paramater/value pairs as input arguments
-- Image offset is read from ScanImage file header and is not calculated. 
+- Image offset is read from ScanImage file header and is not calculated.
 
 
 2017/10/16
-- MAJOR: stitching-related parameters (including average images) are now stored in a separate location 
-         to the raw data. So data sets processed prior to this date will need preprocessing again. 
-         Suggest you first delete existing average images, as they take up a lot of space. 
+- MAJOR: stitching-related parameters (including average images) are now stored in a separate location
+         to the raw data. So data sets processed prior to this date will need preprocessing again.
+         Suggest you first delete existing average images, as they take up a lot of space.
 - Bugfix to cope with a situation where the user starts acquiring data from an extra channel mid-way
-  through the acquisition. 
+  through the acquisition.
 
 2017/10/10
-- MAJOR: coefficients needed to stitch images (with the exception of the tileIndex) are now kept 
+- MAJOR: coefficients needed to stitch images (with the exception of the tileIndex) are now kept
          in rawData/stitchitPreProcessingFiles/. You will need to update your INI file by copying
          the relevant bit from the default INI file.
 
 
 2017/10/06
-- MAJOR: Offset subtraction is now set via the INI file. You will see warnings on screen until you add 
+- MAJOR: Offset subtraction is now set via the INI file. You will see warnings on screen until you add
          this setting to your INI file.
 - Improvements in the way the offset correction is performed.
 - Remove calcAverageBinFiles since we now only calculate the newer .mat files
 
 
 2017/09/21
-- MAJOR: Enable offset correction in bakingtray.tileLoad. This seems necessary for Femto amps as they drift. 
+- MAJOR: Enable offset correction in bakingtray.tileLoad. This seems necessary for Femto amps as they drift.
 
 
 2017/09/21
-- Bugfix to illumination corrector: error was generated if average file could not be found. 
+- Bugfix to illumination corrector: error was generated if average file could not be found.
 
 
 2017/07/13
 - Average tiles saved as a structure.
 - syncAndCrunch works with BakingTray where sections are saved directly to a "rawData" directory.
-- Remove "averageSlowRows" option from INI file. 
-- Ability to stitch and average rectangular frames from BakingTray. 
+- Remove "averageSlowRows" option from INI file.
+- Ability to stitch and average rectangular frames from BakingTray.
 
 
 2017/05/11
  - Improve docs and bug fix in stitchAllChannels.
 
-2017/05/04: 
+2017/05/04:
  - MAJOR: take away the option to remove channel 3 in syncAndCrunch
  - BakingTray: moved to ScanImage multi-channels TIFFs. No longer reads split channels.
  - Fix regression that was causing average image correction to fail with BT data
- - Peeksection now stitches the first available channel by default. Not channel 2. 
+ - Peeksection now stitches the first available channel by default. Not channel 2.
  - DEVELOPER NOTE: meta-data format is now documented (help readMetaData2Stitchit)
  - DEVELOPER NOTE: image processing moved out of tileLoad functions
 
@@ -249,7 +256,7 @@ need changing.
 - mergeChannels incorporates in place the addition, subtraction, etc, functions from Yunyun Han.
 
 2017/02/21
-- Seamless stitching bugfix so it works on more recent MATLAB versions. 
+- Seamless stitching bugfix so it works on more recent MATLAB versions.
 
 2017/01/29
 - syncAndCrunch checks if the user's repo is up to date (Unix only)
@@ -259,7 +266,7 @@ need changing.
 - DEVELOPER NOTE: some syncAndCrunch errors are now being saved to a file called StitchIt_Log.txt in the sample directory. Aids debugging.
 
 2016/11/22
-- Go back to stitching *sections* in parallel instead of loading tiles in parallel. This is much faster. 
+- Go back to stitching *sections* in parallel instead of loading tiles in parallel. This is much faster.
 
 2016/11/01
 - DEVELOPER NOTE: BakingTray largely working. (beta feature)

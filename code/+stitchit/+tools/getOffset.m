@@ -51,14 +51,19 @@ end
 opticalPlane = coords(2);
 chan=coords(5);
 
-% Catch old data
+% Catch old offset names
 if strcmp(offsetType,'offsetDimest')
     offsetType = 'offsetDimmestGMM';
 end
 
+if strcmp(offsetType,'averageMin')
+    offset = 'averageTileMin';
+end
+
 % Valid values for the offset
 validOffsetTypes = {'offsetDimmestGMM', ...
-                    'averageMin', ...
+                    'averageTileMin', ...
+                    'averageTileMean', ...
                     'scanimage'};
 
 if isempty(strmatch(offsetType,validOffsetTypes,'exact'))
@@ -105,7 +110,7 @@ switch offsetType
         offset.(offsetType) = median([tileStats.offsetDimmestGMM]);
 
 
-    case 'averageMin'
+    case 'averageTileMin'
         % This is a bit of hack. It was added to deal with issue
         % https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145 and just stayed in
         aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
@@ -114,6 +119,15 @@ switch offsetType
             m=0;
         end
         offset.(offsetType) = m;
+
+    case 'averageTileMean'
+        aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
+        m=mean(aveTemplate.pooledRows(:));
+        if m>0
+            m=0;
+        end
+        offset.(offsetType) = m;
+
 
     case 'scanimage'
         % Find the first image of that acquisition (not assuming that 1 is first)
