@@ -19,7 +19,7 @@ function offsetValue = getOffset(coords, redo, offsetType)
 %
 %
 % OUTPUTS
-% offsetValue - the offset (scalar) based on the requested offset type. 
+% offsetValue - the offset (scalar) based on the requested offset type.
 %               returns empty if no offset could be obtained.
 %
 %
@@ -51,10 +51,13 @@ end
 opticalPlane = coords(2);
 chan=coords(5);
 
-
+% Catch old data
+if strcmp(offsetType,'offsetDimest')
+    offsetType = 'offsetDimmestGMM';
+end
 
 % Valid values for the offset
-validOffsetTypes = {'offsetDimest', ...
+validOffsetTypes = {'offsetDimmestGMM', ...
                     'averageMin', ...
                     'scanimage'};
 
@@ -98,8 +101,9 @@ if isempty(tileStats)
 end
 
 switch offsetType
-    case 'offsetDimest'
-        offset.(offsetType) = median([tileStats.offsetDimest]);
+    case 'offsetDimmestGMM'
+        offset.(offsetType) = median([tileStats.offsetDimmestGMM]);
+
 
     case 'averageMin'
         % This is a bit of hack. It was added to deal with issue

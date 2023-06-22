@@ -48,16 +48,16 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
 
         % Find the offset value using a mixture of Gaussians based on the dimmest tiles
         % This is particularly useful for imaging systems that record signed TIFFs.
-        tileStats.offsetDimest(1,thisLayer) = 0; % by default set to zero then over-write if the user asked for an offset
+        tileStats.offsetDimmestGMM(1,thisLayer) = 0; % by default set to zero then over-write if the user asked for an offset
         if userConfig.tile.doOffsetSubtraction
             switch M.System.type
             case 'bakingtray'
                 dimestFrame=thisStack(:,:,sortedInds(1));
                 options = statset('MaxIter', 5000);
-                Gm=fitgmdist(single(dimestFrame(:)), 3, 'SharedCovariance', true, 'Options', options); % Mixture of 2 Gaussians
+                Gm=fitgmdist(single(dimestFrame(:)), 3, 'SharedCovariance', true, 'Options', options); % Mixture of 3 Gaussians
                 if Gm.Converged
                     [~,maxPropInd]=max(Gm.ComponentProportion);
-                    tileStats.offsetDimest(1,thisLayer) = Gm.mu(maxPropInd);
+                    tileStats.offsetDimmestGMM(1,thisLayer) = Gm.mu(maxPropInd);
                 else
                     disp(sprintf('Could not estimate offset of section %d.', thisLayer));
                     % It's already filled with a zero
@@ -113,7 +113,7 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
     % Apply the tile offset. (It will be zero if it was not calculated)
 
 
-    offsetMu = mean(tileStats.offsetDimest(1,:)); %since all depths will have the same underlying value
+    offsetMu = mean(tileStats.offsetDimmestGMM(1,:)); %since all depths will have the same underlying value
     offsetMu = cast(offsetMu,class(imStack{1,1}));
 
     for thisLayer = 1:size(imStack,2) % Optical sections
