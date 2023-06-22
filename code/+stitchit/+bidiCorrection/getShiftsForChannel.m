@@ -4,16 +4,16 @@ function stats=getShiftsForChannel(chan,everyNSections)
     % stitchit.bidiCorrection.getShiftsForChannel(chan,everyNSections)
     %
     % Purpose
-    % Loop through a series of sections for one channel and calculate the 
-    % optimal bidi phase shift for each. The calculate is quite time 
+    % Loop through a series of sections for one channel and calculate the
+    % optimal bidi phase shift for each. The calculate is quite time
     % consuming so it is possible to do this for every N sections.
     %
     % Inputs
-    % chan - Which channel to use for the calculation. This input argument 
+    % chan - Which channel to use for the calculation. This input argument
     %        is required. You should choose the channel with the strongest
-    %        signal. A purely auto-fluorescence channel is likely not 
-    %        going to have enough structure for this work. 
-    % everyNSections - Optional. 1 by default. e.g. if set to 3 the 
+    %        signal. A purely auto-fluorescence channel is likely not
+    %        going to have enough structure for this work.
+    % everyNSections - Optional. 1 by default. e.g. if set to 3 the
     %               calculation is run on every third section only.
     %
     %

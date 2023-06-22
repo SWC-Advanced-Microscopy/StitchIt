@@ -4,9 +4,9 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
     % function [tileStats,imStack]=writeTileStats(imStack,tileIndex,thisDirName,statsFile)
     %
     % Purpose
-    % The tile stats file contains a bunch of useful statistics that other 
+    % The tile stats file contains a bunch of useful statistics that other
     % functions can later use to work out things like the intensity of the
-    % background tiles, etc. 
+    % background tiles, etc.
     %
     % Inputs
     % imStack - A cell array of image stacks. One column per optical section.
@@ -17,9 +17,9 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
     %
     % Outputs
     % tileStats - tile statistics data structure
-    % imStack - cell array of image stacks after offset correction (nothing 
+    % imStack - cell array of image stacks after offset correction (nothing
     %           is changed if no offset correction was requested).
-    % 
+    %
     % Rob Campbell - Basel 2017
 
 
@@ -28,11 +28,11 @@ function [tileStats, imStack]=writeTileStats(imStack,tileIndex,thisDirName,stats
     tileStats.dirName=thisDirName;
     userConfig=readStitchItINI;
     M=readMetaData2Stitchit;
-    
+
     if size(imStack, 1) > 1
         error('Error: writeTileStats needs single channel imStack\n')
     end
-    
+
 
     for thisLayer = 1:size(imStack,2) % Optical sections
 

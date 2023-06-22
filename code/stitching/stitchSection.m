@@ -5,14 +5,14 @@ function varargout=stitchSection(section, channel, varargin)
 %
 % Purpose
 % This function loads data to be stitched, pre-processes them as needed
-% using previously saved parameters (comb correction, photobleach correction, 
+% using previously saved parameters (comb correction, photobleach correction,
 % intensity correction, tile registration, etc). Stitching parameters that will
-% remain fairly constant, such as tile overlap, are set via an INI file. 
+% remain fairly constant, such as tile overlap, are set via an INI file.
 %
 % Saves the degree of down-scaling to a MAT file in the section root directory.
 % Saves the original tile positions and sizes to a subdirectory as a CSV file.
-% One CSV file per section. The data in these CSV files are BEFORE down-scaling. 
-% 
+% One CSV file per section. The data in these CSV files are BEFORE down-scaling.
+%
 %
 % INPUTS (required)
 % section -  1) a scalar (the z section in the brain). Stitches one plane only
@@ -24,19 +24,19 @@ function varargout=stitchSection(section, channel, varargin)
 %            5) if empty, attempt to stitch from all available data directories
 %
 % channel - a scalar defining which channel to stitch.
-% 
+%
 %
 % INPUTS (optional param/value pairs)
-% 'stitchedSize' - 100 (full size images) by default. If a number between 1 and 99 we save 
-%                 a reduced version of the stack which has been resized by this amount. 
+% 'stitchedSize' - 100 (full size images) by default. If a number between 1 and 99 we save
+%                 a reduced version of the stack which has been resized by this amount.
 %                 e.g. if 50, we save a stack half the size. This is saved in a separate
 %                 directory named accordingly. stitchedSize can be vector. Then we save a
-%                 series of different resolutions. 
+%                 series of different resolutions.
 % 'overwrite'   - false by default. If false skips sections that have already been built. If true, overwrite.
-% 'chessboard'  - false by default. if true do chessboard stitching (red/green overlapping tiles 
-%                 to diagnose stitching quality) 
-% 'bidishiftpixels' - zero by default. If non-zero, does a bidi correction shift by this whole number 
-%                   of pixels. 
+% 'chessboard'  - false by default. if true do chessboard stitching (red/green overlapping tiles
+%                 to diagnose stitching quality)
+% 'bidiShiftPixels' - zero by default. If non-zero, does a bidi correction shift by this whole number
+%                   of pixels.
 %
 % OUTPUTS (optional)
 % stitchedPlane - If only one section was requested to be stitched then it's possible to return it
@@ -48,19 +48,19 @@ function varargout=stitchSection(section, channel, varargin)
 % EXAMPLES
 %
 % 1. Stitch section 124 channel 1
-% >> stitchSection(124, 1)   
+% >> stitchSection(124, 1)
 %
-% 2. Stitch physical section 34, optical section 5, channel 1, and make both full size 
-%    and 25% size images. 
-% >> stitchSection([34,5], 1, 'stitchedSize', [100,25]) 
+% 2. Stitch physical section 34, optical section 5, channel 1, and make both full size
+%    and 25% size images.
+% >> stitchSection([34,5], 1, 'stitchedSize', [100,25])
 %
 %
-% 3. Stitch starting at physical section 1, optical section 1 and finishing  
+% 3. Stitch starting at physical section 1, optical section 1 and finishing
 %    at section 120, layer 8, channel 2, with full size and 25% size images.
-% >> stitchSection([1,1; 120,8], 2, 'stitchedSize',[100,25]) 
+% >> stitchSection([1,1; 120,8], 2, 'stitchedSize',[100,25])
 %
 % 4. Stitch section 100 channel 2 with chessboard stitching
-% >> stitchSection(100, 2, 'chessboard', true)   
+% >> stitchSection(100, 2, 'chessboard', true)
 %
 %
 % Rob Campbell - Basel 2014
@@ -78,7 +78,7 @@ if size(section,2)>2
 end
 
 %Handle section argument
-if size(section,1)<=2 
+if size(section,1)<=2
     section=handleSectionArg(section);
 end
 
@@ -91,7 +91,7 @@ if ~isnumeric(channel)
 end
 
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %Parse optional arguments
 inParams = inputParser;
 inParams.CaseSensitive = false;
@@ -106,22 +106,22 @@ overwrite=inParams.Results.overwrite;
 doChessBoard=inParams.Results.chessboard;
 bidishiftpixels = inParams.Results.bidishiftpixels;
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 param=readMetaData2Stitchit;
 [userConfig,fullPathToINIfile]=readStitchItINI;
 
-%Do not proceeed if stitching will fill the disk
+%Do not proceed if stitching will fill the disk
 
-%TODO: the following assumes a regular grid of tiles. 
+%TODO: the following assumes a regular grid of tiles.
 %if data weren't acquired this way, send a warning to screen.
 bytesPerTile = param.tile.nRows * param.tile.nColumns * 2; %assume 16 bit images
 bytesPerTile = bytesPerTile * (stitchedSize/100)^2; %Scale by the resize ratio
 MBPerPlane = bytesPerTile * param.numTiles.X * param.numTiles.Y * 1024^-2; %This is generous, we ignore tile overlap
 
 
-if nargout>0 
+if nargout>0
     if size(section,1)==1
         outputMatrixOnly=true;
     else
@@ -142,7 +142,7 @@ if ~outputMatrixOnly
         nSections, channel, GBrequired )
 
     spaceUsed=stitchit.tools.returnDiskSpace;
-    if  GBrequired > spaceUsed.freeGB 
+    if  GBrequired > spaceUsed.freeGB
         fprintf('\n ** Not enough disk space to stitch these sections. You have only %d GB left!\n ** %s is aborting\n\n',...
             round(spaceUsed.freeGB), mfilename)
         return
@@ -151,7 +151,7 @@ end
 
 
 %Extract preferences from INI file structure
-doIlluminationCorrection = userConfig.tile.doIlluminationCorrection; %correct tile illumination on loading. 
+doIlluminationCorrection = userConfig.tile.doIlluminationCorrection; %correct tile illumination on loading.
 doPhaseCorrection        = userConfig.tile.doPhaseCorrection;        %If 1, use saved coefficients to correct comb artifact
 doStageCoords            = userConfig.stitching.doStageCoords;       %If 1 use stage coords instead of naive coords
 
@@ -165,7 +165,7 @@ end
 
 baseName=directoryBaseName; %the directory base name
 
-%Report stitching options to screen. Particularly important to do as long as 
+%Report stitching options to screen. Particularly important to do as long as
 fprintf(' Stitching parameters:\n')
 fprintf('Illumination correction: %d\n', doIlluminationCorrection)
 fprintf('Phase (comb) correction: %d\n', doPhaseCorrection)
@@ -189,7 +189,7 @@ for ii=1:length(stitchedSize)
 
     %The details directory stores tile position files
     if ~exist([thisChan,filesep,'details'],'dir')
-        mkdir([thisChan,filesep,'details']) 
+        mkdir([thisChan,filesep,'details'])
     end
 end
 
@@ -219,7 +219,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     thisSection=section(ii,:);
 
 
-    %Skip if data have already been created 
+    %Skip if data have already been created
     filesExist=zeros(1,length(reducedSizeDir)); %we use this again below to only write data as needed
 
     if ~overwrite && ~outputMatrixOnly
@@ -237,9 +237,9 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     end
 
 
-    [imStack,tileIndex,stagePos]=tileLoad([thisSection,0,0,channel],'bidishiftpixels',bidishiftpixels);
+    [imStack,tileIndex,stagePos]=tileLoad([thisSection,0,0,channel],'bidiShiftPixels',bidishiftpixels);
 
-    if isempty(imStack) %Skip if the image stack is empty. 
+    if isempty(imStack) %Skip if the image stack is empty.
         fprintf('Skipping %03d/%02d due to missing tiles\n',thisSection)
         continue
     end
@@ -249,7 +249,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
     tileIndex=tileIndex(:,4:5); %Keep only the columns we're interested in
 
 
-    %Either stitch based on naive tile positions or stage coordinates. 
+    %Either stitch based on naive tile positions or stage coordinates.
     if doStageCoords == 1
         posArray = [stagePos.actualPos.X,stagePos.actualPos.Y];
         pixelPositions = stagePos2PixelPos(posArray,voxelSize,imagedExtent.maxXY);
@@ -258,7 +258,7 @@ parfor ii=1:size(section,1) %Tile loading is done in parallel, but it still seem
         posArray = [stagePos.targetPos.X,stagePos.targetPos.Y];
         pixelPositions = stagePos2PixelPos(posArray,voxelSize,imagedExtent.maxXY);
     else
-        % We use the tile grid positions. This is how we used to do stitching before May 2020. 
+        % We use the tile grid positions. This is how we used to do stitching before May 2020.
         % the doStageCoords == 0 should give a result identical to this
         fprintf('Basing stitching on tile grid on position array coordinates\n')
         pixelPositions = ceil(gridPos2Pixels(tileIndex,voxelSize));
@@ -324,7 +324,7 @@ end
 
 
 
-%Finally, write the stitching parameters to the directory. 
+%Finally, write the stitching parameters to the directory.
 iniFileContents=showStitchItConf(-1,fullPathToINIfile);
 
 for thisR = 1:length(reducedSizeDir)

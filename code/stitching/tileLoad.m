@@ -5,41 +5,41 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 %
 % PURPOSE
 % Load either a single tile from a defined section, optical section, and channel,
-% or load a whole tile (all TIFFs) from a defined section, optical section, 
-% and channel. 
+% or load a whole tile (all TIFFs) from a defined section, optical section,
+% and channel.
 %
 %
 % INPUTS (required)
 % coords - a vector of length 5 4 with the fields:
 %     [physical section, optical section, yID, xID,channel]
 %
-% All indecies start at 1. If yID or xID is zero we load the optical slice. 
+% All indecies start at 1. If yID or xID is zero we load the optical slice.
 % e.g. To load all tiles from section 10, optical section 3, channel 1 we do:
 %    [10,3,0,0,1]. Note that if you have only one optical section
 %    per physical section then you still need to do: [10,1,0,0,1]
 %
 %
 % INPUTS (optional, for advanced users)
-% doIlluminationCorrection - By default do what's defined in the INI file. Otherwise 
+% doIlluminationCorrection - By default do what's defined in the INI file. Otherwise
 %                            this may be true (apply correction) or false (do not apply correction).
 % doCrop - By default crop all four edges by the value defined in the INI file.
 %          If cropBy is false, no cropping is performed. If true it is performed.
 % doPhaseCorrection - Apply pre-loaded phase correction. If false don't apply. If true apply.
 %                     By default do what is specified in the INI file.
-% verbsose - false by default. If true, debug information is printed to screen.  
+% verbose - false by default. If true, debug information is printed to screen.
 %
-% doSubtractOffset - Apply offset correction to raw images. If false don't apply. If true apply 
+% doSubtractOffset - Apply offset correction to raw images. If false don't apply. If true apply
 %                    (if possible to apply). Otherwise do what is in INI file.
-%                    If the offset correction was used to calculate the average tiles then it is 
+%                    If the offset correction was used to calculate the average tiles then it is
 %                    integrated into these averages. So you might get odd results if you choose
 %                    disable the offset correction and use average tiles that include it. Under
-%                    these circumstances you might want to re-generate the average images. 
-%                    Equally, if the offset was not calculated then it's not incorporated into the 
+%                    these circumstances you might want to re-generate the average images.
+%                    Equally, if the offset was not calculated then it's not incorporated into the
 %                    average and the offset value will be forced to be zero. So the doSubtractOffset
 %                    value will have no effect in this case. if doSubtractOffset is -1 the the offset
 %                    is multiplied by -1 before being subtracted.
-% bidishiftpixels - zero by default. If non-zero, does a bidi correction shift by this whole number 
-%                   of pixels. 
+% bidiShiftPixels - zero by default. If non-zero, does a bidi correction shift by this whole number
+%                   of pixels.
 %
 %
 % OUTPUTS
@@ -52,7 +52,7 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 % 3. optical section
 % 4. tile row
 % 5. tile column
-% 
+%
 % stagePos - structure containing stage positions in mm
 %
 %
@@ -70,7 +70,8 @@ function [im,index,stagePos]=tileLoad(coords,varargin)
 if length(coords)~=5
     % coords - a vector of length 5 with the fields:
     %     [physical section, optical section, yID, xID,channel]
-    error('Input argument "coords" should have a length of 5. Instead it has a length of %d', length(coords))
+    error('Input argument "coords" should have a length of 5. Instead it has a length of %d', ...
+        length(coords))
 end
 
 
@@ -104,7 +105,7 @@ if isempty(doIlluminationCorrection)
 end
 
 if isempty(doCrop)
-    doCrop=userConfig.tile.docrop; 
+    doCrop=userConfig.tile.docrop;
 end
 
 if isempty(doCombCorrection)
@@ -116,7 +117,7 @@ if isempty(doSubtractOffset)
 end
 
 
-%Exit gracefully if data directory is missing 
+%Exit gracefully if data directory is missing
 param = readMetaData2Stitchit;
 sectionDir=fullfile(userConfig.subdir.rawDataDir, sprintf('%s-%04d',param.sample.ID,coords(1)));
 
@@ -210,7 +211,7 @@ parfor XYposInd=1:length(indsToKeep)
     sectionTiff = sprintf('%s-%04d_%05d.tif',param.sample.ID,sectionNum,indsToKeep(XYposInd) );
     path2stack = fullfile(sectionDir,sectionTiff);
 
-    % The ScanImage stack contains multiple channels per plane 
+    % The ScanImage stack contains multiple channels per plane
     planeInSIstack =  numChannelsAvailable*(planeNum-1) + find(channelsInSIstack==channel);
 
     %Load the tile and add to the stack
@@ -287,7 +288,7 @@ if doSubtractOffset==1
 end
 
 %Do illumination correction if requested to do so
-if doIlluminationCorrection 
+if doIlluminationCorrection
     im = stitchit.tileload.illuminationCorrector(im,coords,userConfig,index,verbose);
 end
 
@@ -307,7 +308,7 @@ im = stitchit.tools.lensdistort(im, [LD.rows, LD.cols],'affineMat',param.affineM
 
 
 %Rotate if needed to allow for stitching
-im = rot90(im,userConfig.tile.tileRotate); 
+im = rot90(im,userConfig.tile.tileRotate);
 
 if userConfig.tile.tileFlipLR==1
   im = fliplr(im);

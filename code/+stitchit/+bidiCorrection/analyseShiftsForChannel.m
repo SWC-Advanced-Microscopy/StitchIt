@@ -4,15 +4,15 @@ function stats=analyseShiftsForChannel(data,doPlots)
     % stitchit.bidiCorrection.analyseShiftsForChannel(data,doPlots)
     %
     % Purpose
-    % Make plots of the bidi shifts we have calculated and return data to 
+    % Make plots of the bidi shifts we have calculated and return data to
     % command line
     %
     % Inputs
     % data - the output of stitchit.bidiCorrection.getShiftsForChannel
-    % doPlots - optional false by default if data are returned. 
+    % doPlots - optional false by default if data are returned.
     %
     % Output
-    % stats 
+    % stats
 
 
     if nargin<2 || isempty(doPlots)
@@ -31,7 +31,7 @@ function stats=analyseShiftsForChannel(data,doPlots)
         sectionNumber(ii) = data{ii}(1).sectionNumber;
 
         tShifts = [data{ii}.shiftAmnt];
-        % TODO - I think we should treat nans as zero shift and change the 
+        % TODO - I think we should treat nans as zero shift and change the
         % code generating these accordingly
         tShifts(isnan(tShifts))=0;
 
