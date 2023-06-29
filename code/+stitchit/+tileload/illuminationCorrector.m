@@ -63,9 +63,15 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
     % Optionally correct the illumination offset to avoid negative numbers in the final image
     if userConfig.tile.doOffsetSubtraction
-        m = stitchit.tools.getOffset(coords);
+        %m = stitchit.tools.getOffset(coords); %% Not used
+        mO = min(aveTemplate.oddRows(:));
+        mE = min(aveTemplate.evenRows(:));
+        mP = min(aveTemplate.pooledRows(:));
     else
         m = 0;
+        mO = 0;
+        mE = 0;
+        mP = 0;
     end
 
     switch userConfig.tile.illumCorType
@@ -78,15 +84,15 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
             %Divide by the template. Separate odd and even rows as needed
             oddRows=find(mod(index(:,5),2));
             if ~isempty(oddRows)
-                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows-m); 
+                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows-mO); 
             end
 
             evenRows=find(~mod(index(:,5),2)); 
             if ~isempty(evenRows)
-                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows-m);
+                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows-mR);
             end
         case 'pool'
-            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows - m);
+            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows-mP);
         otherwise
             fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
     end
