@@ -7,6 +7,11 @@ StitchIt Change-Log
 'averageTileMin' ('averageMin')
 'averageTileMean'
 'scanimage'
+- USER (Major): Changes the way the offset of the average template is calcualted. Now uses
+the minimum of the average template. See: https://github.com/SainsburyWellcomeCentre/StitchIt/commit/19bfe8ea624840ff35a202286d69b5d5d6fd984c
+This gets rid of horrible tiling artifacts that were plaguing a system and has had no obvious negative affect for some weeks under heavy testing.
+- Minor bug fixes.
+
 
 13/12/2021:
 - USER Bugfix (Dev): updatechecker handles cases where stitchit is installed in a path that contains spaces. Add error report to git fetch step.
