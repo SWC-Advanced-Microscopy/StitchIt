@@ -12,7 +12,7 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     % Inputs
     % im - the image stack to correct
     % coords - the coords argument from tileLoad
-    % userConfig - [optional] use setings from this INI file. If missing, the default is loaded. 
+    % userConfig - [optional] use setings from this INI file. If missing, the default is loaded.
     % verbose - false by default
     %
     %
@@ -27,7 +27,7 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
         userConfig = readStitchItINI;
     end
 
-    if nargin<4 
+    if nargin<4
         index=[];
     end
 
@@ -46,9 +46,10 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
 
-    % For now we just load the brute-force average template 
-    % TOOD: handle other template types, such as CIDRE
-    aveTemplate = loadBruteForceMeanAveFile(coords,userConfig);
+    % For now we just load the brute-force average template
+    % TODO: we might in the future want to handle other template types, such as CIDRE.
+    aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
+
 
     if isempty(aveTemplate) || ~isstruct(aveTemplate)
         fprintf('Illumination correction requested but not performed\n')
@@ -60,21 +61,21 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
 
-    % The following stops the average template from containing negative numbers
-    % It's a bit of a hack to deal with https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145
-    correctIllumOffset=true;
-    if correctIllumOffset
-        m=min(aveTemplate.pooledRows(:));
-        if m>0
-            m=0;
-        end
+    % Optionally correct the illumination offset to avoid negative numbers in the final image
+    if userConfig.tile.doOffsetSubtraction
+        %m = stitchit.tools.getOffset(coords); %% Not used
+        mO = min(aveTemplate.oddRows(:));
+        mE = min(aveTemplate.evenRows(:));
+        mP = min(aveTemplate.pooledRows(:));
     else
-        m=0;
+        mO = 0;
+        mE = 0;
+        mP = 0;
     end
 
     switch userConfig.tile.illumCorType
         case 'split'
-            
+
             if isempty(index)
                 fprintf('*** ERROR in tileLoad.illuminationCorrector: split illumination requested but tile index not provided. Not correcting\n')
             end
@@ -82,15 +83,15 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
             %Divide by the template. Separate odd and even rows as needed
             oddRows=find(mod(index(:,5),2));
             if ~isempty(oddRows)
-                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows-m); 
+                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows-mO);
             end
 
-            evenRows=find(~mod(index(:,5),2)); 
+            evenRows=find(~mod(index(:,5),2));
             if ~isempty(evenRows)
-                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows-m);
+                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows-mE);
             end
         case 'pool'
-            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows - m);
+            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows-mP);
         otherwise
             fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
     end
@@ -99,26 +100,3 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
 
 
-
-
-function avData = loadBruteForceMeanAveFile(coords,userConfig)
-    % Determine the average filename (correct channel and optical plane/layer) from tile coordinates.
-
-    layer=coords(2); %optical section
-    chan=coords(5);
-
-    %If we find a .bin file. Prompt the user to re-run collate average images to make the new-style files. 
-    fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, num2str(chan), sprintf('%02d.bin',layer));
-    if exist(fname)
-        fprintf('\n ===> ERROR: Found an old-style .bin file. Plase re-run collateAverageImages <===\n\n')
-        avData=[];
-    end
-
-    fname = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averageDir, num2str(chan), sprintf('%02d_bruteAverageTrimmean.mat',layer));
-
-    if exist(fname,'file')
-        load(fname) % Will produce the "avData" variable <------
-    else
-        avData=[];
-        fprintf('%s Can not find average template file %s\n',mfilename,fname)
-    end

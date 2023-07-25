@@ -58,9 +58,15 @@ end
 
 imSizes=ones(length(tifs),2);
 
-parfor ii=1:length(tifs)
-    I=imfinfo([sectionDir,filesep,tifs(ii).name]);  
-    imSizes(ii,:) = [I.Width, I.Height];
+for ii=1:length(tifs)
+    fname = [sectionDir,filesep,tifs(ii).name];
+    try
+        I=imfinfo(fname);
+        imSizes(ii,:) = [I.Width, I.Height];
+    catch
+        s = sprintf('*** %s failed to read info from file ',mfilename);
+        disp([s,fname])
+    end
 end
 
 

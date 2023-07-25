@@ -72,6 +72,10 @@ if nargin==0
     return
 end
 
+% To avoid a bug that happens when the user is in the microscope directory mount point, we will
+% cd to the temporary directory now
+cd(tempdir)
+
 if  ~exist(serverDir,'file')
     systemID = serverDir; % Rename variable for clarity of purpose
     ACQ=findCurrentlyRunningAcquisition(systemID);
@@ -88,23 +92,23 @@ if  ~exist(serverDir,'file')
     return % <-- bail out of this instance
 end
 
-% Read the INI file  (Initial INI file read)
-curDir=pwd;
+
+% Initial read of the INI file from the acquisition directory
 try
     cd(serverDir)
-  
     config=readStitchItINI;
+catch ME
+    cd(config.syncAndCrunch.landingDirectory)
+    rethrow(ME)
+end
 
-    if config.syncAndCrunch.landingDirectory == 0 
+% Do not proceed if no landing directory has been defined.
+if config.syncAndCrunch.landingDirectory == 0
     fprintf(['\n\n ***\tPlease add the "landingDirectory" field to the syncAndCrunch section of your INI file.\n',...
         '\tSee the shipped default INI file in %s as an example\n\n'],  fileparts(which('readStitchItINI')) )
     return
-    end
-
-catch ME
-    cd(curDir)
-    rethrow(ME)
 end
+
 
 % Parse optional inputs
 P=inputParser;
@@ -205,7 +209,7 @@ if strcmp(localTargetRoot,expName)
     landingDir = landingDirMinusExtension;
 end
 
-if ~isWritable(landingDir)
+if ~stitchit.tools.isWritable(landingDir)
     fprintf('\nWARNING: you appear not to have permissions to write to %s. syncAndCrunch may fail.\n',landingDir);
 end
 
@@ -227,7 +231,7 @@ end
 
 % Copy meta-data files and so forth but no experiment data yet.
 % We do this just to make the directory and ensure that all is working
-CMD=sprintf('rsync -r --exclude="/*/" %s%s %s', serverDir,filesep,expDir);
+CMD=sprintf('rsync -r --exclude="/*/" ''%s%s'' ''%s''', serverDir,filesep,expDir);
 fprintf('Initial rsync with %s\n', CMD)
 exitStatus = unix(CMD); %copies everything not a directory
 if exitStatus ~= 0
@@ -251,7 +255,7 @@ end
 msg=sprintf('STARTING syncAndCrunch!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
 stitchit.tools.writeLineToLogFile(logFileName,msg);
 
-cmd=sprintf('rsync %s %s%s %s',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
+cmd=sprintf('rsync %s ''%s%s'' ''%s''',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
 msg = sprintf('Running:\n%s\n',cmd);
 stitchit.tools.writeLineToLogFile(logFileName,msg)
 unix(cmd);
@@ -286,7 +290,7 @@ tidyUp = onCleanup(@() SandC_cleanUpFunction(serverDir)); %First ensure we can t
 pathToScript=fileparts(which(mfilename));
 pathToScript=fullfile(pathToScript,'syncer.sh');
 
-CMD = sprintf('%s -r %s -s %s -l %s &', ...
+CMD = sprintf('%s -r %s -s ''%s'' -l ''%s'' &', ...
     pathToScript, ...
     config.syncAndCrunch.rsyncFlag, ...
     serverDir, ...
@@ -308,6 +312,16 @@ lastDir='';
 sentPlotwarning=0; %To record if warning about plot failure was sent
 sentConfigWarning=0; %Record if we failed to read INI file
 sentCollateWarning=0;
+
+
+% If there is a FINISHED file locally but not on the acquisition PC, then we delete the local
+% copy. This could happen if the user left the FINISHED checkbox checked on the BakingTray acq
+% PC then resumed an acquisition, which deletes this file.
+if exist(fullfile(expDir,'FINISHED')) && ~exist(fullfile(serverDir,'FINISHED'))
+    fprintf('FINISHED file exists on analysis PC but not acquisition PC. Deleting local copy\n')
+    delete(fullfile(expDir,'FINISHED'))
+end
+
 
 
 

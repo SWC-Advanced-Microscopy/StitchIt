@@ -36,7 +36,11 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
 
     % Find threshold based on graythresh/multithresh
     im = log10(im);
-    tThresh=multithresh(im);
+
+    % Trim pixels around the edges are these are more likely to contain unusually low pixel values.
+    % This is far from a perfect solution, as it will tend to not help multiple brains. But we try...
+    C=round(500/pixelSize);
+    tThresh=multithresh(im(C:end-C,C:end-C));
     BW = im>tThresh;
 
 
@@ -55,6 +59,7 @@ function varargout=autofindBrains(im,pixelSize,doPlot)
     nBrains=1;
     sizeThresh = prod(size(im)) * (minSize / nBrains);
     [L,indexedBW]=bwboundaries(BW,'noholes');
+
     for ii=length(L):-1:1
         thisN = length(find(indexedBW == ii));
         if thisN < sizeThresh

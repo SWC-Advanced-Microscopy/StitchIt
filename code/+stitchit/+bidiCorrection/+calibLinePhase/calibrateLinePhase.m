@@ -4,7 +4,7 @@ function newPhase = calibrateLinePhase(im, metaData)
     ff_s = metaData.fillFractionSpatial;
     ff_t = metaData.fillFractionTemporal;
     scannerFrequency = metaData.scannerFrequency;
-    
+
     tf = 0;
     if ~tf
         imT = imToTimeDomain(im,ff_s,ff_t);
@@ -71,23 +71,23 @@ function newPhase = calibrateLinePhase(im, metaData)
 %         roiDatas = obj.hSI.hDisplay.lastStripeData.roiData;
 %         for i = numel(roiDatas):-1:1
 %             im = vertcat(roiDatas{i}.imageData{:});
-% 
+%
 %             if ~roiDatas{i}.transposed
 %                 im = cellfun(@(imt){imt'},im);
 %             end
-% 
+%
 %             imData{i,1} = horzcat(im{:});
 %         end
-% 
+%
 %         im = horzcat(imData{:});
-% 
+%
 %         nLines = size(im,2);
 %         if nLines > 1024
 %             im(:,1025:end) = []; % this should be enough lines for processing
 %         elseif mod(nLines,2)
 %             im(:,end) = []; % crop to even number of lines
 %         end
-% 
+%
 %         im = single(im);
 %     end
 end

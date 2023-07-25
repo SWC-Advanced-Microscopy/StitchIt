@@ -83,10 +83,6 @@ function calcAverageMatFiles(imStack,tileIndex,thisDirName,illumChans,tileStats)
         row(lowVals)=[];
         thisStack(:,:,lowVals)=[]; % <--- Tiles with low values deleted here
 
-        % Apply the tile offset. (It will be zero if it was not calculated)
-        offsetMu = mean(tileStats{thisChan}.offsetMean(:)); %since all depths will have the same underlying value
-        thisStack = thisStack - cast(offsetMu,class(thisStack));
-
 
 
         if size(thisStack,3)<2

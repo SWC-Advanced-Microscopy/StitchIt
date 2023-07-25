@@ -11,14 +11,14 @@ function corrected=applyPhaseDelayShifts(im,stats,overlap,verbose)
 %
 %
 % INPUTS
-% im - a single image or an image stack.  
+% im - a single image or an image stack.
 % stats - The output of calcPhaseDelay. If im is a stack, then length(stats) should equal
 %         size(im,3). If stats is missing or empty, then stats are calculated automatically.
-% overlap - The number of pixels overlap between bands. This is to avoid wrapping 
-%           artifacts. This value should be at least the magnitude of the largest 
+% overlap - The number of pixels overlap between bands. This is to avoid wrapping
+%           artifacts. This value should be at least the magnitude of the largest
 %           expected phase shift. Likely 2 to 4 would work. Default is 4. If empty,
 %           default value is used. The largest allowed shift is overlap-1 pixels.
-% verbose - the verbosity level. 0 means no output. 1 prints details to screen 
+% verbose - the verbosity level. 0 means no output. 1 prints details to screen
 %
 %
 % OUTPUTS
@@ -33,7 +33,7 @@ function corrected=applyPhaseDelayShifts(im,stats,overlap,verbose)
 % ALSO SEE
 % calcPhaseDelayShifts, visualisePhaseDelayShifts
 %
-% 
+%
 % Rob Campbell - Basel, 2014
 
 
@@ -63,8 +63,8 @@ end
 if length(stats(1).xShifts)==1
     overlap=0; %If we only have one band, this should be zero
 else
-    %Zero shifts larger *or equal* to the overlap under the assumption that such shifts are not real. 
-    %This will also result in a modest speed improvement as cases with all zero shifts are 
+    %Zero shifts larger *or equal* to the overlap under the assumption that such shifts are not real.
+    %This will also result in a modest speed improvement as cases with all zero shifts are
     %skipped
     for ii=1:length(stats)
         f=find(abs(stats(ii).xShifts)>overlap);
@@ -74,7 +74,7 @@ end
 
 
 %Loop over image layers if this is a stack with a recursive function call
-if size(im,3)>1 
+if size(im,3)>1
     corrected=ones(size(im),class(im)); %Pre-allocate the output array
 
 
@@ -114,7 +114,7 @@ end
 
 
 %------------------------------
-%Begin the correction 
+%Begin the correction
 corrected=im;
 xShifts=stats.xShifts;
 
@@ -123,7 +123,7 @@ movingRows=stats.movingRowsStart:2:size(im,1); %The rows of the original image t
 
 
 
-for ii=1:nBands %Loop through the vertical bands 
+for ii=1:nBands %Loop through the vertical bands
 
     %Get the index values that define the first and last pixels of each band
     first=stats.colX(ii);
@@ -131,7 +131,7 @@ for ii=1:nBands %Loop through the vertical bands
     origCols=first:last; %Indexes of band
 
 
-    %Extract a band (with a buffer) from the image to correct. 
+    %Extract a band (with a buffer) from the image to correct.
     if ii==1 %first column
         last=last+overlap;
         correctedBand=im(:,first:last);
@@ -154,7 +154,7 @@ for ii=1:nBands %Loop through the vertical bands
 
     %shift the "moving" rows in this band
     correctedBand(movingRows,:) = circshift(correctedBand(movingRows,:), xShifts(ii),2);
-    
+
     %Trim off overlap
        correctedBand(:,1:overlap)=[];
        correctedBand(:,end-overlap+1:end)=[];

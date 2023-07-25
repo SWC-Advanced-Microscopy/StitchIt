@@ -104,6 +104,14 @@ function out = recipe2StitchIt(raw,fname)
 
     out.voxelSize=raw.StitchingParameters.VoxelSize; %Read from the user-tweaked settings.
     out.voxelSize.Z=raw.VoxelSize.Z; % The z is not tweaked
+
+    % Confirm that all are numeric
+    for ii = 'XYZ'
+        if ~isnumeric(out.voxelSize.(ii))
+            fprintf('\nWARNING: there is likely a typo in the recipe %s voxel size!\n', ii)
+        end
+    end
+
     out.lensDistort=raw.StitchingParameters.lensDistort;
     if isempty(out.lensDistort)
         out.lensDistort.rows=0;

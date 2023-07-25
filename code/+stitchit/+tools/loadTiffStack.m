@@ -16,7 +16,8 @@ function [imageStack,imageInfo]=loadTiffStack(FileName,varargin)
 %
 % INPUTS (optional)
 % 'frames' - By default the function loads all frames. If
-%   frames is present in loads only the frames defined by this
+%   frames is present in loads only the frames defined by this. If frames is -2,
+%   the function loads every second frame. If -4 every fourth frame, etc.
 %   vector. e.g. if frames is 1:10 then the first ten frames are loaded only. 
 % 'padMissingFrames'  - false by default. If true and the user asked for, say,
 %               frames [1,5,10], then the function returns an array of size 10
@@ -85,10 +86,15 @@ if isempty(frames) %Load all frames
 
 else %load sub-set of frames
 
+    %Load every n frames if the user asked for this by providing a negative scalar
+    if length(frames)==1 && frames<0
+        frames = 1:abs(frames):numFrames;
+    end
+
     f=find(frames>numFrames | frames<1);
     frames(f)=[];
     if length(frames)<1
-        error('No frames selected');
+        error('No frames selected from file %s',FileName);
     end
     
     imSize=[imageInfo(1).Height,imageInfo(1).Width,length(frames)];
