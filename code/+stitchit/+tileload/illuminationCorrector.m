@@ -68,7 +68,6 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
         mE = min(aveTemplate.evenRows(:));
         mP = min(aveTemplate.pooledRows(:));
     else
-        m = 0;
         mO = 0;
         mE = 0;
         mP = 0;
