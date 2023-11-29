@@ -1,5 +1,8 @@
 StitchIt Change-Log
 
+29/11/2023:
+- BUGIFX: peekSection now honours the illumination correction setting.
+
 
 22/06/2023:
 - USER (Major): add new options for calculating background tiles. Valid options are now:

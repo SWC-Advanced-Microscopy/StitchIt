@@ -2,30 +2,30 @@ function varargout=peekSection(section,channel,resize)
 % Crudely assemble a section from raw tiles and show on screen
 %
 % function [section,imStack,coords] = peekSection(section,channel,resize)
-%   
+%
 % Purpose
-% Crudely assemble a section from raw tiles and show on screen. This is a quick and 
-% dirty way of viewing the stitched data. To aid visualisation, tiles are median 
-% filtered and intensity adjusted. This process is slow on large images, so 
-% resizing is done by default. Images are resized by default to be a little 
-% bigger than screen. This allows for a little zooming in most scenarios. 
+% Crudely assemble a section from raw tiles and show on screen. This is a quick and
+% dirty way of viewing the stitched data. To aid visualisation, tiles are median
+% filtered and intensity adjusted. This process is slow on large images, so
+% resizing is done by default. Images are resized by default to be a little
+% bigger than screen. This allows for a little zooming in most scenarios.
 %
 % Inputs
 % section - one of: 1) a scalar (the z section in the brain)
-%                   2) a vector of length two [physical section, optical section] 
+%                   2) a vector of length two [physical section, optical section]
 %                   3) a cell array that's {tileStack, tileIndex}
 %
-% channel - scalar defining the channel to show. By default this is the first 
+% channel - scalar defining the channel to show. By default this is the first
 %           available channel. If channel is the string 'rgb', then peekSection
 %           loads all available channels and assembles them into an RGB image.
 %
-% resize - a number from 0 to 1 that defines by how much we should 
-%          re-scale the brain. optional. 
+% resize - a number from 0 to 1 that defines by how much we should
+%          re-scale the brain. optional.
 %
 %
 % Outputs (optional)
 %  section - assembled section
-%  imStack - the image stack used to make the section. 
+%  imStack - the image stack used to make the section.
 %  coords  - the coordinates of each tile in the array
 %
 %
@@ -72,14 +72,14 @@ if ischar(channel) && ( strcmpi(channel,'rgb') || strcmpi(channel,'fratzl') )
         end
         %Build RGB image (TODO: GENERALISE IT. HACK NOW FOR CHAN ORDER)
         stitchedImage = zeros([size(imData{1}),3],class(imData{1}));
-        if length(channel)==4 
+        if length(channel)==4
           channel = channel-1; % This is the hack
           channel(channel<1)=1; %So red and far red are both red
         else
           channel = 1:length(channel);
         end
-        
-        
+
+
         for ii=1:length(channel)
             stitchedImage(:,:,channel(ii)) = stitchedImage(:,:,channel(ii)) + imData{ii};
         end
@@ -95,7 +95,7 @@ end %If doing RGB
 
 
 
-%Load data if needed 
+%Load data if needed
 if ~iscell(section)
     if verbose, tic, end
     %Get the physical section and optical section if needed
@@ -103,23 +103,16 @@ if ~iscell(section)
         section=zPlane2section(section);
     end
 
-    % Only illum correction if the directory is there. 
-    if exist(fullfile(userConfig.subdir.rawDataDir,'averageDir'),'dir') 
-        doIlumCor=1;
-    else
-        doIlumCor=0;
-    end
-
     if verbose
         fprintf('Loading tiles from section %d/%d channel %d\n',section,channel)
     end
 
 
-    [imStack,tileIndex,stagePos]=tileLoad([section,0,0,channel],'doIlluminationCorrection', doIlumCor);
+    [imStack,tileIndex,stagePos]=tileLoad([section,0,0,channel]);
 
-    if isempty(imStack) 
+    if isempty(imStack)
         fprintf('Failed to load data from section %d/%d channel %d.\n',section, channel)
-        if nargout>0 
+        if nargout>0
             varargout{1}=[];
         end
         if nargout>1
@@ -155,7 +148,7 @@ if doStageCoords == 1
 elseif doStageCoords == 0
     pixelPositions = stagePos2PixelPos([stagePos.targetPos.X,stagePos.targetPos.Y],voxelSize);
 else
-    % We use the tile grid positions. This is how we used to do stitching before May 2020. 
+    % We use the tile grid positions. This is how we used to do stitching before May 2020.
     % the doStageCoords == 0 should give a result identical to this
     pixelPositions = ceil(gridPos2Pixels(tileIndex,voxelSize));
 end
@@ -200,7 +193,7 @@ function parseOutputArgs(outerFunctNargout)
         varargout{3}=tileIndex;
     end
 
-    %If no output is requested we plot 
+    %If no output is requested we plot
     if outerFunctNargout==0
         if size(stitchedImage,3)==1
             imagesc(stitchedImage)
@@ -227,7 +220,7 @@ function parseOutputArgs(outerFunctNargout)
             imshow(stitchedImage)
         end % size(stitchedImage,3)==1
         axis equal off
-    end % if outerFunct 
+    end % if outerFunct
 
 end % function parseOutputArgs
 

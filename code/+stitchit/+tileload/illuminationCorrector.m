@@ -12,7 +12,7 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     % Inputs
     % im - the image stack to correct
     % coords - the coords argument from tileLoad
-    % userConfig - [optional] use setings from this INI file. If missing, the default is loaded.
+    % userConfig - [optional] use settings from this INI file. If missing, the default is loaded.
     % verbose - false by default
     %
     %
