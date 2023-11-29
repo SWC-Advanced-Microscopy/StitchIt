@@ -20,7 +20,15 @@ imClass=class(im);
 im=single(im);
 template=single(template);
 
+verbose=false;
+f=find(template(:)<0);
+if verbose && length(f)>0
+    fprintf('There are %d negative values in the template\n', length(f))
+end
+
 reciprocalOfIntensity = ones(size(template),'single') ./ template * median(template(:));
+
+
 
 im = bsxfun(@times, im, reciprocalOfIntensity);
 

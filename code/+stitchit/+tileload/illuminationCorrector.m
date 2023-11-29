@@ -12,7 +12,7 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     % Inputs
     % im - the image stack to correct
     % coords - the coords argument from tileLoad
-    % userConfig - [optional] use setings from this INI file. If missing, the default is loaded.
+    % userConfig - [optional] use settings from this INI file. If missing, the default is loaded.
     % verbose - false by default
     %
     %
@@ -62,15 +62,11 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
 
     % Optionally correct the illumination offset to avoid negative numbers in the final image
-    if userConfig.tile.doOffsetSubtraction
-        %m = stitchit.tools.getOffset(coords); %% Not used
-        mO = min(aveTemplate.oddRows(:));
-        mE = min(aveTemplate.evenRows(:));
-        mP = min(aveTemplate.pooledRows(:));
+    %if userConfig.tile.doOffsetSubtraction
+    if true
+        m = stitchit.tools.getOffset(coords)
     else
-        mO = 0;
-        mE = 0;
-        mP = 0;
+        m = 0;
     end
 
     switch userConfig.tile.illumCorType
@@ -83,15 +79,15 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
             %Divide by the template. Separate odd and even rows as needed
             oddRows=find(mod(index(:,5),2));
             if ~isempty(oddRows)
-                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows-mO);
+                im(:,:,oddRows)=stitchit.tools.divideByImage(im(:,:,oddRows),aveTemplate.oddRows-m);
             end
 
             evenRows=find(~mod(index(:,5),2));
             if ~isempty(evenRows)
-                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows-mE);
+                im(:,:,evenRows)=stitchit.tools.divideByImage(im(:,:,evenRows),aveTemplate.evenRows-m);
             end
         case 'pool'
-            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows-mP);
+            im=stitchit.tools.divideByImage(im,aveTemplate.pooledRows-m);
         otherwise
             fprintf('Unknown illumination correction type: %s. Not correcting!', userConfig.tile.illumCorType)
     end

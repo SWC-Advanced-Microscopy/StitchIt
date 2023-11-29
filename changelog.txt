@@ -1,5 +1,9 @@
 StitchIt Change-Log
 
+29/11/2023:
+- BUGIFX: peekSection now honours the illumination correction setting.
+- USER (Major): revert previous change to the offset subtraction, as it broke behavior in other systems (CS).
+    We need a better solution for OG.
 
 22/06/2023:
 - USER (Major): add new options for calculating background tiles. Valid options are now:
@@ -7,7 +11,7 @@ StitchIt Change-Log
 'averageTileMin' ('averageMin')
 'averageTileMean'
 'scanimage'
-- USER (Major): Changes the way the offset of the average template is calcualted. Now uses
+- USER (Major): Changes the way the offset of the average template is calculated. Now uses
 the minimum of the average template. See: https://github.com/SainsburyWellcomeCentre/StitchIt/commit/19bfe8ea624840ff35a202286d69b5d5d6fd984c
 This gets rid of horrible tiling artifacts that were plaguing a system and has had no obvious negative affect for some weeks under heavy testing.
 - Minor bug fixes.

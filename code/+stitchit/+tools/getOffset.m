@@ -1,7 +1,7 @@
 function offsetValue = getOffset(coords, redo, offsetType)
 % Get offset value for a channel
 %
-% function offsetValue = getOffset(chan)
+% function offsetValue = stitchit.tools.getOffset(coords, redo, offsetType)
 %
 % PURPOSE
 % Load or calculate the offset. If the offset file already exists, load it.
@@ -23,6 +23,8 @@ function offsetValue = getOffset(coords, redo, offsetType)
 %               returns empty if no offset could be obtained.
 %
 %
+% Example
+% stitchit.tools.getOffset([1,1,0,0,2])
 
 offsetValue = [];
 
@@ -119,6 +121,7 @@ switch offsetType
             m=0;
         end
         offset.(offsetType) = m;
+
 
     case 'averageTileMean'
         aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
