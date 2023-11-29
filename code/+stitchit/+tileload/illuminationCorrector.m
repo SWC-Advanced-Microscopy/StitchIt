@@ -62,9 +62,8 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
 
 
     % Optionally correct the illumination offset to avoid negative numbers in the final image
-    %if userConfig.tile.doOffsetSubtraction
-    if true
-        m = stitchit.tools.getOffset(coords)
+    if userConfig.tile.doOffsetSubtraction
+        m = stitchit.tools.getOffset(coords);
     else
         m = 0;
     end
