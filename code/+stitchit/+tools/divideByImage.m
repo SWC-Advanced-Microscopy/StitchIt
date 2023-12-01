@@ -20,6 +20,7 @@ imClass=class(im);
 im=single(im);
 template=single(template);
 
+
 verbose=false;
 f=find(template(:)<0);
 if verbose && length(f)>0
