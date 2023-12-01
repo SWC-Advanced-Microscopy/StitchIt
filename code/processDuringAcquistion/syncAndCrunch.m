@@ -6,39 +6,39 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 %
 % Purpose
 % Perform tile index generation, pre-processing of images, and send preview stitched
-% images to the web. 
+% images to the web.
 %
 % Set up
 % You should set up your INI file and define a landing directory before running this
 % function. See also:
 % https://github.com/BaselLaserMouse/StitchIt/wiki/Setting-up-syncAndCrunch
 % https://github.com/BaselLaserMouse/StitchIt/wiki/syncAndCrunch-walk-through
-% 
+%
 %
 %
 % Inputs
-% serverDir - EITHER: the name of the acquisition machine 
+% serverDir - EITHER: the name of the acquisition machine
 %             OR: the full path to data directory on the server
 %             If the former, looks for a current acquisition on the acquisition system mount
-%             point and runs on this using the channel the user is currently viewing as that 
-%             to send to the web. 
-% chanToPlot - Which channel to send to web (if missing, this is the first available 
-%              channel). If zero, don't do the web plots. 
+%             point and runs on this using the channel the user is currently viewing as that
+%             to send to the web.
+% chanToPlot - Which channel to send to web (if missing, this is the first available
+%              channel). If zero, don't do the web plots.
 %
 % Inputs (param/val pairs)
-% landingDir - the full path to the local directory which will house the data directory. 
+% landingDir - the full path to the local directory which will house the data directory.
 % illumChans - vector defining which channels will have mean images calculated.
-%              If empty or missing, all available channels are corrected. To not calculate 
+%              If empty or missing, all available channels are corrected. To not calculate
 %              set to zero. These chans are stitched at the end.
 % combCorChans - vector defining which channels will contribute to comb correction.
 %               if empty or missing this is set to 0, so no correction is done. It is suggested
-%               NOT to use this option unless you have TissueCyte data and you know what you 
+%               NOT to use this option unless you have TissueCyte data and you know what you
 %               are doing. Most users should never need this option.
 %
 %
 % Example
 % 1) Pull data from '/mnt/anatomyScope/sample01' into the default landing directory and
-%    run illumination correction on all channels. Plot chan 2 to the web. 
+%    run illumination correction on all channels. Plot chan 2 to the web.
 %  >> syncAndCrunch('/mnt/anatomyScope/sample01',2)
 %
 % 2) Create the directory AE033 in /mnt/data/TissueCyte/AwesomeExperiments
@@ -52,10 +52,10 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % 3) Just run "syncAndCrunch" (!)
 %
 %
-% NOTE! 
+% NOTE!
 % The string for the local landing directory arguments should NOT be:
 % '/mnt/data/TissueCyte/AwesomeExperiments/AE033'
-% It is: 
+% It is:
 % '/mnt/data/TissueCyte/AwesomeExperiments/''
 % However, syncAndCrunch will attempt to catch this error.
 %
@@ -187,7 +187,7 @@ logFileName='StitchIt_Log.txt'; %This is the file to which error messages will b
 
 
 %Report if StitchIt is not up to date
-try 
+try
     stitchit.updateChecker.checkIfUpToDate;
 catch ME
     stitchit.tools.logger(ME,logFileName)
@@ -217,11 +217,11 @@ end
 % expDir is the path to the local directory where we will be copying data
 expDir = fullfile(landingDir,[expName,extension]); %we add extension just in case the user put a "." in the file name
 
-% Attempt to kill any pre-existing syncer or rsync processes for this sample. 
+% Attempt to kill any pre-existing syncer or rsync processes for this sample.
 % It's unlikely this will be the case, but just in case...
 killSyncer(serverDir)
 
-%Do an initial rsync 
+%Do an initial rsync
 % copy text files and the like into the experiment root directory
 if ~exist(expDir,'dir')
     fprintf('Making local raw data directory %s\n', expDir);
@@ -245,7 +245,7 @@ cd(expDir) %The directory where we are writing the experimental data
 makeLocalStitchItConf %First make a local copy of the INI file. We need this for the background web image generation to work
 
 % Only create the local "rawData" folder if it does not exist on the server. The TissueCyte will not make it
-% but BakingTray does make it. 
+% but BakingTray does make it.
 if exist(fullfile(serverDir,config.subdir.rawDataDir),'dir')
     rawDataDir = expDir;
 else
@@ -276,7 +276,7 @@ end
 
 
 if finished
-    %If already finished when we start then we don't send Slack messages at the end. 
+    %If already finished when we start then we don't send Slack messages at the end.
     expAlreadyFinished=true;
 else
     expAlreadyFinished=false;
@@ -296,7 +296,7 @@ CMD = sprintf('%s -r %s -s ''%s'' -l ''%s'' &', ...
     serverDir, ...
     fileparts(expDir)); %This is a hack to use the landing directory
 fprintf('Calling syncer with: %s\n', CMD)
-unix(CMD);
+unix(CMD); % TODO: should report if this fails
 
 % The shell script is now running in the background and we proceed with pre-processing
 %%% - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - -  - - - - - - - -
@@ -333,11 +333,11 @@ end %if chanToPlot
 %----------------------------------------------------------------------------------------
 % start big while loop that runs during acquisition
 while 1
-    %If a file called "FINISHED" is present then we break and crunch. 
+    %If a file called "FINISHED" is present then we break and crunch.
     %The loop automatically produces this file after the crunching
-    %phase if all sections are acquired. 
+    %phase if all sections are acquired.
     %Due to the continue statement, this doesn't work if placed at the end of the loop. Loop never breaks.
-    if finished 
+    if finished
         break
     end
 
@@ -393,7 +393,7 @@ while 1
         continue
     else
         thisDir=sectionDir;
-        %TODO: this is wrong - it's the previously completed directory 
+        %TODO: this is wrong - it's the previously completed directory
         tifsInDir = dir(fullfile(pathToRawData,thisDir,'*.tif')); %tiffs in current dir
         fprintf('Now %d tifs in current section directory: %s\n',length(tifsInDir), thisDir)
     end
@@ -413,7 +413,7 @@ while 1
 
 
 
-    try 
+    try
         [numCompleted,indexPresent]=generateTileIndex([],[],0);  %GENERATE TILE INDEX
         if numCompleted>0
             fprintf('Adding tile index files to %d raw data directories\n',numCompleted)
@@ -424,15 +424,15 @@ while 1
         stitchit.tools.logger(ME,logFileName)
     end %try/catch
 
-    
-    % - - - - 
+
+    % - - - -
     % Now call preProcessTiles to create average tiles, tile stats, etc
     fprintf('\nCRUNCHING newly found completed data directories with preProcessTiles\n\n')
 
     analysesPerformed = preProcessTiles(0,'combCorChans', combCorChans, ...
-                                        'illumChans', illumChans); 
+                                        'illumChans', illumChans);
     fprintf('\nFINISHED THIS ROUND OF PROCESSING\n\n')
-    % - - - - 
+    % - - - -
 
 
     if isempty(analysesPerformed)
@@ -441,7 +441,7 @@ while 1
         continue
     else
         fprintf('Assigning this as the last finished section\n')
-        lastDir=thisDir; %The last directory to have been processed. 
+        lastDir=thisDir; %The last directory to have been processed.
     end
 
     % Collate over the first ten sections then after that point only every 15th section. This is for speed.
@@ -453,14 +453,14 @@ while 1
                 stitchit.tools.notify([generateMessage('negative'),' Failed to collate average images. ',ME.message])
                 sentCollateWarning=1;
             else
-                fprintf(['Failed to collate. ',ME.message]) 
+                fprintf(['Failed to collate. ',ME.message])
             end
             stitchit.tools.logger(ME,logFileName)
         end %try/catch
     end %if analysesPerformed.illumCor
 
 
-    % Check the background web preview is still running and re-start it if not. 
+    % Check the background web preview is still running and re-start it if not.
     fprintf('About to test whether web preview is running\n')
     if chanToPlot~=0 && ~exist('FINISHED','file')
         micName = strrep(params.System.ID,' ','_');
@@ -480,7 +480,7 @@ while 1
                     round(secondsSinceLastUpdate));
                 stitchit.tools.writeLineToLogFile(logFileName,msg);
 
-                try 
+                try
                     startBackgroundWebPreview(chanToPlot,config)
                 catch ME
                     if ~sentPlotwarning %So we don't send a flood of messages
@@ -488,7 +488,7 @@ while 1
                         sentPlotwarning=1;
                     else
                         fprintf(['Failed to restart web preview. ', ME.message]);
-                    end 
+                    end
                     stitchit.tools.logger(ME,logFileName)
                 end %try/catch
             else
@@ -515,14 +515,14 @@ while 1
         unix('touch FINISHED');
         unix('touch ORIG_DATA_LIKELY_HAD_MISSING_TILES'); %Very likely contains missing tiles
     end %if length(indexPresent)
-    
+
 
 end
 %----------------------------------------------------------------------------------------
 
 
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %Run post-acquisition stuff
 
 % Find the function that we will run after acquisition
@@ -545,7 +545,7 @@ end
 
 
 % To avoid sending slack messages if the user has begun the analysis on data that already have a "finished" file
-if ~expAlreadyFinished 
+if ~expAlreadyFinished
     stitchit.tools.notify(sprintf('%s Acquisition finished. Beginning stitching of %s.',generateMessage('positive'),sampleID));
 end
 
@@ -581,7 +581,7 @@ end
 
 stitchit.tools.notify('syncAndCrunch finished')
 
-% Change back to the landing directory. Avoids the rare situation where MATLAB ends up in a path 
+% Change back to the landing directory. Avoids the rare situation where MATLAB ends up in a path
 % that no longer exists (if user deletes last sample too quickly).
 cd(landingDir)
 

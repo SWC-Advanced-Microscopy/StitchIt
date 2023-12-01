@@ -9,12 +9,12 @@ syncer.sh
 Purpose:
  This bash script repeatedly calls rsync to pull data from a mounted directory
  of an acquisition machine onto a local RAID array. It is called by syncAndCrunch.m
- and runs in the background. syncer.sh will cease calling rsync once it finds a 
+ and runs in the background. syncer.sh will cease calling rsync once it finds a
  file called "FINISHED" in source directory. In practice this should usually happen
  and will occur before syncAndCrunch finishes. If the user aborts syncAndCrunch
  (e.g. with ctrl-C) then a cleanup function will run and kill syncer and any
- associated rsync processes. 
- In general, the user will not directly call this bash script. It will be called by 
+ associated rsync processes.
+ In general, the user will not directly call this bash script. It will be called by
  syncAndCrunch only.
 
 Usage:
@@ -64,7 +64,7 @@ case $key in
     ;;
     -r|--rsyncFlag)
     RSYNC_FLAG="$2"
-    
+
     shift # past argument
     shift # past value
     ;;
@@ -122,8 +122,8 @@ FULL_PATH_TO_COMPLETED_FILE="$LANDING_DIR/$SAMPLE_DIR/$COMPLETED_FNAME"
 echo "Running rsync until I see $FULL_PATH_TO_COMPLETED_FILE"
 echo "RUNNING --> rsync $RSYNC_FLAG $SERVER_DIR $LANDING_DIR <--"
 
-while [ ! -f $FULL_PATH_TO_COMPLETED_FILE ] 
-do 
+while [ ! -f $FULL_PATH_TO_COMPLETED_FILE ]
+do
   # Run the rsync
   rsync $RSYNC_FLAG $SERVER_DIR $LANDING_DIR
   sleep 5
