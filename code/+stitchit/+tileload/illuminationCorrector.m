@@ -46,8 +46,7 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
 
-    % For now we just load the brute-force average template
-    % TODO: we might in the future want to handle other template types, such as CIDRE.
+    % Load the brute-force average template
     aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
 
 

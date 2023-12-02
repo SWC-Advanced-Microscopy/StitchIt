@@ -4,9 +4,13 @@ function offsetValue = getOffset(coords, redo, offsetType)
 % function offsetValue = stitchit.tools.getOffset(coords, redo, offsetType)
 %
 % PURPOSE
-% Load or calculate the offset. If the offset file already exists, load it.
-% Otherwise, read all tileStats and take the median of the GMM fit to have
-% a single offset per channel for the acquisition
+% Load or calculate the image offset value from the average tiles. Offset values are
+% cached channelwise in file called stitchitPreProcessingFiles/offset_chX.mat.
+% Each file contains a structure with different channel offset types (averageTileMean, etc).
+% These are calculated as needed. The file is deleted whenever collateAverageImages
+% is run, ensuring it gets re-generated when the average images are modified. This is
+% vital as small differences in the offset value can lead to large artifacts.
+% Offsets are based on the pooled data (odd and even tiles).
 %
 %
 % INPUTS (required)
@@ -25,6 +29,10 @@ function offsetValue = getOffset(coords, redo, offsetType)
 %
 % Example
 % stitchit.tools.getOffset([1,1,0,0,2])
+
+
+verbose=false; % Used internally for dugging
+
 
 offsetValue = [];
 
@@ -47,7 +55,6 @@ end
 if ~exist('offsetType', 'var') || isempty(offsetType)
     offsetType = userConfig.tile.offsetType;
 end
-
 
 % Convenience variables
 opticalPlane = coords(2);
@@ -83,6 +90,9 @@ offsetFileName = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.prePro
 % calculation. Thus, multiple offsets can be stored in one file and we have a log of what the
 % offset actually was. For valid values see above.
 if exist(offsetFileName,'file') && ~redo
+    if verbose
+        fprintf('Loading offset file %s\n', offsetFileName);
+    end
     load(offsetFileName, 'offset');
 else
     % If no file exists we start with an empty struct
@@ -113,8 +123,7 @@ switch offsetType
 
 
     case 'averageTileMin'
-        % This is a bit of hack. It was added to deal with issue
-        % https://github.com/SainsburyWellcomeCentre/StitchIt/issues/145 and just stayed in
+        % Added for issue https://github.com/SWC-Advanced-Microscopy/StitchIt/issues/145
         aveTemplate = stitchit.tileload.loadBruteForceMeanAveFile(coords,userConfig);
         m=min(aveTemplate.pooledRows(:));
         if m>0
