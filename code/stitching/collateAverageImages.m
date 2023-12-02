@@ -184,6 +184,14 @@ for c=1:length(channels)
 
 end
 
+%%
+% Delete the offset files, as these are associated with the average files
+d = dir(fullfile(userConfig.subdir.rawDataDir, ...
+                 userConfig.subdir.preProcessDir, ...
+                 'offset_ch*.mat'));
+arrayfun(@(x) delete(fullfile(x.folder, x.name)), d) % DELETES
+
+
 
 if nargout>0
     varargout{1}=grandAverageStructure;
