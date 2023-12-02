@@ -1,5 +1,11 @@
 StitchIt Change-Log
 
+
+02/12/2023:
+- BUGFIX: Offset files are deleted when grand average is re-built. Failing to do this means
+        the two things are out of sync.
+
+
 29/11/2023:
 - BUGIFX: peekSection now honours the illumination correction setting.
 - USER (Major): revert previous change to the offset subtraction, as it broke behavior in other systems (CS).
