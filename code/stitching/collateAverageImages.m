@@ -4,23 +4,23 @@ function varargout=collateAverageImages(theseDirs,deleteOriginalDir)
 % function collateAverageImages(theseDirs)
 %
 % PURPOSE
-% Create the grand average images that can be used for background subtraction. 
-% Over-writes any existing grand average images. Writes all available channels 
-% that have averaged tiles calculated. These average tiles are located in a 
+% Create the grand average images that can be used for background subtraction.
+% Over-writes any existing grand average images. Writes all available channels
+% that have averaged tiles calculated. These average tiles are located in a
 % directory called "averages" along with the raw section tiles.
 %
 % This function handles both .bin files and the newer "bruteAverageTrimmean"
-% .mat files. 
+% .mat files.
 %
 %
 % INPUTS
 % theseDirs - an optional vector of indexes telling the function which directories
 %             to use. NOTE if the directories on disk go from sections 10 to 50 and
-%             theseDirs is 1:10 then we will collate sections 10 to 19. This is 
+%             theseDirs is 1:10 then we will collate sections 10 to 19. This is
 %             useful when the early and/or late sections contain mostly empty tiles.
 %             if theseDirs is empty, all directories are processed.
 % deleteOriginalDir - optional bool. false by default. If true it wipes any pre-existing
-%              average directory before proceeding. 
+%              average directory before proceeding.
 %
 %
 % OUTPUTS
@@ -30,7 +30,7 @@ function varargout=collateAverageImages(theseDirs,deleteOriginalDir)
 % Rob Campbell - Basel 2014
 
 
-% Read meta-data 
+% Read meta-data
 userConfig=readStitchItINI;
 
 % Determine the name of the directory to which we will write data
@@ -38,7 +38,7 @@ grandAvDirName = fullfile(userConfig.subdir.rawDataDir, userConfig.subdir.averag
 
 if nargin<2
     deleteOriginalDir = false;
-end 
+end
 
 if deleteOriginalDir
     if exist(grandAvDirName,'dir')
@@ -49,7 +49,7 @@ if deleteOriginalDir
     else
         mkdir(grandAvDirName)
     end
-end 
+end
 
 
 % Find the section directory names
@@ -71,7 +71,7 @@ if ~exist(sectionStatsDirName,'dir')
 end
 
 
-% Choose a sub-set of these if the user asked for it 
+% Choose a sub-set of these if the user asked for it
 % NOTE: This is error-prone (see help text of this function)
 if nargin>0 && ~isempty(theseDirs)
     sectionDirs=sectionDirs(theseDirs);
@@ -95,7 +95,7 @@ for c=1:length(channels)
     fprintf('Loading average data for channel %d ',channels(c))
 
     donePreallocation=false;
-    for sectionInd=1:length(sectionDirs) 
+    for sectionInd=1:length(sectionDirs)
 
         % We attempt to gather average images from this processed data directory
         thisAverageDir = fullfile(sectionStatsDirName, sectionDirs(sectionInd).name,'averages',num2str(channels(c)));
@@ -142,7 +142,7 @@ for c=1:length(channels)
     % Handle missing data and calculate grand average
     fprintf('Calculating final tiles')
     for depth=1:length(grandAverageStructure) % Loop over depths again
-       
+
         avData = grandAverageStructure(depth);
 
         fEven = squeeze( any(any(isnan(avData.evenRows))) );
@@ -184,6 +184,14 @@ for c=1:length(channels)
 
 end
 
+%%
+% Delete the offset files, as these are associated with the average files
+d = dir(fullfile(userConfig.subdir.rawDataDir, ...
+                 userConfig.subdir.preProcessDir, ...
+                 'offset_ch*.mat'));
+arrayfun(@(x) delete(fullfile(x.folder, x.name)), d) % DELETES
+
+
 
 if nargout>0
     varargout{1}=grandAverageStructure;
@@ -215,7 +223,7 @@ function channels = findUniqueChannels(sectionStatsDirName,sectionDirs)
     % Determines how many unique channels have average data calculated
     channels=[];
 
-    for ii=1:length(sectionDirs) 
+    for ii=1:length(sectionDirs)
         thisAverageDir = fullfile(sectionStatsDirName,sectionDirs(ii).name,'averages');
 
         if ~isdir(thisAverageDir)
@@ -230,7 +238,7 @@ function channels = findUniqueChannels(sectionStatsDirName,sectionDirs)
 
         channelDirs(1:2)=[]; %these are the current and previous directory links
 
-        channels = [channels, cellfun(@str2num,{channelDirs.name})]; 
+        channels = [channels, cellfun(@str2num,{channelDirs.name})];
     end
 
     channels=unique(channels); % These are the unique channels

@@ -1,4 +1,4 @@
-function varargout=peekSection(section,channel,resize)
+function varargout=peekSection(section,channel,resize,verbose)
 % Crudely assemble a section from raw tiles and show on screen
 %
 % function [section,imStack,coords] = peekSection(section,channel,resize)
@@ -20,7 +20,9 @@ function varargout=peekSection(section,channel,resize)
 %           loads all available channels and assembles them into an RGB image.
 %
 % resize - a number from 0 to 1 that defines by how much we should
-%          re-scale the brain. optional.
+%          re-scale the brain. optional. 1 if empty or missing.
+%
+% verbose - false by default
 %
 %
 % Outputs (optional)
@@ -32,7 +34,7 @@ function varargout=peekSection(section,channel,resize)
 % Rob Campbell - Basel 2014
 
 
-verbose=0; %set to 1 to assist in de-bugging
+
 
 mosaicFile=getTiledAcquisitionParamFile;
 param=readMetaData2Stitchit(mosaicFile);
@@ -46,7 +48,7 @@ if nargin<2 || isempty(channel)
     channel=chans(1);
 end
 
-if nargin<3
+if nargin<3 || isempty(resize)
     fullWidth = param.numTiles.X * param.tile.nRows;
     screenSize=get(0,'screenSize');
     resize=(screenSize(3)/fullWidth)*1.25;
@@ -58,6 +60,10 @@ else
         fprintf('Resize must be between 0 and 1\n')
         return
     end
+end
+
+if nargin<4
+    verbose=false;
 end
 
 
@@ -108,7 +114,7 @@ if ~iscell(section)
     end
 
 
-    [imStack,tileIndex,stagePos]=tileLoad([section,0,0,channel]);
+    [imStack,tileIndex,stagePos]=tileLoad([section,0,0,channel],'verbose',verbose);
 
     if isempty(imStack)
         fprintf('Failed to load data from section %d/%d channel %d.\n',section, channel)
