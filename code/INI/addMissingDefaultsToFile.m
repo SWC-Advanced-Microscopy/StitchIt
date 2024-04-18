@@ -5,14 +5,22 @@ function out = addMissingDefaultsToFile(fname)
     %
     % Purpose
     % StitchIt expects to find at least the settings defined in the file
-    % stitchitConf_DEFAULT.ini which part of the repo. If the INI file
-    % defined by fname is missing fields, these are added add defaults from this file.
-    % If the file is writable, it is modified on disk. Otherwise only the defaults are
-    % added but the file is unmodified.
+    % stitchitConf_DEFAULT.ini which part of the repo. If the INI file defined by fname is
+    % missing fields, these are added add defaults from this file. If the file is
+    % writable, it is modified on disk. Otherwise only the defaults are added but the file
+    % is unmodified.
     %
     % Inputs
     % fname - path to INI file
     %
+    %
+    % Outputs
+    % out - a structure with the INI file data plus any fields it misses which are present
+    %     in the default file.
+    %
+    %
+    % Rob Campbell - SWC
+
 
     %Load the default INI file
     default = readThisINI('stitchitConf_DEFAULT.ini');
@@ -46,10 +54,17 @@ function out = addMissingDefaultsToFile(fname)
     end
 
 
-    % If the user has write access to the file, we modify it.
-    if isempty(missingFields) || ~stitchit.tools.isWritable(fname)
+    % If there are missing fields and the user has write access to the file, we modify it.
+    if isempty(missingFields)
+        % No missing fields, so we do not want to attempt to add any
         return
     end
+
+    if ~stitchit.tools.isWritable(fname)
+        fprintf('There are missing fields, but file %s is not writetable\n', fname)
+        return
+    end
+
 
     % Get low-level access to the INI files
     D = IniConfig('stitchitConf_DEFAULT.ini');
@@ -73,4 +88,5 @@ function out = addMissingDefaultsToFile(fname)
     end
 
     % Write the new information to the file
+    fprintf('Writing to file %s\n', fname)
     L.WriteFile(fname);

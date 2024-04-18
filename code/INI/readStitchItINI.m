@@ -6,13 +6,13 @@ function [out,pathToINI]=readStitchItINI(varargin)
 % Purpose:
 % Parameters for StitchIt are stored in an INI file called 'stitchitConf.ini'
 % This contains things like the number of microns per pixel (if the imaging system does not
-% return this) and the stitching parameters your system needs (e.g. whether to crop the tiles). 
+% return this) and the stitching parameters your system needs (e.g. whether to crop the tiles).
 %
 % readStitchItINI searches for the INI file in the following way:
 % 1) If it is called from an experiment directory, it identifies the system ID using
 %    readMetaData2Stitchit and attempts to load the system-specific INI file if this is
-%    in the path. e.g. if M.System.ID is 'Noodle' then readStitchitINI looks for an 
-%    INI file called stitchitConf_noodle.ini anywhere in the MATLAB path. Normal path rules 
+%    in the path. e.g. if M.System.ID is 'Noodle' then readStitchitINI looks for an
+%    INI file called stitchitConf_noodle.ini anywhere in the MATLAB path. Normal path rules
 %    apply: a file in the current directory takes precedence over one elsewhere.
 %    Note we use lower case version in file name!
 % 2) If a system-specific INI file is not found, readStitchitINI looks for a file called
@@ -37,7 +37,7 @@ function [out,pathToINI]=readStitchItINI(varargin)
 % Rob Campbell - Basel 2014
 
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 %Parse optional arguments
 params = inputParser;
 params.CaseSensitive = false;
@@ -48,7 +48,7 @@ params.parse(varargin{:});
 INIfname=params.Results.INIfname;
 systemType=params.Results.systemType;
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 defaultINIfname='stitchitConf.ini';
 
@@ -69,17 +69,18 @@ if isempty(INIfname)
         systemID = systemType;
     end
 
-    % If we don't actually have an INI file fname (likely we won't yet) then 
-    % figure out what it should be. 
+    % If we don't actually have an INI file fname (likely we won't yet) then
+    % figure out what it should be.
     if isempty(INIfname)
         sysINIfname=sprintf('stitchitConf_%s.ini', lower(systemID));
         localINIfname='stitchitConf_local.ini';
-        if exist(fullfile(pwd,localINIfname),'file') 
+        if exist(fullfile(pwd,localINIfname),'file')
           %First we ask if there is an ini file in the current directory
           INIfname = localINIfname;
         elseif exist(sysINIfname,'file')
           % Then the global one
           INIfname = sysINIfname;
+          INIfname = which(INIfname);
         elseif exist(defaultINIfname,'file')
           % Otherwise the defaults
           INIfname = defaultINIfname;

@@ -31,7 +31,7 @@ function offsetValue = getOffset(coords, redo, offsetType)
 % stitchit.tools.getOffset([1,1,0,0,2])
 
 
-verbose=false; % Used internally for dugging
+verbose=false; % Used internally for de-bugging
 
 
 offsetValue = [];

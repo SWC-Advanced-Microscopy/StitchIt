@@ -1,6 +1,11 @@
 StitchIt Change-Log
 
 
+18/04/2024
+- BUGFIX: The INI file with missing fields was not being corrected and instead an empty file
+        that caused bugs was being made. This problem is now fixed.
+
+
 02/12/2023:
 - BUGFIX: Offset files are deleted when grand average is re-built. Failing to do this means
         the two things are out of sync.

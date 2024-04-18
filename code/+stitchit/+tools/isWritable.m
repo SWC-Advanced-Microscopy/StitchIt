@@ -22,10 +22,17 @@ end
 
 
 if ~exist(filepath)
-    fprintf('%s: % does not exist\n',mfilename,filepath)
+    fprintf('%s: %s does not exist\n',mfilename,filepath)
     out=0;
     return
 end
 
+%escape dodgy characters, as these are non-escaped by default
+filepath=regexprep(filepath, '[\s\(\)]', '\\$0');
 [s,msg]=system(['touch ',filepath]);
+
+if s ~= 1
+    fprintf('Failed to check if file is writable:\n %s,\n', msg)
+end
+
 out=isempty(msg); %if touch works there is no message
