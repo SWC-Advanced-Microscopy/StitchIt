@@ -2,9 +2,9 @@
 
 # StitchIt
 
-*StitchIt* is a MATLAB package for stitching data acquired via our [ScanImage](http://scanimage.vidriotechnologies.com/))-based acquisition system (BakingTray).
+*StitchIt* is a MATLAB package for stitching data acquired via our [ScanImage](https://www.mbfbioscience.com/products/scanimage/)-based acquisition system (BakingTray).
 To get started, please read the [Documentation](https://stitchit.mouse.vision/). 
-There is a [changelog](https://raw.githubusercontent.com/SainsburyWellcomeCentre/StitchIt/master/changelog.txt).
+There is a [changelog](https://raw.githubusercontent.com/SWC-Advanced-Microscopy/StitchIt/master/changelog.txt).
 
 ## Features
 
@@ -49,7 +49,7 @@ Stitchit will automatically check if it's up to date whenever the user runs `syn
 
 
 ## Questions and bug reports
-Please use the project's [issue tracker](https://github.com/BaselLaserMouse/StitchIt/issues) for questions, bug reports, feature requests, etc.
+Please use the project's [issue tracker](https://github.com/SWC-Advanced-Microscopy/StitchIt/issues) for questions, bug reports, feature requests, etc.
 Please do get in touch if use the software: especially if you are publishing with it!
 You may also join the [StitchIt Gitter](https://gitter.im/open-serial-section/stitchit) room for discussions.
 
@@ -60,7 +60,7 @@ This software is distributed under the GPL v3 licence. This repository may be fr
 
 
 ## More tools
-See [btpytools](https://github.com/SainsburyWellcomeCentre/btpytools) for Python-based helper tools. e.g. to compress raw data or send data to a remote server. You may install those via:
+See [btpytools](https://github.com/SWC-Advanced-Microscopy/btpytools) for Python-based helper tools. e.g. to compress raw data or send data to a remote server. You may install those via:
 ```
 $ sudo pip install btpytools
 
