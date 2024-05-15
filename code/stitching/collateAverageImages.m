@@ -89,7 +89,9 @@ for c=1:length(channels)
 
     % Make the directory that will house average data for this channel
     targetDir=fullfile(grandAvDirName, num2str(channels(c)));
-    mkdir(targetDir)
+    if ~exist(targetDir,'dir')
+        mkdir(targetDir)
+    end
 
 
     fprintf('Loading average data for channel %d ',channels(c))
