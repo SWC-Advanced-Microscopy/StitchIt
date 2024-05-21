@@ -1,26 +1,27 @@
 classdef sampleSplitter < handle
-    % stitchit.sampleSplitter 
+    % stitchit.sampleSplitter
     %
     % Purpose
-    % This GUI is used for either cropping an acquisition with one sample or splitting up 
+    % This GUI is used for either cropping an acquisition with one sample or splitting up
     % an acquisition with multiple samples into separate directories. Each directory will
-    % contain its own recipe file and can be treated as an independent acquisition for the 
-    % purposes of subsequent analyses. 
+    % contain its own recipe file and can be treated as an independent acquisition for the
+    % purposes of subsequent analyses.
     %
-    % 
+    %
     % Usage
     % - cd to sample directory
     % - run stitchit.sampleSplitter without input arguments. This will search for
     %   downsampled data in downsampled_stacks/025_micron and load it. If this is
     %   missing you will need to either make it or supply an input argument (see below)
     % - GUI appears with max intensity projection of brains.
-    % - Hit "Auto Find Brains" to draw boxes around brains.
-    % - If boxes are too big or wrong, select their row in the table and delete. 
+    % - Hit "Auto Find Brains" to draw boxes around brains. (Disabled currently because it
+    %   plays badly with BakingTray autoROI brains.
+    % - If boxes are too big or wrong, select their row in the table and delete.
     %   Highlighted table rows are associated with red boundary in image.
     % - Hit "Add" to draw your own box.
     % - Once happy with boxses, name the samples using the last column. Avoid
     %   weird characters (although the GUI should replace these anyway).
-    % - Once happy, hit "Apply ROIs to stack". There is a confirmation. 
+    % - Once happy, hit "Apply ROIs to stack". There is a confirmation.
     % - ROIs are applied with progress messages on console
     %
     % Advanced use: remote without GUI
@@ -30,10 +31,10 @@ classdef sampleSplitter < handle
     % - Run "myParams = S.returnROIparams"
     % - Save that as a .mat file. e.g. save myParams myParams
     % - scp that to the remote machine with the data and load it into a local
-    %   MATLAB instance on that machine. 
+    %   MATLAB instance on that machine.
     % - cd to the data directory (if not there already) and run:
     %   stitchit.sampleSplitter.cropStitchedSections(myParams)
-    % - This will initiate the process on the remote machine. 
+    % - This will initiate the process on the remote machine.
     %
     % CLEANING UP
     % Once finishes, you should delete original data in the trash directory as needed.
@@ -46,9 +47,9 @@ classdef sampleSplitter < handle
     %    c) A 2D image that is the median or max intensity projection of that stack
     %
     % Second arguments
-    %   The second optional input argument defines the number of microns per pixel. 
+    %   The second optional input argument defines the number of microns per pixel.
     %   If missing, this is either "25" or, if available, derived from the MHD name.
-    % 
+    %
     %
     % EXAMPLES
     % 1. Loads a 25 micron downsampled stack and works with that.
@@ -63,7 +64,7 @@ classdef sampleSplitter < handle
     properties
         imStack             % The 3D stack that was loaded and used for the max projection
         origImage           % The image upon which we draw ROIs
-        splitBrainParams    % A structure containing the ROIs and their orientations 
+        splitBrainParams    % A structure containing the ROIs and their orientations
         micsPerPixel = 25   % scale of the downsampled image fed into this class
         stitchedDataInfo
     end % properties
@@ -107,7 +108,7 @@ classdef sampleSplitter < handle
             % Second arg (optional) is the number of microns per pixel. If missing,
             % 50, unless it can be extracted from the MHD file fname. This value
             % is stored in sampleSplitter.micsPerPixel
- 
+
             %If an instance of sampleSplitter already exists then delete it
             t=evalin('base','who');
             for ii=1:length(t)
@@ -118,7 +119,7 @@ classdef sampleSplitter < handle
             end
 
             if isempty(varargin)
-              %Look for an MHD file 
+              %Look for an MHD file
               d=dir(sprintf('downsampled_stacks/%03d_micron/*.mhd',obj.micsPerPixel));
               %If that fails search for a tiff stack
               if isempty(d)
@@ -243,7 +244,7 @@ classdef sampleSplitter < handle
                 'ToolTip', 'Add a new ROI (draw box then double-click)', ...
                 'Callback', @obj.areaSelector,...
                 'Parent', obj.hMain);
- 
+
             obj.hButton_deleteROI = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
                 'Enable','off', ...
@@ -251,14 +252,15 @@ classdef sampleSplitter < handle
                 'ToolTip', 'Delete selected ROI', ...
                 'Callback', @obj.deleteROI,...
                 'Parent', obj.hMain);
- 
+
             obj.hButton_autoFind = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
                 'Position', [170,10,110,35], 'String', 'Auto Find Brains', ...
                 'ToolTip', 'Automatically draw ROIs around brains', ...
                 'Callback', @obj.autoFindBrainsInLoadedImage,...
+                'Enable', 'Off', ...
                 'Parent', obj.hMain);
- 
+
             obj.hButton_previewROI = uicontrol('Style', 'PushButton', ...
                 'Units', 'Pixels', ...
                 'Enable','off', ...
@@ -314,7 +316,7 @@ classdef sampleSplitter < handle
 
 
     methods
-        % The following are short methods or callbacks that we might want exposed to the user        
+        % The following are short methods or callbacks that we might want exposed to the user
         function applyROIsToStitchedData(obj,~,~)
             % hButton_applyROIs callback
             % Split up or crop sample based on the current ROIs. Then closes the GUI
@@ -329,10 +331,10 @@ classdef sampleSplitter < handle
 
         function autoFindBrainsInLoadedImage(obj,~,~)
             % hButton_autoFind callback
-            % Uses +sampleSplitter.autofindBrains to automaticall identify brains in the 
+            % Uses +sampleSplitter.autofindBrains to automaticall identify brains in the
             % currently loaded image then adds these ROIs
 
-            % Run the algorthm 
+            % Run the algorithm
             ROIs = stitchit.sampleSplitter.autofindBrains(obj.origImage,obj.micsPerPixel);
 
             if isempty(ROIs)
@@ -428,7 +430,7 @@ classdef sampleSplitter < handle
 
             % Highlight the correct box
             if ~isempty(obj.hBox)
-                set([obj.hBox],'color','c','LineWidth',1) 
+                set([obj.hBox],'color','c','LineWidth',1)
                 set(obj.hBox(obj.selectedRow), 'Color','r','LineWidth',2);
             end
 
@@ -440,7 +442,7 @@ classdef sampleSplitter < handle
 
 
         function tableEditCallback(obj,src,evt)
-            % This callback runs when an edit is made to the table. We use it to 
+            % This callback runs when an edit is made to the table. We use it to
             % rotate the ROI image if needed.
             if evt.Indices(2) ~= 5 %Then we didn't edit the rot field
                 return
@@ -451,22 +453,22 @@ classdef sampleSplitter < handle
             if isnan(evt.NewData)
                 % Then it's not a number, so replace with the previous value
                 src.Data{evt.Indices(1),evt.Indices(2)} = evt.PreviousData;
-                return 
+                return
             end
 
             % Ensure it's an integer
             if mod(evt.NewData,1)>0
                 src.Data{evt.Indices(1),evt.Indices(2)} = evt.PreviousData;
-                return 
-            end 
+                return
+            end
 
             % Ensure it's between -2 and +2
             if evt.NewData<-2 || evt.NewData>2
                 src.Data{evt.Indices(1),evt.Indices(2)} = evt.PreviousData;
-                return 
-            end 
+                return
+            end
 
-            
+
             obj.tableHighlightCallback(src,evt);
         end % tableEditCallback
 

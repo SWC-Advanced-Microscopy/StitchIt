@@ -5,10 +5,10 @@ function varargout=resampleVolume(channel,targetDims,fileFormat,savePath)
 %
 % PURPOSE
 % The idea is to use this function to down-sample data for warping data to a standard brain.
-% Therefore the dataset size produced by this function should fit comfortably in RAM. It 
+% Therefore the dataset size produced by this function should fit comfortably in RAM. It
 % will likely choke and die if you ask for a dataset size which cannot do this. Some error-
 % checking is provided to avoid this. This function requires the stitchedImages_100 directory
-% to be present. 
+% to be present.
 %
 %
 % INPUTS
@@ -23,7 +23,7 @@ function varargout=resampleVolume(channel,targetDims,fileFormat,savePath)
 % OUTPUTS [optional]
 % volume - The image volume is [CAUTION: may be large]
 % fname -  The downsampled file name minus the extension.
-% 
+%
 %
 % EXAMPLES
 % This will produce a down-sampled stack that's the same size as the second-gen ARA:
@@ -165,7 +165,7 @@ zRescaleFactor = targetDims(2)/origDims(2);
 msg = sprintf('Begining to downsample:\nx/y: %0.3f\nz: %0.3f\n',1/xyRescaleFactor,zRescaleFactor);
 fprintf(msg);
 fprintf(fid,'\n---log---\n%s',msg);
- 
+
 
 %Rescale in x/y and store resampled volume in RAM
 xyRescaleFactor = origDims(1)/targetDims(1);
@@ -186,7 +186,7 @@ parfor ii=1:length(files)
     im=stitchit.tools.openTiff(fullfile(origDataDir,files(ii).name));
     vol(:,:,ii)=imresize(im,xyRescaleFactor);
     % Extract the physical and optical section numbers from the file name
-    tok=regexp(files(ii).name,'\w+_(\d+)_(\d+)\.tif','tokens'); 
+    tok=regexp(files(ii).name,'\w+_(\d+)_(\d+)\.tif','tokens');
     planeID(ii,:) = cellfun(@str2double,(tok{1}));
 
 end
@@ -250,7 +250,7 @@ try
     elseif strcmp('mhd',fileFormat)
         stitchit.tools.mhd_write(vol,downsampledFname,[1,1,1])
     else
-        %This should *never* execute as we've already checked the file format string 
+        %This should *never* execute as we've already checked the file format string
         %at the start of the function. Nonetheless, we leave this code "just in case"
         msg = fprintf('NOT SAVING IMAGE STACK: file format %s unknown\n',fileFormat);
         fprintf(msg)
@@ -284,7 +284,7 @@ fclose(fid);
 
 %-----------------------------------
 function vol = correctZilum(vol,planeID)
-    fprintf('Correcting z illumunation change within each section\n')
+    fprintf('Correcting z illumination change within each section\n')
     vol=single(vol);
 
 
@@ -304,11 +304,11 @@ function vol = correctZilum(vol,planeID)
         planeID(f,:);
 
         tmpPlanes = single(vol(:,:,f));
-        F1=imfilter(tmpPlanes(:,:,1), G); %The first layer 
+        F1=imfilter(tmpPlanes(:,:,1), G); %The first layer
 
         for jj=2:length(f)
             %The following line is where the bulk of the time is taken
-            FthisLayer = F1 ./ imfilter(tmpPlanes(:,:,jj),G); 
+            FthisLayer = F1 ./ imfilter(tmpPlanes(:,:,jj),G);
 
             %Now correct each section by this zRescaleFacto
             tmpPlanes(:,:,jj) = tmpPlanes(:,:,jj) .* FthisLayer;
@@ -320,5 +320,5 @@ function vol = correctZilum(vol,planeID)
     end
 
     % Finally we clean it up a little more by doing a median filter in depth only
-    vol = medfilt3(vol,[1,1,3]); 
+    vol = medfilt3(vol,[1,1,3]);
 
