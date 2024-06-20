@@ -59,7 +59,7 @@ function varargout=return_autoROI_performance(obj,ROIS)
     stats.numDiscardedImagedPixelsPool = sum(imStacks.imagedPixelsThatAreDiscardedPool(:));
     stats.numSkipedPixelsInImagedAreaPool = sum(imStacks.nonImagedPixelsInAreaToKeepPool(:));
 
-    stats.totalPixels = prod(size(BW));
+    stats.totalPixels = numel(BW);
     stats.numROIs = length(ROIS);
 
 

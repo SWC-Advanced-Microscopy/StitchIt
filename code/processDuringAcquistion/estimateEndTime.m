@@ -4,9 +4,9 @@ function out=estimateEndTime
 % function endTime=estimateEndTime
 %
 % PURPOSE
-% Estimate time at which the current imaging run will end. Initially uses the 
+% Estimate time at which the current imaging run will end. Initially uses the
 % number of tiles, etc, to figure this out. Once 5 sections have been taken,
-% it uses the interval between sections instead. 
+% it uses the interval between sections instead.
 %
 % Rob Campbell - Basel 2015
 
@@ -18,7 +18,7 @@ function out=estimateEndTime
     if verbose
       fprintf('\n%s verbose mode set to TRUE\n', mfilename)
     end
-    
+
     out=[];
     if isempty(d)
         fprintf('Failed to find acq log.\n');
@@ -30,7 +30,7 @@ function out=estimateEndTime
         return
     end
 
-    
+
     % Open the acq log file and read it in line by line
     fid=fopen(d.name,'r');
 
@@ -51,7 +51,7 @@ function out=estimateEndTime
 
         % Extract lines that contain section completion time
         % information. The following regex copes with the scenario
-        % where either "mins" or "secs" is missing.        
+        % where either "mins" or "secs" is missing.
 
         tok=regexp(tline,' completed in (\d+) mins? *(\d+)?(?: secs)?','tokens');
         tok=regexp(tline,' completed in (\d+) ([a-z]+) *(\d+)?(?: secs)?','tokens');
@@ -102,14 +102,11 @@ function out=estimateEndTime
     if currentSecNum>0
        % Stops the current section number being larger than the number of sections
        % This is only a problem if the acquisition was resumed.
-       currentSecNum = currentSecNum - M.mosaic.sectionStartNum + 1; 
+       currentSecNum = currentSecNum - M.mosaic.sectionStartNum + 1;
     end
 
 
 
-    %userConfig = readStitchItINI;
-    %baseName = sprintf('%s%s%s', userConfig.subdir.rawDataDir, filesep, directoryBaseName);
-    %rawDataDirs = dir([baseName,'*']);
     totalHours = out.hoursPerDirectory * M.mosaic.numSections;
     if verbose
       fprintf('Acquisition consists of %d sections, which will take a total of %0.1f hours.\n', ...
@@ -124,11 +121,11 @@ function out=estimateEndTime
     else
       hoursLeft = totalHours - sum(finishedTimes(end-currentSecNum+1:end))/60^2;
     end
-    
+
     if verbose
       fprintf('There are %0.2f hours left\n', hoursLeft)
     end
-    
+
 
 
     % Fail gracefully if something went wrong earlier

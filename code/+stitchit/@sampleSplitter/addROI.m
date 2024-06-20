@@ -18,7 +18,7 @@ function addROI(obj, coords)
     if boxEndHeightPos > size(obj.origImage,1)
         fprintf('Correcting overflow ROI height from %d pixels ', coords(4));
         boxEndHeightPos = size(obj.origImage,1); %cap to image
-        coords(4) = boxEndHeightPos-coords(2);
+        coords(4) = boxEndHeightPos-coords(2)-1;
         boxEndHeightPos = coords(2)+coords(4);
         fprintf('to %d pixels\n',coords(4));
     end
@@ -27,7 +27,7 @@ function addROI(obj, coords)
         fprintf('x=%d boxEndWidthPos %d\n',coords(1), boxEndWidthPos)
         fprintf('Correcting overflow ROI width from %d pixels ',coords(3));
         boxEndWidthPos = size(obj.origImage,2); %cap to image
-        coords(3) = boxEndWidthPos-coords(1);
+        coords(3) = boxEndWidthPos-coords(1)-1;
         boxEndWidthPos = coords(1)+coords(3);
         fprintf('to %d pixels\n',coords(3));
     end
