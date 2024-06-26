@@ -5,12 +5,12 @@ function rescaleStitched(stitchedDir,targetResize)
 %
 %
 % Purpose
-% Take a stitched directory and resize the images to produce a new image 
+% Take a stitched directory and resize the images to produce a new image
 % directory composed of smaller size images. targetResize should be a
 % value between 1 and 100 (if the stitchedDir has full size images). If, say,
-% stitchedDir has 50% size images and targetResize equals 25, then we reduce 
-% the image size by half. No up-scaling is allowed. 
-% 
+% stitchedDir has 50% size images and targetResize equals 25, then we reduce
+% the image size by half. No up-scaling is allowed.
+%
 % Inputs
 % stitchedDir - string defining stitched data directory
 % targetResize - number between 1 and 100
@@ -67,7 +67,7 @@ end
 
 
 
-%get the channels 
+%get the channels
 chans=dir(stitchedDir);
 chans=chans([chans.isdir]);
 for ii=length(chans):-1:1
@@ -94,12 +94,12 @@ for ii=1:length(chans)
         continue
     end
 
-    mkdir([newDirectoryName,filesep,chans{ii}]);    
+    mkdir([newDirectoryName,filesep,chans{ii}]);
     targetDir = [newDirectoryName,filesep,chans{ii},filesep];
 
     parfor jj=1:length(tifs)
         im=stitchit.tools.openTiff([sourceDir,tifs(jj).name]);
-        imwrite(imresize(im,rescaleValue,'bicubic'), [targetDir,tifs(jj).name],'compression','none')
+        imwrite(imresize(im,rescaleValue,'nearest'), [targetDir,tifs(jj).name],'compression','none')
     end
 
 end
