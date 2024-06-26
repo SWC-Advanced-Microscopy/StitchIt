@@ -1,7 +1,7 @@
-function rescaleStitched(stitchedDir,targetResize)
+function rescaleStitched(stitchedDir,targetResize,resampleMethod)
 % Produce re-scaled (resized) stitched images from an existing stitched directory
 %
-% rescaleStitched(stitchedDir,targetResize)
+% rescaleStitched(stitchedDir,targetResize,resampleMethod)
 %
 %
 % Purpose
@@ -14,7 +14,7 @@ function rescaleStitched(stitchedDir,targetResize)
 % Inputs
 % stitchedDir - string defining stitched data directory
 % targetResize - number between 1 and 100
-%
+% resampleMethod - 'bicubic' by default. Any valid value for the imresize command will work.
 %
 % Example
 % rescaleStitched('stitchedImages_100',25)
@@ -37,6 +37,9 @@ if ~exist(stitchedDir,'dir')
     error('Can not find %s',stitchedDir)
 end
 
+if nargin<3
+    resampleMethod='bicubic';
+end
 
 %Get the current data image resize value from the directory name
 tok=regexp(stitchedDir,'.*_(\d+)','tokens');
@@ -99,7 +102,7 @@ for ii=1:length(chans)
 
     parfor jj=1:length(tifs)
         im=stitchit.tools.openTiff([sourceDir,tifs(jj).name]);
-        imwrite(imresize(im,rescaleValue,'nearest'), [targetDir,tifs(jj).name],'compression','none')
+        imwrite(imresize(im,rescaleValue,resampleMethod), [targetDir,tifs(jj).name],'compression','none')
     end
 
 end
