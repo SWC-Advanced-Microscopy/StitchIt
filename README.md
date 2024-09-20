@@ -6,6 +6,7 @@
 To get started, please read the [Documentation](https://stitchit.mouse.vision/). 
 There is a [changelog](https://raw.githubusercontent.com/SWC-Advanced-Microscopy/StitchIt/master/changelog.txt).
 
+
 ## Features
 
 **With a single command (`syncAndCrunch`) the user can**:
