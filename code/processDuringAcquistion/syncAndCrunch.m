@@ -11,9 +11,8 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Set up
 % You should set up your INI file and define a landing directory before running this
 % function. See also:
-% https://github.com/BaselLaserMouse/StitchIt/wiki/Setting-up-syncAndCrunch
-% https://github.com/BaselLaserMouse/StitchIt/wiki/syncAndCrunch-walk-through
-%
+% https://stitchit.mouse.vision/new-users/syncandcrunch-walk-through
+% https://stitchit.mouse.vision/installation/setting-up-syncandcrunch
 %
 %
 % Inputs
