@@ -1,5 +1,9 @@
 StitchIt Change-Log
 
+20/09/2024
+- Minor bugfixes
+- Auto brain find is now disabled in sample splitter because it does not work with autoROI data.
+
 21/05/2024
 - Disable the auto brain finding button in the sample splitter. This is because under
 some circumstances it draws ROIs that are too big and users are likely to accept this,
