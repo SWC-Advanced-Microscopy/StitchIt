@@ -20,7 +20,13 @@ if ~exist('verbose','var')
         import('org.yaml.snakeyaml.*');
         javaObject('Yaml');
     catch
-        dp = [pth filesep 'external' filesep 'snakeyaml-1.9.jar'];
+        java_version = version('-java');
+        if contains(java_version,'1.8')
+            dp = [pth filesep 'external' filesep 'snakeyaml-1.8.jar'];
+        else
+            % java version must be 1.9 then
+            dp = [pth filesep 'external' filesep 'snakeyaml-1.9.jar'];
+        end
         if not(ismember(dp, javaclasspath ('-dynamic')))
         	javaaddpath(dp); % javaaddpath clears global variables!?
         end
