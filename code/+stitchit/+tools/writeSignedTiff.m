@@ -1,16 +1,24 @@
-function [] = writeSignedTiff(vnData, sTarget, sSoftware, bOverwrite)
-%writeSignedTiff Write signed tiff images (int16)
+function writeSignedTiff(vnData, sTarget, sSoftware, bOverwrite)
+% Write signed tiff images (int16) preserving all tags
+%
+% function writeSignedTiff(vnData, sTarget, sSoftware, bOverwrite)
+%
+% Purpose
+% Writes signed TIFFs whilst preserving all tags. Can potentially be used to save modifed
+% ScanImage files such that they can be re-read with all meta-data still intact.
 %
 % Call:
 % write_signed_tiff(vnData, sTarget, sSoftware, bOverwrite)
 %
 % Inputs
-% - vnData: matrix of data (3D)
+% - vnData: matrix of data to save (x,y, by frames)
 % - sTarget: path to tiff file.
 % - sSoftware: software field of the the tiff header. Default: "Matlab"
 % - bOverwrite: overwrite target if existing. Default: false.
 %
-% No Output
+% Outputs
+% none
+
 
 
 % Parse inputs
@@ -48,6 +56,7 @@ tagstruct.SampleFormat = 2;     % signed int
 targetTiff = Tiff(sTarget,'w');
 targetTiff.setTag(tagstruct);
 targetTiff.write(squeeze(vnData(:,:,1)));
+
 if nframes > 1
     for indf = 2:nframes
         % every framerperfile, create a new TIFF

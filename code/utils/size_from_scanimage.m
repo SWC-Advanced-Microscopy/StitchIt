@@ -1,5 +1,23 @@
 function [nbchannels, nbplanes] = size_from_scanimage(tifpath)
-    % load ScanImage metadata from TIFF header, v5 or v2016
+    % Return number of channels and number of frames from a ScanImage TIFF
+    %
+    % function [nbchannels, nbplanes] = size_from_scanimage(tifpath)
+    %
+    % Purpose
+    % Given the path to a ScanImage TIFF, return the number of channels and the number of
+    % optical planes as two integers. This function handles both the old ScanImage v5
+    % metadata and the new metadata format for these data from version 2016 onwards.
+    %
+    % Inputs
+    % tifpath - relative or absolute path to ScanImage TIFF file.
+    %
+    % Outputs
+    % nbchannels - number of channels in the TIFF
+    % nbplanes - number of optical planes in the TIFF
+    %
+    %
+    % Rob Campbell
+
 
     % default values for channels/zplanes in case of early return
     nbchannels = [];
@@ -11,14 +29,15 @@ function [nbchannels, nbplanes] = size_from_scanimage(tifpath)
     tags.Software = safe_get_tags(tif_obj, 'Software', '');
     tif_obj.close()
 
-    % zplane/channel info from ScanImage metadata, v2016
+
+    % zplane/channel info from ScanImage metadata version 2016 onward
     if ~isempty(tags.Software) && ~strcmp(tags.Software, 'MATLAB')
         channel_txt = regexp(tags.Software, ...
             'SI\.hChannels\.channelSave = (.+?)(?m:$)', 'tokens', 'once');
         zplane_txt = regexp(tags.Software, ...
             'SI\.hFastZ\.numFramesPerVolume = (.+?)(?m:$)', 'tokens', 'once');
 
-    % zplane/channel info from ScanImage metadata, v5
+    % zplane/channel info from ScanImage metadata, v5 and before
     else
         channel_txt = regexp(tags.ImageDescription, ...
             'scanimage\.SI\.hChannels\.channelSave = (.+?)(?m:$)', ...
@@ -27,6 +46,7 @@ function [nbchannels, nbplanes] = size_from_scanimage(tifpath)
             'scanimage\.SI\.hFastZ\.numFramesPerVolume = (.+?)(?m:$)', ...
             'tokens', 'once');
     end
+
 
     % stop if no zplane/channel info found
     if isempty(channel_txt) || isempty(zplane_txt)
@@ -39,7 +59,9 @@ function [nbchannels, nbplanes] = size_from_scanimage(tifpath)
     if isnan(nbplanes)
         nbplanes = 1;
     end
-end
+
+end % size_from_scanimage
+
 
 function tag_value = safe_get_tags(tif_obj, tag_name, default_value)
     % helper function to safely retrieve a tag from a TIFF object
@@ -51,4 +73,4 @@ function tag_value = safe_get_tags(tif_obj, tag_name, default_value)
             rethrow(err);
         end
     end
-end
+end % safe_get_tags

@@ -1,6 +1,6 @@
 function save3Dtiff(imageStack,fname,options)
 % Save 3-D grayscale matrix 'imageStack' as 3-D tiff 'fname'.
-%  
+%
 % function save3Dtiff(imageStack,fname,options)
 %
 % Purpose
@@ -9,9 +9,9 @@ function save3Dtiff(imageStack,fname,options)
 % Note
 % Writes 16 bit tiffs. If your data are floats between zero and 1
 % then it will convert to uint16 before saving. Writes uncompressed
-% images by default. 
+% images by default.
 %
-%  
+%
 % Rob Campbell, September 2009
 
 
@@ -20,7 +20,7 @@ if round(range(imageStack))<=1
     imageStack=imageStack*2^16;
 end
 
-%Force to 16 bit 
+%Force to 16 bit
 if ~strcmp(class(imageStack),'uint16')
     imageStack=uint16(imageStack);
 end

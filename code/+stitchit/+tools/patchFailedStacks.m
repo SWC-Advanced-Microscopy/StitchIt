@@ -11,6 +11,10 @@ function patchFailedStacks(pathsToPatch)
 % cases only the final depth is missing. The original files are retained
 % in a folder placed under rawData.
 %
+% Now in 2025 this issue seems to have been something transient and stopped
+% happening. Might not have been ScanImage related at all.
+%
+%
 % Inputs
 % pathsToPatch - output of findIncompleteStacks
 %

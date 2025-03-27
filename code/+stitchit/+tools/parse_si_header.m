@@ -107,7 +107,7 @@ function si_metadata = parse_field(tiff_header, si_field)
             % Do not try to eval strings that might cause problems
             if ~isempty(strfind(string_value,'scanimage.'))
                 si_metadata(i_img).(fieldname) = string_value;
-            else               
+            else
                 si_metadata(i_img).(fieldname) = eval(string_value);
             end
         end
