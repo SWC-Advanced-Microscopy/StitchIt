@@ -543,8 +543,9 @@ else
 end
 
 
+
 % To avoid sending slack messages if the user has begun the analysis on data that already have a "finished" file
-if ~expAlreadyFinished
+if ~expAlreadyFinished && ~config.syncAndCrunch.failureMessagesOnly
     stitchit.tools.notify(sprintf('%s Acquisition finished. Beginning stitching of %s.',generateMessage('positive'),sampleID));
 end
 
@@ -562,7 +563,7 @@ catch ME
     success=false;
 end
 
-if ~expAlreadyFinished && success
+if ~expAlreadyFinished && success && ~config.syncAndCrunch.failureMessagesOnly
     msg=sprintf('Stitching finished!\n');
     stitchit.tools.writeLineToLogFile(logFileName,msg);
     stitchit.tools.notify(sprintf('%s %s has been stitched.',generateMessage('positive'),sampleID))
