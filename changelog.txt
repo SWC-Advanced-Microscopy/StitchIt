@@ -1,5 +1,9 @@
 StitchIt Change-Log
 
+12/02/2026
+- Add option to send to Slack only failure-related messages rather than both failures and
+successes.
+
 20/09/2024
 - Minor bugfixes
 - Auto brain find is now disabled in sample splitter because it does not work with autoROI data.
