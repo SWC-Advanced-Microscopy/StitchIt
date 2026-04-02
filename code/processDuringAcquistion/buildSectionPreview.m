@@ -7,14 +7,14 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 % This function builds a low-res preview image of the first depth, a montage
 % of all depths, and a historgram (currently not used) of the first depth.
 % This is optionally sent to a webserver. If there is more than one channel,
-% the main preview image is RGB. The montage image is one channel only: the 
+% the main preview image is RGB. The montage image is one channel only: the
 % channel selected by the user as the second input argument. If missing, the
-% channel is chosen automatically as the first available. 
+% channel is chosen automatically as the first available.
 %
 % INPUTS
 % sectionToPlot - If empty plot the last completed section. sectionToPlot can also
 %                 be a directory index to plot
-% channel - the channel to plot in montage image. By default (or if empty) the 
+% channel - the channel to plot in montage image. By default (or if empty) the
 %           first available channel.
 %
 %
@@ -28,7 +28,7 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 
 userConfig = readStitchItINI;
 if nargin<1 || isempty(sectionToPlot)
-    sectionToPlot = lastCompletedSection; 
+    sectionToPlot = lastCompletedSection;
 else
     rawDataDir = userConfig.subdir.rawDataDir;
     baseName = sprintf('%s%s%s', rawDataDir, filesep, directoryBaseName);
@@ -72,7 +72,7 @@ tidyUp = onCleanup(@() thisCleanup(lockfile));
 [~,thisSectionDir]=fileparts(sectionToPlot);
 
 %The section index
-tok=regexp(sectionToPlot,'.*-(\d+)','tokens'); 
+tok=regexp(sectionToPlot,'.*-(\d+)','tokens');
 ind=str2num(tok{1}{1});
 
 
@@ -87,7 +87,7 @@ end
 
 %Decide how much to resize based on tile size
 params=readMetaData2Stitchit;
-rSize=320/params.tile.nRows; 
+rSize=320/params.tile.nRows;
 if rSize>1
     rSize=1;
 end
@@ -132,7 +132,7 @@ F=figure('visible','off');
 fprintf('Building montage images')
 
 %Decide how much to resize montage based on tile size
-rSize=120/params.tile.nRows; 
+rSize=120/params.tile.nRows;
 if rSize>1
     rSize=1;
 end
@@ -162,10 +162,10 @@ currentSecNum=getLastSecNum;
 if currentSecNum>0
    % Stops the current section number being larger than the number of sections
    % This is only a problem if the acquisition was resumed.
-   currentSecNum = currentSecNum - params.mosaic.sectionStartNum + 1; 
+   currentSecNum = currentSecNum - params.mosaic.sectionStartNum + 1;
 end
 
-%The following string will be displayed on the website above the section 
+%The following string will be displayed on the website above the section
 currentTime = datestr(now,'YYYY/mm/dd HH:MM:SS');
 sliceThicknessInMicrons =  params.mosaic.sliceThickness;
 
@@ -271,7 +271,7 @@ function [im,outThresh]=rescaleImage(im,thresh,pixSize)
             outThresh(ii) = (std(tmp)+median(tmp)) * thresh;
         end
     else
-        outThresh = thresh;        
+        outThresh = thresh;
     end
 
 

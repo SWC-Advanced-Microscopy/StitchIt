@@ -4,15 +4,15 @@ function [out,sucessfulRead,rawOut]=readMetaData2Stitchit(fname,verbose)
 % function [out,sucessfulRead]=readMetaData2Stitchit(fname,verbose)
 %
 % Purpose
-% Read meta-data from a tiled acquisition parameter file and returns 
-% mosaic meta data as a structure that StitchIt can handle. 
+% Read meta-data from a tiled acquisition parameter file and returns
+% mosaic meta data as a structure that StitchIt can handle.
 %
 %
 % Inputs
 % fname - relative or absolute path to mosaic meta-data file.
-% verbose - [optional, 0 by default] 
+% verbose - [optional, 0 by default]
 %
-% 
+%
 % Outputs
 % out - a structure containing the metadata
 % sucessfulRead - 0 if the read failed for some reason. 1 otherwise.
@@ -46,14 +46,14 @@ function [out,sucessfulRead,rawOut]=readMetaData2Stitchit(fname,verbose)
 %
 %
 % Developer Note:
-% This function should avoid calling readStitchItINI in order to avoid recursion. 
-% 
+% This function should avoid calling readStitchItINI in order to avoid recursion.
+%
 %
 %
 % Rob Campbell - Basel 2016
 
 
-%Input argument error checking 
+%Input argument error checking
 if nargin<1
     fname=getTiledAcquisitionParamFile;
 end
@@ -81,7 +81,7 @@ if ~sucessfulRead
     error('Failed to read %s',fname)
 end
 
-% Turn the imported YAML data into a standardised StitchIt format. This 
+% Turn the imported YAML data into a standardised StitchIt format. This
 % allows for potentially different acquisition systems to be "stitchable".
 out = recipe2StitchIt(rawOut,fname);
 
@@ -120,8 +120,8 @@ function out = recipe2StitchIt(raw,fname)
     out.affineMat=cell2mat(raw.StitchingParameters.affineMat);
     out.numTiles = raw.NumTiles;
     out.TileStepSize = raw.TileStepSize;
-    out.TileStepSize.X = 1E3 * out.TileStepSize.X; 
-    out.TileStepSize.Y = 1E3 * out.TileStepSize.Y; 
+    out.TileStepSize.X = 1E3 * out.TileStepSize.X;
+    out.TileStepSize.Y = 1E3 * out.TileStepSize.Y;
     out.System = raw.SYSTEM;
     out.Slicer = raw.SLICER;
 
