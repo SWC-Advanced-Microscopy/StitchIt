@@ -3,8 +3,8 @@
 <head>
 <META HTTP-EQUIV="refresh" CONTENT="180">
 <link rel="icon" type="image/png" href="./ico.png" />
-<title>TissueVision Current</title>
-<script type='text/javascript' src="js/jquery-1.5.2.min.js"></script>
+<title>STPT Current</title>
+<script type='text/javascript' src="js/jquery-1.6.3.min.js"></script>
 <script type='text/javascript' src="js/jquery.imageLens.js"></script>
 <script type='text/javascript' src="js/main.js"></script>
 <link rel="stylesheet" href="style.css" type="text/css" />
