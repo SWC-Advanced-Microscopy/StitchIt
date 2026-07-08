@@ -1,5 +1,27 @@
 StitchIt Change-Log
 
+
+08/07/2026
+- USER: The image processing pipeline subtracts an offset as tiles are loaded. On most systems
+this offset is constant (plus some noise) over the course of a run. However, we have found that
+some ThorLabs silicon photo-multipliers (SiPMs) exhibit baseline drift. A single offset for
+the whole acquisition is therefore not enough. This is obvious because the background
+(non-brain) area varies in apparent brightness over sections where there is drift.
+This fix corrects for this. It implements two new settings under `tile` of the user settings:
+
+```
+sectionSpecificOffset
+sectionSpecificSmoothing
+```
+
+By default `sectionSpecificOffset` is 0 (false). Most users will NOT need this. Enabling it
+risks adding noise to the baseline subtract step for most users. The `sectionSpecificSmoothing`
+setting defines the size of the running mean filter used to smooth the baseline values.
+To debug this stuff you look at vectors in the channel offset files in `rawData/stitchitPreProcessingFiles`
+
+
+
+
 12/02/2026
 - Add option to send to Slack only failure-related messages rather than both failures and
 successes.

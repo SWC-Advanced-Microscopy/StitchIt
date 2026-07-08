@@ -60,9 +60,15 @@ function im = illuminationCorrector(im,coords,userConfig,index,verbose)
     end
 
 
-    % Optionally correct the illumination offset to avoid negative numbers in the final image
+    % Optionally correct the illumination offset to avoid negative numbers in the final image.
+    % NOTE: we deliberately request the *global* (pooled) offset here by passing false for
+    % sectionSpecificOffset. The average template is pooled across all sections, so its baked-in
+    % background is the global mean. Subtracting a section-specific offset from it (as tileLoad
+    % does to the image itself) would mismatch the template's scale and make the divisor too small
+    % at the vignetted tile edges, producing bright edge artifacts on sections whose offset has
+    % drifted away from the mean.
     if userConfig.tile.doOffsetSubtraction
-        m = stitchit.tools.getOffset(coords);
+        m = stitchit.tools.getOffset(coords, [], [], false);
     else
         m = 0;
     end
