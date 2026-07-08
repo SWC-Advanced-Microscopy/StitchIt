@@ -113,7 +113,8 @@ end
 
 % A section-specific offset additionally needs the per-section trace ("_allSections")
 % in the cache, so we can't be satisfied with the cache unless that is present too. Only
-% offsetDimmestGMM produces such a trace.
+% offsetDimmestGMM produces such a trace. NOTE: during acquisition, periodic runs of
+% collateAverageImages will flush old offset caches. So not needed here.
 needAllSections = sectionSpecificOffset && strcmp(offsetType,'offsetDimmestGMM');
 
 haveCache = ~redo && isfield(offset,offsetType) && ...

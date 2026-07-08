@@ -80,8 +80,17 @@ end
 analysesPerformed = preProcessTiles(0, 'combCorChans', combCorChans,'illumChans', illumChans); %Ensure we have the pre-processing steps done
 
 if analysesPerformed.illumCor || ~exist(fullfile(config.subdir.rawDataDir, config.subdir.averageDir),'dir');
-    collateAverageImages([],true); % second inptut deletes original average directory before making a new one. Just being cautious. 
+    collateAverageImages([],true); % second inptut deletes original average directory before making a new one. Just being cautious.
 end
+
+
+% Delete any cached offsets so they are recalculated from all sections currently present.
+% collateAverageImages already does this when it runs (above), but it is only called
+% conditionally. Deleting here unconditionally guarantees the final stitch uses offsets
+% built from every section on disk -- important for section-specific offsets, whose cached
+% per-section trace may have been built mid-acquisition and so miss the most recent sections.
+d = dir(fullfile(config.subdir.rawDataDir, config.subdir.preProcessDir, 'offset_ch*.mat'));
+arrayfun(@(x) delete(fullfile(x.folder, x.name)), d)
 
 
 for thisChan=1:length(chansToStitch)
