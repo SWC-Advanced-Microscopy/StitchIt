@@ -5,6 +5,7 @@
 *StitchIt* is a MATLAB package for stitching data acquired via our [ScanImage](https://www.mbfbioscience.com/products/scanimage/)-based acquisition system (BakingTray).
 To get started, please read the [Documentation](https://stitchit.mouse.vision/). 
 There is a [changelog](https://raw.githubusercontent.com/SWC-Advanced-Microscopy/StitchIt/master/changelog.txt).
+For more information see the SWC AMF [BrainSaw project page](https://swcmicroscopy.com/brainsaw/).
 
 
 ## Features
