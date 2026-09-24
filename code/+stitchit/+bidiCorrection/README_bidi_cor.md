@@ -58,9 +58,9 @@ The code presented here does not do sub-pixel corrections for these reasons.
 
 
 ## Limits of the code presented here
-The code provided here will correct bidirectional scanning artifacts post-hoc assuming you have access to the [raw tiles underlying your stitched images](https://stitchit.mouse.vision/new-users/the-experiment-directory-structure). 
+The code provided here will correct bidirectional scanning artifacts post-hoc assuming you have access to the [raw tiles underlying your stitched images](https://stitchit.swcmicroscopy.com/new-users/the-experiment-directory-structure). 
 The code works but is rarely used in practice so it is not well documented (sorry) and is not as automated as it could be. 
-Before you proceed it is worth being familiar with [the basic steps involved in stitching samples with StitchIt](https://stitchit.mouse.vision/advanced-usage/stitching-existing-data).
+Before you proceed it is worth being familiar with [the basic steps involved in stitching samples with StitchIt](https://stitchit.swcmicroscopy.com/advanced-usage/stitching-existing-data).
 
 
 ## Getting shifts for a single section
