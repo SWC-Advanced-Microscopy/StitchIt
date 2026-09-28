@@ -18,7 +18,7 @@ if the bidirectional phase correction value is not set properly. An improper val
 
 
 ## Minimizing the bidirectional scanning artifact
-The phase delay value for correcting for the artifact must be [checked manually in ScanImage](https://bakingtray.mouse.vision/users/user_guide/step_05_starting-the-acquisition) before the acquisition starts.
+The phase delay value for correcting for the artifact must be [checked manually in ScanImage](https://bakingtray.swcmicroscopy.com/users/user_guide/step_05_starting-the-acquisition) before the acquisition starts.
 
 The phase delay between the outgoing and reverse scan directions is typically some small number of microseconds which translates to a small angular difference in scanner direction. 
 Images acquired at coarser settings (fewer pixels per line) might mask a small phase delay mismatch. 
