@@ -1,6 +1,14 @@
 StitchIt Change-Log
 
 
+28/09/2026
+- Cached offset files are now always deleted before final stitching by stitchAllChannels,
+so section-specific offsets are built from all sections on disk.
+- Illumination correction always uses the global (pooled) offset, even when
+sectionSpecificOffset is enabled. This avoids bright tile-edge artifacts.
+- Documentation URLs moved to https://stitchit.swcmicroscopy.com/
+
+
 08/07/2026
 - USER: The image processing pipeline subtracts an offset as tiles are loaded. On most systems
 this offset is constant (plus some noise) over the course of a run. However, we have found that
