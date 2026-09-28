@@ -11,8 +11,8 @@ function syncAndCrunch(serverDir,chanToPlot,varargin)
 % Set up
 % You should set up your INI file and define a landing directory before running this
 % function. See also:
-% https://stitchit.mouse.vision/new-users/syncandcrunch-walk-through
-% https://stitchit.mouse.vision/installation/setting-up-syncandcrunch
+% https://stitchit.swcmicroscopy.com/new-users/syncandcrunch-walk-through
+% https://stitchit.swcmicroscopy.com/installation/setting-up-syncandcrunch
 %
 %
 % Inputs

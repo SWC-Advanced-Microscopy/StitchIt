@@ -6,7 +6,7 @@ function TILESTATS = loadAllTileStatsFiles(chan)
 %
 % Purpose
 % Load all tileStats.mat files in the raw data directory and return as a structure
-% 
+%
 % Inputs
 % chan - channel to load. Default 2
 %
@@ -54,7 +54,7 @@ end
 fprintf('\n')
 
 
-%Issue a warning if none were loaded or some are missing
+% Issue a warning if none were loaded or some are missing
 if numMissingFiles==length(D)
     fprintf('Found no tileStats.mat files\n')
     TILESTATS=[];

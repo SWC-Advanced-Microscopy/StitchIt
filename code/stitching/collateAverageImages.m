@@ -188,6 +188,7 @@ end
 
 %%
 % Delete the offset files, as these are associated with the average files
+% These must be re-calculated fresh each time.
 d = dir(fullfile(userConfig.subdir.rawDataDir, ...
                  userConfig.subdir.preProcessDir, ...
                  'offset_ch*.mat'));
