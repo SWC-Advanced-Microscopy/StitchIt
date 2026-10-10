@@ -1,0 +1,24 @@
+{
+  "purpose": "Shared by the PHP server and the MATLAB client (webupload, which lives in StitchIt). tests/web/check_pages.sh checks brainsaw/lib.php and config.php against this file. The client's tests read its copy in upload_core/tests/. Changing this file needs the sync steps in instructions.md (section on the shared contract).",
+  "maxZipBytes": 209715200,
+  "minUploadIntervalSec": 5,
+  "allowedNames": ["LastCompleteSection.jpg", "tile_thumbnail.jpg", "montage.jpg", "montage_thumbnail.jpg", "recipe.yml", "acqLog.txt", "status.json"],
+  "rule": "micID:the value of ID that is a direct child of the top-level SYSTEM key, in block style (SYSTEM: then indented ID:) or flow style (SYSTEM: {..., ID: v, ...}). Drop a trailing ' #...' comment, strip one pair of matching surrounding quotes ('...' or \"...\"), trim spaces, tabs, CR and LF, then replace each space with '_'. Not found gives ''. sampleID: the same for the ID directly under top-level 'sample', but spaces are NOT replaced. A leading UTF-8 BOM is ignored. The micID is then checked against ^[A-Za-z][A-Za-z0-9_-]*$ by the client (no upload) and the server (400); the sampleID only has to be non-empty. Neither check is part of these vectors.",
+  "cases": [
+    {"name": "real BakingTray layout", "recipe": "Acquisition: {acqStartTime: '2019/12/09 12:03:50'}\nsample: {ID: SW_FG12_3_FG_12_2, objectiveName: nikon 16x}\nmosaic:\n  numSections: 289.0\nSYSTEM:\n  ID: brainsaw\n  xySpeed: 100.0\n  defaultFrontLeft: [17.0, 4.0]\n  type: bakingtray\n", "micID": "brainsaw", "sampleID": "SW_FG12_3_FG_12_2"},
+    {"name": "space in system ID", "recipe": "sample: {ID: s1}\nSYSTEM:\n  ID: Scope A\n  type: bakingtray\n", "micID": "Scope_A", "sampleID": "s1"},
+    {"name": "single-quoted ID", "recipe": "sample: {ID: s1}\nSYSTEM:\n  ID: 'Scope A'\n", "micID": "Scope_A", "sampleID": "s1"},
+    {"name": "double-quoted ID", "recipe": "sample: {ID: \"s 1\"}\nSYSTEM:\n  ID: \"Scope A\"\n", "micID": "Scope_A", "sampleID": "s 1"},
+    {"name": "CRLF line endings", "recipe": "sample: {ID: s1, objectiveName: nikon 16x}\r\nSYSTEM:\r\n  ID: brainsaw\r\n  type: bakingtray\r\n", "micID": "brainsaw", "sampleID": "s1"},
+    {"name": "flow-style SYSTEM", "recipe": "SYSTEM: {ID: Scope A, type: bakingtray}\nsample: {ID: s1}\n", "micID": "Scope_A", "sampleID": "s1"},
+    {"name": "trailing comment", "recipe": "sample: {ID: s1}\nSYSTEM:\n  ID: rig1 # main rig\n", "micID": "rig1", "sampleID": "s1"},
+    {"name": "blank line inside SYSTEM", "recipe": "sample: {ID: s1}\nSYSTEM:\n  type: bakingtray\n\n  ID: brainsaw\n", "micID": "brainsaw", "sampleID": "s1"},
+    {"name": "ID in another section is ignored", "recipe": "scanner:\n  ID: wrong\nsample: {ID: s1}\nSYSTEM:\n  type: x\n  ID: right\n", "micID": "right", "sampleID": "s1"},
+    {"name": "nested ID inside SYSTEM is ignored", "recipe": "sample: {ID: s1}\nSYSTEM:\n  sub:\n    ID: inner\n  ID: outer\n", "micID": "outer", "sampleID": "s1"},
+    {"name": "key ending in ID is not ID", "recipe": "sample: {sampleID: no, ID: s1}\nSYSTEM:\n  scannerID: x\n  ID: y\n", "micID": "y", "sampleID": "s1"},
+    {"name": "UTF-8 BOM", "recipe": "﻿SYSTEM:\n  ID: brainsaw\nsample: {ID: s1}\n", "micID": "brainsaw", "sampleID": "s1"},
+    {"name": "block-style sample", "recipe": "sample:\n  ID: S 3\n  objectiveName: nikon 16x\nSYSTEM:\n  ID: brainsaw\n", "micID": "brainsaw", "sampleID": "S 3"},
+    {"name": "no SYSTEM", "recipe": "sample: {ID: s1}\nmosaic:\n  numSections: 3\n", "micID": "", "sampleID": "s1"},
+    {"name": "SYSTEM without ID, no sample", "recipe": "SYSTEM:\n  type: bakingtray\n", "micID": "", "sampleID": ""}
+  ]
+}
