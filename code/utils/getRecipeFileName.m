@@ -1,11 +1,10 @@
-function paramFile = getTiledAcquisitionParamFile(supressWarning)
+function paramFile = getRecipeFileName(supressWarning)
 % Look for a the acquisition system's parameter  file in the current directory and return its name
 %
-% function mosaicFile = getTiledAcquisitionParamFile(supressWarning)
+% function mosaicFile = getRecipeFileName(supressWarning)
 %
 % Purpose
-% Return the name of the parameter file created by the acquisition system. 
-% e.g. for the TissueCyte this is called a "Mosaic" file.
+% Return the recipe file name.
 %
 %
 % Inputs
@@ -14,7 +13,7 @@ function paramFile = getTiledAcquisitionParamFile(supressWarning)
 %
 % Rob Campbell
 %
-% Also see: directoryBaseName, getTiledAcquisitionParamFile
+% Also see: directoryBaseName, getRecipeFileName
 
 
 

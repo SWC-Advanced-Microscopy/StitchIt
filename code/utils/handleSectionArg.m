@@ -52,7 +52,7 @@ function section=handleSectionArg(section)
 % zPlane2section
 
 
-mosaicFile=getTiledAcquisitionParamFile;
+mosaicFile=getRecipeFileName;
 param=readMetaData2Stitchit(mosaicFile);
 config=readStitchItINI;
 

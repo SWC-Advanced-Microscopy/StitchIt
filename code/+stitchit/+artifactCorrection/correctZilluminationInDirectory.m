@@ -121,7 +121,7 @@ maxWorkers = G.NumWorkers;
 
 if strcmp(im.Compression,'Uncompressed') 
     fSize=im.FileSize/1024^3; %Gigs per image
-    params=readMetaData2Stitchit(getTiledAcquisitionParamFile);
+    params=readMetaData2Stitchit(getRecipeFileName);
     RAMperSection = params.mosaic.numOpticalPlanes * fSize * 3.1; %Rough empirical estimate of RAM requried 
     freeGigs = freemem * 0.85; %Because we don't want to use it all
     nWorkers=floor(freeGigs/RAMperSection);

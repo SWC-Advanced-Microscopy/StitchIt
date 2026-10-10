@@ -73,7 +73,7 @@ if ~exist(userConfig.subdir.rawDataDir,'dir')
 end
 
 
-paramFile=getTiledAcquisitionParamFile;
+paramFile=getRecipeFileName;
 [data,successfulRead]=readMetaData2Stitchit(paramFile);
 if ~successfulRead
     fprintf('failed to read all tiles from %s\n',paramFile)

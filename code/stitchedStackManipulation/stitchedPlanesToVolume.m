@@ -79,7 +79,7 @@ end
 
 
 %Create file name
-paramFile=getTiledAcquisitionParamFile;
+paramFile=getRecipeFileName;
 if startsWith(paramFile, 'recipe')
     % We have BakingTray Data
     stackFname = strcat(paramFile(8:end-4));

@@ -36,7 +36,7 @@ function varargout=peekSection(section,channel,resize,verbose)
 
 
 
-mosaicFile=getTiledAcquisitionParamFile;
+mosaicFile=getRecipeFileName;
 param=readMetaData2Stitchit(mosaicFile);
 userConfig=readStitchItINI;
 

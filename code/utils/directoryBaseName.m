@@ -27,10 +27,10 @@ function baseName=directoryBaseName(parameterFile)
 %
 % Rob Campbell - Basel 2014
 % 
-% Also see: getTiledAcquisitionParamFile
+% Also see: getRecipeFileName
 
 if nargin<1
-    parameterFile=getTiledAcquisitionParamFile;
+    parameterFile=getRecipeFileName;
 end
 
 

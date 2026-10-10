@@ -220,7 +220,7 @@ function rawOffset = rawPerSectionOffset(tileStats, userConfig)
     %   rawOffset.values   - the raw (unsmoothed) offset for that section
 
     % Canonical, ordered list of section directories (same glob as loadAllTileStatsFiles)
-    baseName = directoryBaseName(getTiledAcquisitionParamFile);
+    baseName = directoryBaseName(getRecipeFileName);
     D = dir(fullfile(userConfig.subdir.rawDataDir,[baseName,'*']));
     sectionDirs = {D.name};
 

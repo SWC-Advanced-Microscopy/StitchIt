@@ -49,7 +49,7 @@ function binRawData(sectionsToProcess, targetDir, binSize, binType, ...
     
     % Load ini file variables and parameters
     userConfig=readStitchItINI;
-    paramFile = getTiledAcquisitionParamFile;
+    paramFile = getRecipeFileName;
     param = readMetaData2Stitchit(paramFile);
     baseName = directoryBaseName(paramFile);
 

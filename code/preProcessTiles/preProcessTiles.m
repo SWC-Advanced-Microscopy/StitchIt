@@ -134,7 +134,7 @@ userConfig=readStitchItINI;
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 %Find the raw directories we will descend into. 
-paramFile=getTiledAcquisitionParamFile;
+paramFile=getRecipeFileName;
 param=readMetaData2Stitchit(paramFile);
 baseName=directoryBaseName(paramFile);
 

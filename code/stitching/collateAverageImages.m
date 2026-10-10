@@ -53,7 +53,7 @@ end
 
 
 % Find the section directory names
-baseName=directoryBaseName(getTiledAcquisitionParamFile);
+baseName=directoryBaseName(getRecipeFileName);
 sectionDirs=dir([userConfig.subdir.rawDataDir,filesep,baseName,'*']);
 
 % Bail out if no section directories were found

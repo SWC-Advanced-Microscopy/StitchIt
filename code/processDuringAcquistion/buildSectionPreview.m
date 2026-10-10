@@ -216,7 +216,7 @@ system(sprintf('echo ''%s'' > %s',indexDetails,[userConfig.subdir.WEBdir,filesep
 
 %We also make a machine-readable text file with all the information on the current sample
 %(Mosaic file) plus current progress
-fidM = fopen(getTiledAcquisitionParamFile,'r');
+fidM = fopen(getRecipeFileName,'r');
 contents = char(fread(fidM))';
 fclose(fidM);
 

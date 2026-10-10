@@ -55,7 +55,7 @@ function [out,sucessfulRead,rawOut]=readMetaData2Stitchit(fname,verbose)
 
 %Input argument error checking
 if nargin<1
-    fname=getTiledAcquisitionParamFile;
+    fname=getRecipeFileName;
 end
 
 if ~exist(fname,'file')

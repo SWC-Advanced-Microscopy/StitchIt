@@ -34,7 +34,7 @@ end
 
 
 if nargin<2
-    param=readMetaData2Stitchit(getTiledAcquisitionParamFile); 
+    param=readMetaData2Stitchit(getRecipeFileName); 
 end
 
 %Error check

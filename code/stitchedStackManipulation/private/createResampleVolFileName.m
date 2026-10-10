@@ -17,7 +17,7 @@ function downsampledFname = createResampleVolFileName(channel,targetDims)
 
 
 
-    paramFile=getTiledAcquisitionParamFile;
+    paramFile=getRecipeFileName;
     if startsWith(paramFile, 'recipe')
           % We have BakingTray Data
           downsampledFname = strcat('ds_', paramFile(8:end-4));
