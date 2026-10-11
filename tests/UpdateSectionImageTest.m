@@ -465,8 +465,6 @@ classdef UpdateSectionImageTest < matlab.unittest.TestCase
             tc.verifyFailedWarning();
             tc.verifyEmpty(tc.Calls);
         end
-            tc.verifyEmpty(tc.Calls);
-        end
 
         function badImageIsNonFatal(tc)
             tc.callCapturing(@() webupload.updateSectionImage(uint8(1), tc.PathArgs{:}, tc.BaseArgs{:}));

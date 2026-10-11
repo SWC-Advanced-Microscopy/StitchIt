@@ -149,8 +149,8 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyTrue(contains(txt, 'connect-timeout = 3'));
             tc.verifyTrue(contains(txt, 'max-time = 9'));
             [~, attr] = fileattrib(cfgFile);
-            tc.verifyEqual([attr.GroupRead attr.GroupWrite attr.UserRead attr.UserWrite ...
-                attr.OtherRead attr.OtherWrite], [0 0 1 1 0 0]);
+            tc.verifyEqual(double([attr.GroupRead attr.GroupWrite attr.UserRead attr.UserWrite ...
+                attr.OtherRead attr.OtherWrite]), [0 0 1 1 0 0]);
             delete(cfgFile);
         end
 
@@ -189,8 +189,8 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
 
         % ---- zipAndPost: who owns the zip
         function zipAndPostLeavesZipToTheLaunchedCommand(tc)
-            tc.writeFile(fullfile(tc.Dir, 'a.txt'));
-            res = webupload.zipAndPost(tc.Dir, tc.makeCfg(), 'mic_1', 'acq', ...
+            folder = tc.makeStageFolder();
+            res = webupload.zipAndPost(folder, tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
             tc.verifyTrue(res.ok);
             [~, zipPath] = tc.launchedPaths();
@@ -200,9 +200,9 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function zipAndPostDeletesZipWhenLaunchFails(tc)
-            tc.writeFile(fullfile(tc.Dir, 'a.txt'));
+            folder = tc.makeStageFolder();
             tc.LaunchStatus = 1;
-            res = webupload.zipAndPost(tc.Dir, tc.makeCfg(), 'mic_1', 'acq', ...
+            res = webupload.zipAndPost(folder, tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
             tc.verifyFalse(res.ok);
             [~, zipPath] = tc.launchedPaths();
@@ -223,9 +223,9 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyTrue(BackgroundUploadTest.waitFor(@() isfile(portFile)), 'listener did not start');
             port = strtrim(fileread(portFile));
 
-            tc.writeFile(fullfile(tc.Dir, 'a.txt'));
+            folder = tc.makeStageFolder();
             cfg = tc.makeCfg('url', ['http://127.0.0.1:' port '/upload.php']);
-            res = webupload.zipAndPost(tc.Dir, cfg, 'mic_1', 'acq', 'Background', true, ...
+            res = webupload.zipAndPost(folder, cfg, 'mic_1', 'acq', 'Background', true, ...
                 'Launcher', @tc.realLauncher);
             tc.verifyTrue(res.ok);
             tc.verifyTrue(res.background);
@@ -255,10 +255,10 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         function realCurlFailureStillRemovesZipAndConfig(tc)
             tc.assumeTrue(isunix, 'needs a unix shell');
             tc.assumeTrue(system('command -v curl >/dev/null 2>&1') == 0, 'curl not installed');
-            tc.writeFile(fullfile(tc.Dir, 'a.txt'));
+            folder = tc.makeStageFolder();
             % Port 1 on localhost refuses the connection at once
             cfg = tc.makeCfg('url', 'http://127.0.0.1:1/upload.php');
-            res = webupload.zipAndPost(tc.Dir, cfg, 'mic_1', 'acq', 'Background', true, ...
+            res = webupload.zipAndPost(folder, cfg, 'mic_1', 'acq', 'Background', true, ...
                 'Launcher', @tc.realLauncher);
             tc.verifyTrue(res.ok, 'a failed upload is invisible by design');
             [cfgPath, zipPath] = tc.launchedPaths();
@@ -330,6 +330,14 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
 
         function writeFile(~, path)
             fid = fopen(path, 'w'); fwrite(fid, 'x'); fclose(fid);
+        end
+
+        function folder = makeStageFolder(tc)
+            % A folder holding the two files the server requires
+            folder = fullfile(tc.Dir, 'stage');
+            mkdir(folder);
+            tc.writeFile(fullfile(folder, 'status.json'));
+            tc.writeFile(fullfile(folder, 'recipe.yml'));
         end
 
         function zipPath = makeZip(tc)
