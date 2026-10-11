@@ -112,6 +112,7 @@ Anything else makes the call fail. The microscope ID is `SYSTEM.ID` of the recip
 | `Montage` | image to send as `montage.jpg`, as for `img` (array or jpg path). Only with `Source` `'analysis'`: with `'acq'` the call fails and sends nothing |
 | `Finished` | `true` writes `{"finished": true}` into `status.json` (default `false`). Only a Finished call is retried, once, after a 429, waiting this client's copy of the server's minimum upload interval (`serverLimits().minUploadIntervalSec`, 5 s) plus 1 s, with the same timeouts. A site that raises the interval on the server will answer the retry with another 429, and the Finished flag is lost (`ok` false, with the usual warning) |
 | `ConnectTimeout`, `ResponseTimeout`, `DataTimeout` | seconds, for this call only (see `postZip`; whether `ResponseTimeout` and `DataTimeout` cover the upload transfer itself is unverified) |
+| `Background` | `true` starts the upload in a detached `curl` process and returns at once (see "Background uploads" below); default `false` |
 | `ClearStage` | `true` empties the stage folder first; default `false` |
 | `StageRoot` | parent of the stage folder; default `tempdir`; text options may be strings, paths are returned as char |
 | `Poster` | function handle `poster(folder, cfg, micID, source, ...)` returning `struct(ok, httpStatus, message)`; default `@webupload.zipAndPost`; for tests |
@@ -191,6 +192,33 @@ the server defaults): at most 500 files and a 200 MB zip. If the server's PHP
 rather than 413. `interpretResponse` turns the HTTP status and body into the
 result structure.
 
+## Background uploads
+
+By default an upload blocks until the server answers, which on an acquisition PC adds
+up over hundreds of sections. `'Background', true` (accepted by `updateSectionImage`,
+`zipAndPost` and `postZip`) hands the upload to a detached `curl` and returns at
+once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
+
+- `postZip` checks the arguments as usual, writes a curl config file (`-K`) in
+  `tempdir` holding the url, the `Authorization: Bearer` header, the form fields
+  (`site_id`, `microscope_id`, `source`, `data`) and the timeouts (`--connect-timeout`
+  from `ConnectTimeout`, `--max-time` from `ResponseTimeout`), and starts curl.
+  The request is the same as the in-process one, with a Content-Length.
+- The token is in the config file, not on the command line, so it does not show in
+  `ps` or Task Manager. On unix the file is `chmod 600`. The launched command
+  (`webupload.backgroundCommand`) deletes the config file and the zip when curl exits,
+  whether or not the upload worked. `zipAndPost` therefore does not delete its zip after
+  a successful launch (it does if the launch failed).
+- Result: `ok = true`, `httpStatus = NaN`, `background = true`, message `Upload started
+  in background; outcome not checked`. `ok` means only that curl was started; **a
+  failed upload is never seen**. `ok = false` (with the reason) if curl is missing, the
+  config file cannot be written or the launch command fails. Without `'Background'`,
+  results have `background = false`.
+- A `Finished` call is not retried after a 429 in this mode, since there is no reply.
+- Redirects are not followed (curl's default), as for the in-process upload.
+- The in-process path is unchanged. The Windows command has been tested only as a
+  string; it needs a live check on a Windows rig.
+
 ## Windows notes
 
 Only built-in MATLAB is used. Paths are built with `fullfile`. MATLAB does not
@@ -208,7 +236,10 @@ From the repo root:
 ```
 
 (use your own MATLAB path). The tests add the packages to the path themselves. They
-need no real server (one test posts to a refused `127.0.0.1` port). Two tests
+need no real server (one test posts to a refused `127.0.0.1` port). The end-to-end
+background test starts `curl` against a throwaway local listener
+(`tests/background_listener.py`) and is skipped where there is no unix shell, `curl`
+or `python3`. Two tests
 wait about 6 s each: the two 429 retry tests of a Finished call.
 
 Nothing in this module has been run against a live brainsaw server. Treat the
