@@ -123,7 +123,8 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
         params.addParameter('ConnectTimeout', cfg.connectTimeout, webupload.webConfig.isSeconds)
         params.addParameter('ResponseTimeout', cfg.responseTimeout, webupload.webConfig.isSeconds)
         params.addParameter('DataTimeout', cfg.dataTimeout, webupload.webConfig.isSeconds)
-        params.addParameter('Background', false, @(x) isscalar(x) && (islogical(x) || (isnumeric(x) && isreal(x) && ~isnan(x))))
+        isLogicalScalar = @(x) isscalar(x) && (islogical(x) || (isnumeric(x) && isreal(x) && ~isnan(x)));
+        params.addParameter('Background', false, isLogicalScalar)
         params.addParameter('IsPC', ispc, @(x) isscalar(x) && islogical(x))
         params.addParameter('Launcher', @system, @(x) isa(x, 'function_handle') && isscalar(x))
         params.parse(varargin{:});
@@ -197,7 +198,8 @@ function result = startBackgroundUpload(cfg, micID, source, zipPath, settings)
     launcher = settings.Launcher;
 
     if launcher(checkCurl) ~= 0
-        error('webupload:noCurl', 'curl was not found, so the upload cannot be run in the background.');
+        error('webupload:noCurl', ...
+            'curl was not found, so the upload cannot be run in the background.');
     end
 
     text = webupload.curlConfigText(cfg, micID, source, zipPath, ...
@@ -238,23 +240,26 @@ function writePrivateFile(path, text)
     if isunix
         [status, msg] = system(['umask 077; : > ', shellQuote(path)]);
         if status ~= 0
-            error('webupload:configNotWritten', 'Could not create the curl config file in %s: %s', ...
-                tempdir, msg);
+            error('webupload:configNotWritten', ...
+                'Could not create the curl config file in %s: %s', tempdir, msg);
         end
         [~, attr] = fileattrib(path);
         if any([attr.GroupRead attr.GroupWrite attr.OtherRead attr.OtherWrite])
-            error('webupload:configNotWritten', 'The curl config file is not private; not using it.');
+            error('webupload:configNotWritten', ...
+                'The curl config file is not private; not using it.');
         end
     end
     fid = fopen(path, 'w', 'n', 'UTF-8'); % an existing file keeps its permissions
     if fid < 0
-        error('webupload:configNotWritten', 'Could not write the curl config file in %s.', tempdir);
+        error('webupload:configNotWritten', ...
+            'Could not write the curl config file in %s.', tempdir);
     end
     % A truncated config could lose max-time, so a short write or failed close is an error
     nWritten = fprintf(fid, '%s', text);
     closeStatus = fclose(fid);
     if nWritten ~= numel(unicode2native(text, 'UTF-8')) || closeStatus ~= 0
-        error('webupload:configNotWritten', 'The curl config file was not written completely.');
+        error('webupload:configNotWritten', ...
+            'The curl config file was not written completely.');
     end
 end % writePrivateFile
 

@@ -23,7 +23,8 @@ function text = curlConfigText(cfg, micID, source, zipPath, connectTimeout, maxT
     % twice: once for curl's form parser, which treats the quoted file name specially, and
     % once for the config file. Control characters in any value are refused
     % (webupload:badConfigValue, naming the field but not showing it, since it may be the
-    % token), because they would end the config line. The text fields use form-string, so an @ or < in a value is
+    % token), because they would end the config line. The text fields use form-string, so an
+    % @ or < in a value is
     % never read as a file reference.
     %
     % Inputs
@@ -43,7 +44,8 @@ function text = curlConfigText(cfg, micID, source, zipPath, connectTimeout, maxT
     authValue = char(cfg.authHeader().Value);
     zipPath = char(zipPath);
     values = {url, authValue, siteID, micID, source, zipPath, nullDevice};
-    names = {'url', 'authorization header', 'site ID', 'microscope ID', 'source', 'zip path', 'null device'};
+    names = {'url', 'authorization header', 'site ID', 'microscope ID', 'source', ...
+             'zip path', 'null device'};
     for ii = 1:numel(values)
         if any(values{ii} < 32)
             error('webupload:badConfigValue', 'The %s contains a control character.', names{ii});
@@ -57,7 +59,8 @@ function text = curlConfigText(cfg, micID, source, zipPath, connectTimeout, maxT
         error('webupload:badConfigValue', 'The url must be https (http only for localhost).');
     end
 
-    formFile = ['data=@"', backslashEscape(zipPath), '";type=application/zip;filename=system_data.zip'];
+    formFile = ['data=@"', backslashEscape(zipPath), ...
+                '";type=application/zip;filename=system_data.zip'];
     lines = { ...
         ['url = ', configQuote(url)]
         ['header = ', configQuote(['Authorization: ', authValue])]

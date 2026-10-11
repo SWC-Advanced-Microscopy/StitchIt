@@ -5,8 +5,8 @@ StitchIt (source `analysis`): loads and validates the config file, stages the
 preview files in a clean folder under the names the server keeps, writes
 `status.json`, zips the folder, and uploads the zip to the brainsaw server,
 using only built-in MATLAB (`imwrite`, `zip`, `matlab.net.http`), so it works
-on Windows and Mac with no external tools (the optional background upload needs `curl`). It knows nothing about BakingTray or
-StitchIt: each calls `webupload.updateSectionImage` (below). Example call sites
+on Windows and Mac with no external tools (the optional background upload needs
+`curl`). It knows nothing about BakingTray or StitchIt: each calls `webupload.updateSectionImage` (below). Example call sites
 for BakingTray are in `BakingTray/README.md`.
 
 Requires MATLAB R2019b or later (the oldest release BakingTray supports):
@@ -210,14 +210,16 @@ once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
   curl is started with `-q` so a `~/.curlrc` cannot change the request.
 - The token is in the config file, not on the command line, so it does not show in
   `ps` or Task Manager. On unix the file is created under `umask 077`, so it is never
-  readable by others, and it is deleted if the launch fails or is interrupted. The launched command
-  (`webupload.backgroundCommand`) deletes the config file and the zip when curl exits,
+  readable by others, and it is deleted if the launch fails or is interrupted. The
+  launched command (`webupload.backgroundCommand`) deletes the config file and the zip when curl exits,
   whether or not the upload worked. `zipAndPost` therefore does not delete its zip after
   a successful launch (it does if the launch failed).
 - Best effort: success means the launch command returned success, not that curl
-  ran. The unix command assumes a POSIX shell (as MATLAB's `system` uses); the Windows
-  command is a `start /B cmd /c` line with its input and output redirected so MATLAB
-  does not wait for curl, and paths containing any of `% " & | < > ^ ( )` are refused.
+  ran. On unix both the curl check and the launch run as `/bin/sh -c '...'`, because
+  MATLAB's `system` uses `$MATLAB_SHELL` or `$SHELL`, which may be csh or tcsh. The
+  Windows command is a `start /B cmd /c` line with its input and output redirected,
+  which is expected to let `system` return at once but has not been checked on Windows.
+  Paths containing any of `% " & | < > ^ ( ) !` are refused.
 - Result: `ok = true`, `httpStatus = NaN`, `background = true`, message `Upload started
   in background; outcome not checked`. `ok` means only that curl was started; **a
   failed upload is never seen**. `ok = false` (with the reason) if curl is missing, the
@@ -226,11 +228,21 @@ once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
 - A `Finished` call is not retried after a 429 in this mode, since there is no reply.
 - Redirects are not followed (curl's default), as for the in-process upload.
 - The in-process path is unchanged. The Windows command has been tested only as a
-  string; it needs a live check on a Windows rig.
+  string; it needs a live check on a Windows rig. Check that the call does not wait:
+
+  ```matlab
+  tic; webupload.zipAndPost(folder, cfg, micID, 'acq', 'Background', true); toc
+  ```
+
+  should take well under a second, even with a `url` that does not answer. If it
+  waits for curl, start curl from MATLAB instead of `system`, for example with
+  `java.lang.ProcessBuilder` (`start()` returns without waiting), using the same
+  `curl.exe -q -K <config>` arguments and the same deletion of the files afterwards.
 
 ## Windows notes
 
-Only built-in MATLAB is used, except for the optional `'Background'` upload, which needs `curl.exe`. Paths are built with `fullfile`. MATLAB does not
+The in-process upload uses only built-in MATLAB; the optional `'Background'` upload
+also needs `curl.exe`. Paths are built with `fullfile`. MATLAB does not
 expand `%VAR%` in paths: use `getenv('USERPROFILE')` when you need the home
 folder. The stage folder is under `tempdir` (normally the user's `Temp`).
 Antivirus or a file held open elsewhere can make a rename fail; that is a
