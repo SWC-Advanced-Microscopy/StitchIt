@@ -115,25 +115,21 @@ COMPLETED_FNAME=FINISHED
 SAMPLE_DIR=$(echo "$SERVER_DIR" | awk -F "/" '{print $NF}')
 echo "Sample directory = $SAMPLE_DIR"
 
-# scratch/ directories are never copied, so a sample directory with that name would sync nothing
-if [ "$SAMPLE_DIR" = "scratch" ]
-then
-  echo "The sample directory is named 'scratch', which is excluded from syncing. Rename it."
-  exit 1
-fi
-
 FULL_PATH_TO_COMPLETED_FILE="$LANDING_DIR/$SAMPLE_DIR/$COMPLETED_FNAME"
 
 
 
 echo "Running rsync until I see $FULL_PATH_TO_COMPLETED_FILE"
-echo "RUNNING --> rsync $RSYNC_FLAG --exclude='scratch/' $SERVER_DIR $LANDING_DIR <--"
+
+# A directory named scratch holds files that must stay on the acquisition machine. The include
+# comes first so a sample directory that is itself called scratch (the top of the transfer) is
+# still synced; any nested scratch/ is excluded. $RSYNC_FLAG is deliberately word-split.
+RSYNC_ARGS=($RSYNC_FLAG --include='/scratch/' --exclude='scratch/' "$SERVER_DIR" "$LANDING_DIR")
+echo "RUNNING --> rsync $(printf '%q ' "${RSYNC_ARGS[@]}")<--"
 
 while [ ! -f "$FULL_PATH_TO_COMPLETED_FILE" ]
 do
-  # Run the rsync
-  # A directory named scratch holds files that must stay on the acquisition machine
-  rsync $RSYNC_FLAG --exclude='scratch/' "$SERVER_DIR" "$LANDING_DIR"
+  rsync "${RSYNC_ARGS[@]}"
   sleep 5
 done
 

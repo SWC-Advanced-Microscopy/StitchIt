@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks that the syncAndCrunch rsync calls skip directories named "scratch" (at any depth)
-# but still copy files merely named like it. Uses a synthetic tree in a temp dir whose path
+# but still copy files merely named like it. Uses synthetic trees in a temp dir whose path
 # contains a space. Run with: bash tests/test_rsync_ignores_scratch.sh
 set -u
 REPO=$(cd "$(dirname "$0")/.." && pwd)
@@ -22,48 +22,68 @@ make_tree() { # make_tree <sample dir>: scratch folders at several depths plus n
 }
 
 no_scratch_dirs() { [ ! -e "$1/scratch" ] && [ ! -e "$1/a/scratch" ]; }
-keeps_files() { [ -f "$1/scratchfile.txt" ] && [ -f "$1/normal.txt" ]; }
+keeps_files() { [ -f "$1/scratchfile.txt" ] && [ -f "$1/normal.txt" ] && [ -f "$1/rawData/tile.txt" ]; }
+
+# Runs syncer.sh once with output in $LOG. It gets its own process group and is killed
+# as a group after 30 s, so a stuck loop fails the test and leaves no sleep/rsync orphans.
+SYNCER_TIMEOUT=30
+run_syncer() { # run_syncer <server dir> <landing dir>
+    set -m
+    bash "$SYNCER" -r -a -s "$1" -l "$2" >"$LOG" 2>&1 &
+    local pid=$!
+    set +m
+    local i
+    for ((i = 0; i < SYNCER_TIMEOUT; i++)); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+    if kill -0 "$pid" 2>/dev/null; then
+        kill -- "-$pid"
+        echo "FAIL - syncer.sh did not finish in $SYNCER_TIMEOUT s"; FAILS=$((FAILS+1))
+    fi
+    wait "$pid" 2>/dev/null
+}
 
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/scratch test.XXXXXX") || exit 1
 trap 'rm -rf "$WORK"' EXIT
+WORK=$(cd "$WORK" && pwd)  # no doubled slashes (a trailing-slash TMPDIR gives them); syncer.sh collapses them in its log
+LOG="$WORK/syncer.log"
 
 make_tree "$WORK/server dir/sample"
 SRC="$WORK/server dir/sample/"
 
-# 1. The real syncer.sh pulls the sample dir into the landing dir
+echo "== 1. syncer.sh with a normal sample dir"
 mkdir -p "$WORK/land dir"
-LOG="$WORK/syncer.log"
-# Background + kill so a syncer.sh that never sees FINISHED fails the test instead of hanging it
-bash "$SYNCER" -r -a -s "$WORK/server dir/sample" -l "$WORK/land dir" >"$LOG" 2>&1 &
-SPID=$!
-for _ in $(seq 1 30); do kill -0 "$SPID" 2>/dev/null || break; sleep 1; done
-if kill -0 "$SPID" 2>/dev/null; then kill "$SPID"; echo "FAIL - syncer.sh did not finish in 30 s"; FAILS=$((FAILS+1)); fi
-wait "$SPID" 2>/dev/null
+run_syncer "$WORK/server dir/sample" "$WORK/land dir"
 D="$WORK/land dir/sample"
-check "syncer.sh logs the exclude it runs" grep -q -e "RUNNING --> rsync -a --exclude='scratch/'" "$LOG"
+check "does not copy scratch dirs" no_scratch_dirs "$D"
+check "copies scratchfile.txt, normal files and tiles" keeps_files "$D"
+EXPECTED_LOG="RUNNING --> rsync -a --include=/scratch/ --exclude=scratch/ $(printf '%q %q' "$WORK/server dir/sample" "$WORK/land dir") <--"
+check "logs the exact, pasteable rsync command" grep -qF -e "$EXPECTED_LOG" "$LOG"
 
-# A sample directory named scratch must be refused, not silently synced as nothing
-mkdir -p "$WORK/server2/scratch"
-check "syncer.sh refuses a sample dir named scratch" bash -c '! bash "$0" -r -a -s "$1" -l "$2" >/dev/null 2>&1' "$SYNCER" "$WORK/server2/scratch" "$WORK/land dir"
-check "syncer.sh does not copy scratch dirs" no_scratch_dirs "$D"
-check "syncer.sh copies scratchfile.txt and normal files" keeps_files "$D"
-check "syncer.sh copies tiles" test -f "$D/rawData/tile.txt"
+echo "== 2. syncer.sh with a sample dir that is itself named scratch"
+make_tree "$WORK/server dir/scratch"
+run_syncer "$WORK/server dir/scratch" "$WORK/land dir"
+D="$WORK/land dir/scratch"
+check "syncs the sample dir" keeps_files "$D"
+check "does not copy its nested scratch dirs" no_scratch_dirs "$D"
 
-# 2. The two rsync commands in syncAndCrunch.m. The arguments are checked in the source and
-# then run in the form unix() would hand them to the shell (single-quoted paths).
+echo "== 3. syncer.sh leaves no orphan processes"
+check "no syncer.sh left running for this test" test -z "$(pgrep -f "syncer.sh -r -a -s $WORK" || true)"
+
+echo "== 4. syncAndCrunch.m rsync commands"
+# The arguments are checked in the source, then run in the form unix() hands them to the
+# shell (single-quoted paths).
 pull_m_commands() { grep -E "rsync (-r --exclude|%s)" "$MFILE"; }
-check "syncAndCrunch.m has exactly two rsync commands" test "$(pull_m_commands | wc -l)" -eq 2
-check "both syncAndCrunch.m rsync commands exclude scratch/" test "$(pull_m_commands | grep -c -e "--exclude=''scratch/''")" -eq 2
+check "exactly two rsync commands" test "$(pull_m_commands | wc -l)" -eq 2
+check "both exclude scratch/" test "$(pull_m_commands | grep -c -e "--exclude=''scratch/''")" -eq 2
 
 DST="$WORK/exp dir"; mkdir -p "$DST"
 eval "rsync -r --exclude=\"/*/\" --exclude='scratch/' '$SRC' '$DST'"
 check "initial rsync does not copy scratch dirs" no_scratch_dirs "$DST"
-check "initial rsync copies top-level files only" keeps_files "$DST"
+check "initial rsync copies top-level files" test -f "$DST/scratchfile.txt" -a -f "$DST/normal.txt"
 check "initial rsync copies no directories" test ! -e "$DST/rawData"
 
 DST2="$WORK/raw dir"; mkdir -p "$DST2"
 eval "rsync -a --exclude='scratch/' '$SRC' '$DST2'"
 check "first-batch rsync does not copy scratch dirs" no_scratch_dirs "$DST2"
-check "first-batch rsync copies scratchfile.txt and normal files" keeps_files "$DST2"
+check "first-batch rsync copies scratchfile.txt, normal files and tiles" keeps_files "$DST2"
 
 [ "$FAILS" -eq 0 ] && echo "All passed" || { echo "$FAILS failed"; exit 1; }
