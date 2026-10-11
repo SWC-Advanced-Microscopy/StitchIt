@@ -90,11 +90,11 @@ fi
 
 
 #Clean up directory strings: set any multiple slashes to one and remove trailing slash
-LANDING_DIR=$(echo $LANDING_DIR | tr -s /); LANDING_DIR=${LANDING_DIR%/}
-SERVER_DIR=$(echo $SERVER_DIR | tr -s /); SERVER_DIR=${SERVER_DIR%/}
+LANDING_DIR=$(echo "$LANDING_DIR" | tr -s /); LANDING_DIR=${LANDING_DIR%/}
+SERVER_DIR=$(echo "$SERVER_DIR" | tr -s /); SERVER_DIR=${SERVER_DIR%/}
 
 #Bail out if the server directory does not exist
-if [ ! -d $SERVER_DIR ]
+if [ ! -d "$SERVER_DIR" ]
 then
   echo "The server directory $SERVER_DIR does not exist"
   exit 1
@@ -112,7 +112,7 @@ echo "rsync flag       = $RSYNC_FLAG"
 COMPLETED_FNAME=FINISHED
 
 #The sample directory name is extracted from the server path
-SAMPLE_DIR=$(echo $SERVER_DIR | awk -F "/" '{print $NF}')
+SAMPLE_DIR=$(echo "$SERVER_DIR" | awk -F "/" '{print $NF}')
 echo "Sample directory = $SAMPLE_DIR"
 
 FULL_PATH_TO_COMPLETED_FILE="$LANDING_DIR/$SAMPLE_DIR/$COMPLETED_FNAME"
@@ -120,12 +120,16 @@ FULL_PATH_TO_COMPLETED_FILE="$LANDING_DIR/$SAMPLE_DIR/$COMPLETED_FNAME"
 
 
 echo "Running rsync until I see $FULL_PATH_TO_COMPLETED_FILE"
-echo "RUNNING --> rsync $RSYNC_FLAG $SERVER_DIR $LANDING_DIR <--"
 
-while [ ! -f $FULL_PATH_TO_COMPLETED_FILE ]
+# A directory named scratch holds files that must stay on the acquisition machine. The include
+# comes first so a sample directory that is itself called scratch (the top of the transfer) is
+# still synced; any nested scratch/ is excluded. $RSYNC_FLAG is deliberately word-split.
+RSYNC_ARGS=($RSYNC_FLAG --include='/scratch/' --exclude='scratch/' "$SERVER_DIR" "$LANDING_DIR")
+echo "RUNNING --> rsync $(printf '%q ' "${RSYNC_ARGS[@]}")<--"
+
+while [ ! -f "$FULL_PATH_TO_COMPLETED_FILE" ]
 do
-  # Run the rsync
-  rsync $RSYNC_FLAG $SERVER_DIR $LANDING_DIR
+  rsync "${RSYNC_ARGS[@]}"
   sleep 5
 done
 
