@@ -115,12 +115,19 @@ COMPLETED_FNAME=FINISHED
 SAMPLE_DIR=$(echo "$SERVER_DIR" | awk -F "/" '{print $NF}')
 echo "Sample directory = $SAMPLE_DIR"
 
+# scratch/ directories are never copied, so a sample directory with that name would sync nothing
+if [ "$SAMPLE_DIR" = "scratch" ]
+then
+  echo "The sample directory is named 'scratch', which is excluded from syncing. Rename it."
+  exit 1
+fi
+
 FULL_PATH_TO_COMPLETED_FILE="$LANDING_DIR/$SAMPLE_DIR/$COMPLETED_FNAME"
 
 
 
 echo "Running rsync until I see $FULL_PATH_TO_COMPLETED_FILE"
-echo "RUNNING --> rsync $RSYNC_FLAG $SERVER_DIR $LANDING_DIR <--"
+echo "RUNNING --> rsync $RSYNC_FLAG --exclude='scratch/' $SERVER_DIR $LANDING_DIR <--"
 
 while [ ! -f "$FULL_PATH_TO_COMPLETED_FILE" ]
 do

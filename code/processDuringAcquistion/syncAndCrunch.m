@@ -230,6 +230,7 @@ end
 
 % Copy meta-data files and so forth but no experiment data yet.
 % We do this just to make the directory and ensure that all is working
+% scratch/ directories stay on the acquisition machine and are never copied.
 CMD=sprintf('rsync -r --exclude="/*/" --exclude=''scratch/'' ''%s%s'' ''%s''', serverDir,filesep,expDir);
 fprintf('Initial rsync with %s\n', CMD)
 exitStatus = unix(CMD); %copies everything not a directory
@@ -254,6 +255,7 @@ end
 msg=sprintf('STARTING syncAndCrunch!\nGetting first batch of data from server and copying to %s\n',rawDataDir);
 stitchit.tools.writeLineToLogFile(logFileName,msg);
 
+% scratch/ directories stay on the acquisition machine and are never copied.
 cmd=sprintf('rsync %s --exclude=''scratch/'' ''%s%s'' ''%s''',config.syncAndCrunch.rsyncFlag, serverDir, filesep, rawDataDir);
 msg = sprintf('Running:\n%s\n',cmd);
 stitchit.tools.writeLineToLogFile(logFileName,msg)

@@ -32,8 +32,19 @@ SRC="$WORK/server dir/sample/"
 
 # 1. The real syncer.sh pulls the sample dir into the landing dir
 mkdir -p "$WORK/land dir"
-bash "$SYNCER" -r -a -s "$WORK/server dir/sample" -l "$WORK/land dir" >/dev/null
+LOG="$WORK/syncer.log"
+# Background + kill so a syncer.sh that never sees FINISHED fails the test instead of hanging it
+bash "$SYNCER" -r -a -s "$WORK/server dir/sample" -l "$WORK/land dir" >"$LOG" 2>&1 &
+SPID=$!
+for _ in $(seq 1 30); do kill -0 "$SPID" 2>/dev/null || break; sleep 1; done
+if kill -0 "$SPID" 2>/dev/null; then kill "$SPID"; echo "FAIL - syncer.sh did not finish in 30 s"; FAILS=$((FAILS+1)); fi
+wait "$SPID" 2>/dev/null
 D="$WORK/land dir/sample"
+check "syncer.sh logs the exclude it runs" grep -q -e "RUNNING --> rsync -a --exclude='scratch/'" "$LOG"
+
+# A sample directory named scratch must be refused, not silently synced as nothing
+mkdir -p "$WORK/server2/scratch"
+check "syncer.sh refuses a sample dir named scratch" bash -c '! bash "$0" -r -a -s "$1" -l "$2" >/dev/null 2>&1' "$SYNCER" "$WORK/server2/scratch" "$WORK/land dir"
 check "syncer.sh does not copy scratch dirs" no_scratch_dirs "$D"
 check "syncer.sh copies scratchfile.txt and normal files" keeps_files "$D"
 check "syncer.sh copies tiles" test -f "$D/rawData/tile.txt"
