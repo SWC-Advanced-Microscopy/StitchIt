@@ -42,11 +42,13 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
     % whether or not the upload worked, so the caller must not delete the zip when
     % result.background is true (zipAndPost does this). The outcome of the upload is never
     % seen: result.ok = true means only that the launch command returned success, which is
-    % best effort: it shows the shell started, not that curl did. Failure to start (curl not
-    % installed, config file not writable, launch command failed) is ok = false, and the config
+    % best effort: it shows the shell started, not that curl did. Failure to start (config
+    % file not writable, launch command failed) is ok = false, and the config
     % file is removed, also if the call is interrupted with Ctrl-C before the launch. The
     % unix commands are run as /bin/sh -c '...', whatever shell MATLAB's system() uses.
-    % curl must be installed (on Windows, curl.exe from Windows 10 on). The Windows launch
+    % curl must be installed (on Windows, curl.exe from Windows 10 on); this is not checked,
+    % as a check on every call is slow. If curl is missing the upload is silently lost, so
+    % users must check for it once (see README.md). The Windows launch
     % (start /B with redirected input and output) is expected to let system() return at
     % once; that has not been checked on a Windows machine.
     %
@@ -172,8 +174,8 @@ function result = startBackgroundUpload(cfg, micID, source, zipPath, settings)
     % function result = webupload.postZip>startBackgroundUpload(cfg, micID, source, zipPath, settings)
     %
     % Purpose
-    % The 'Background' branch of postZip, run after the arguments have been checked. Checks
-    % that curl can be found, writes the config file, and runs the command from
+    % The 'Background' branch of postZip, run after the arguments have been checked. Writes
+    % the config file, and runs the command from
     % webupload.backgroundCommand. The config file holds the token, so a guard deletes it
     % if anything fails or the call is interrupted; the guard is disarmed as soon as the
     % launch has succeeded, when the launched command becomes responsible for it. Errors
@@ -182,25 +184,18 @@ function result = startBackgroundUpload(cfg, micID, source, zipPath, settings)
     %
     % Inputs
     % cfg, micID, source, zipPath - as for postZip, already validated.
-    % settings - postZip's parsed parameters: ConnectTimeout, ResponseTimeout and Launcher.
+    % settings - postZip's parsed parameters: ConnectTimeout, ResponseTimeout, IsPC and Launcher.
     %
     % Outputs
     % result - structure as returned by postZip, with ok and background true.
 
     isPC = settings.IsPC;
     if isPC
-        checkCurl = 'where curl.exe >NUL 2>&1';
         nullDevice = 'NUL';
     else
-        checkCurl = inBinSh('command -v curl >/dev/null 2>&1');
         nullDevice = '/dev/null';
     end
     launcher = settings.Launcher;
-
-    if launcher(checkCurl) ~= 0
-        error('webupload:noCurl', ...
-            'curl was not found, so the upload cannot be run in the background.');
-    end
 
     text = webupload.curlConfigText(cfg, micID, source, zipPath, ...
         settings.ConnectTimeout, settings.ResponseTimeout, nullDevice);

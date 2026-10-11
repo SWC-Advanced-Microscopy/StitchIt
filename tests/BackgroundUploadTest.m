@@ -10,7 +10,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         CfgDir
         Commands = {}      % every command the fake launcher was given
         LaunchStatus = 0   % status the fake launcher returns for the launch command
-        CurlStatus = 0     % status the fake launcher returns for the "is curl installed" check
     end
 
     properties (Constant)
@@ -32,7 +31,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.CfgDir = fx.Folder;
             tc.Commands = {};
             tc.LaunchStatus = 0;
-            tc.CurlStatus = 0;
         end
     end
 
@@ -128,7 +126,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyTrue(res.background);
             tc.verifyTrue(isnan(res.httpStatus));
             tc.verifyEqual(res.message, 'Upload started in background; outcome not checked');
-            tc.verifyNumElements(tc.Commands, 2, 'a curl check, then the launch');
+            tc.verifyNumElements(tc.Commands, 1, 'just the launch; curl is not checked');
             tc.verifyTrue(isfile(zipPath), 'postZip must leave the zip for the launched command');
             tc.deleteLaunchedConfig();
         end
@@ -156,16 +154,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyEqual(double([attr.GroupRead attr.GroupWrite attr.UserRead attr.UserWrite ...
                 attr.OtherRead attr.OtherWrite]), [0 0 1 1 0 0]);
             delete(cfgFile);
-        end
-
-        function missingCurlFailsWithoutLaunching(tc)
-            tc.CurlStatus = 1;
-            res = webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
-                'Background', true, 'Launcher', @tc.fakeLauncher);
-            tc.verifyFalse(res.ok);
-            tc.verifyFalse(res.background);
-            tc.verifyTrue(contains(res.message, 'curl'));
-            tc.verifyNumElements(tc.Commands, 1);
         end
 
         function failedLaunchFailsAndRemovesConfig(tc)
@@ -244,17 +232,15 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher, 'IsPC', false);
             tc.verifyTrue(all(startsWith(tc.Commands, '/bin/sh -c ''')));
-            tc.verifyTrue(contains(tc.Commands{1}, 'command -v curl'));
-            tc.verifyTrue(startsWith(BackgroundUploadTest.unwrapSh(tc.Commands{2}), '(curl -q -K '));
+            tc.verifyTrue(startsWith(BackgroundUploadTest.unwrapSh(tc.Commands{1}), '(curl -q -K '));
             tc.deleteLaunchedConfig();
         end
 
-        function windowsBranchChecksForCurlExeAndStartsDetached(tc)
+        function windowsBranchStartsCurlExeDetached(tc)
             webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher, 'IsPC', true);
-            tc.verifyTrue(startsWith(tc.Commands{1}, 'where curl.exe'));
-            tc.verifyTrue(startsWith(tc.Commands{2}, 'start "" /B cmd /c "curl.exe -q -K '));
-            tc.verifyFalse(contains(tc.Commands{2}, BackgroundUploadTest.Token));
+            tc.verifyTrue(startsWith(tc.Commands{1}, 'start "" /B cmd /c "curl.exe -q -K '));
+            tc.verifyFalse(contains(tc.Commands{1}, BackgroundUploadTest.Token));
             tc.deleteLaunchedConfig();
         end
 
@@ -417,11 +403,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         function [status, out] = fakeLauncher(tc, cmd)
             tc.Commands{end+1} = cmd;
             out = '';
-            if contains(cmd, 'command -v') || contains(cmd, 'where ')
-                status = tc.CurlStatus;
-            else
-                status = tc.LaunchStatus;
-            end
+            status = tc.LaunchStatus;
         end
 
         function [status, out] = realLauncher(tc, cmd)

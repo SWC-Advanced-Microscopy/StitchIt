@@ -197,7 +197,11 @@ result structure.
 By default an upload blocks until the server answers, which on an acquisition PC adds
 up over hundreds of sections. `'Background', true` (accepted by `updateSectionImage`,
 `zipAndPost` and `postZip`) hands the upload to a detached `curl` and returns at
-once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
+once. **Requires `curl` on the path (`curl.exe`, included from Windows 10). This is
+not checked at upload time (a check on every call is slow), and if curl is missing every
+background upload is lost silently.** Before using `'Background'` on a machine, check
+once from MATLAB: `system('curl --version')` on unix, `system('where curl.exe')` on
+Windows. Both must return status 0.
 
 - `postZip` checks the arguments as usual, writes a curl config file (`-K`) in
   `tempdir` holding the url, the `Authorization: Bearer` header, the form fields
@@ -215,14 +219,14 @@ once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
   whether or not the upload worked. `zipAndPost` therefore does not delete its zip after
   a successful launch (it does if the launch failed).
 - Best effort: success means the launch command returned success, not that curl
-  ran. On unix both the curl check and the launch run as `/bin/sh -c '...'`, because
+  ran. On unix the launch runs as `/bin/sh -c '...'`, because
   MATLAB's `system` uses `$MATLAB_SHELL` or `$SHELL`, which may be csh or tcsh. The
   Windows command is a `start /B cmd /c` line with its input and output redirected,
   which is expected to let `system` return at once but has not been checked on Windows.
   Paths containing any of `% " & | < > ^ ( ) !` are refused.
 - Result: `ok = true`, `httpStatus = NaN`, `background = true`, message `Upload started
   in background; outcome not checked`. `ok` means only that curl was started; **a
-  failed upload is never seen**. `ok = false` (with the reason) if curl is missing, the
+  failed upload is never seen**. `ok = false` (with the reason) if the
   config file cannot be written or the launch command fails. Without `'Background'`,
   results have `background = false`.
 - A `Finished` call is not retried after a 429 in this mode, since there is no reply.
