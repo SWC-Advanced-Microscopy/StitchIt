@@ -17,7 +17,8 @@ function result = zipAndPost(folder, cfg, micID, source, varargin)
     % With 'Background', true postZip starts a detached curl and returns at once. That curl is
     % still reading the zip after this function returns, so the zip is not deleted here: the
     % launched command deletes it (and the curl config) when curl exits. If the launch fails the
-    % zip is deleted here as usual.
+    % zip is deleted here as usual. The launch is best effort: success means the launch command
+    % returned success, not that curl ran (see postZip).
     %
     % Inputs
     % folder - path to the folder holding the preview files.
@@ -38,33 +39,18 @@ function result = zipAndPost(folder, cfg, micID, source, varargin)
     result = struct('ok', false, 'httpStatus', NaN, 'message', '', 'background', false);
     try
         zipPath = webupload.zipFolder(folder);
-        % A handle, so the cleanup (which also runs on Ctrl-C) can see whether the launched
-        % command has taken over the zip
-        handedOver = containers.Map('KeyType', 'char', 'ValueType', 'logical');
-        handedOver('yes') = false;
-        cleaner = onCleanup(@() deleteUnlessHandedOver(zipPath, handedOver)); %#ok<NASGU> runs on scope exit
+        % Deleted on scope exit, also on Ctrl-C, unless a launched background command has
+        % taken over the zip. The disarm follows postZip's return at once; an interrupt in
+        % that instant could still delete a zip curl is about to read, which only loses that upload.
+        guard = webupload.CleanupGuard(@() deleteQuietly(zipPath));
         result = webupload.postZip(zipPath, cfg, micID, source, varargin{:});
-        handedOver('yes') = isfield(result, 'background') && isequal(result.background, true);
+        if isfield(result, 'background') && isequal(result.background, true)
+            guard.disarm();
+        end
     catch err
         result.message = err.message;
     end
 end % zipAndPost
-
-
-function deleteUnlessHandedOver(path, handedOver)
-    % Delete the zip unless a background curl now owns it
-    %
-    % function webupload.zipAndPost>deleteUnlessHandedOver(path, handedOver)
-    %
-    % Inputs
-    % path       - Path of the temp zip.
-    % handedOver - containers.Map whose 'yes' entry is true once the launched command is
-    %              responsible for deleting the zip.
-
-    if ~handedOver('yes')
-        deleteQuietly(path);
-    end
-end % deleteUnlessHandedOver
 
 
 function deleteQuietly(path)

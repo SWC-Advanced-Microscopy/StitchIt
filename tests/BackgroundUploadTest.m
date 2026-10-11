@@ -41,7 +41,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         function unixCommandRunsCurlThenRemovesFiles(tc)
             cmd = webupload.backgroundCommand('/tmp/a b/c.curl', '/tmp/z.zip', false);
             tc.verifyEqual(cmd, ...
-                ['(curl -K ''/tmp/a b/c.curl''; rm -f ''/tmp/a b/c.curl'' ''/tmp/z.zip'') ', ...
+                ['(curl -q -K ''/tmp/a b/c.curl''; rm -f ''/tmp/a b/c.curl'' ''/tmp/z.zip'') ', ...
                  '> /dev/null 2>&1 &']);
         end
 
@@ -53,12 +53,13 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         function pcCommandStartsDetachedCmdAndDeletesFiles(tc)
             cmd = webupload.backgroundCommand('C:\Users\a b\c.curl', 'C:\Users\a b\z.zip', true);
             tc.verifyEqual(cmd, ...
-                ['start "" /B cmd /c "curl.exe -K "C:\Users\a b\c.curl" & ', ...
-                 'del /q "C:\Users\a b\c.curl" "C:\Users\a b\z.zip""']);
+                ['start "" /B cmd /c "curl.exe -q -K "C:\Users\a b\c.curl" & ', ...
+                 'del /q "C:\Users\a b\c.curl" "C:\Users\a b\z.zip"" <NUL >NUL 2>&1']);
         end
 
         function pcCommandRejectsCharactersCmdWouldReinterpret(tc)
-            for bad = {'C:\50%\c.curl', 'C:\a"b\c.curl'}
+            for bad = {'C:\50%\c.curl', 'C:\a"b\c.curl', 'C:\a&b\c.curl', 'C:\a|b\c.curl', ...
+                       'C:\a<b\c.curl', 'C:\a>b\c.curl', 'C:\a^b\c.curl', 'C:\a(b)\c.curl'}
                 tc.verifyError(@() webupload.backgroundCommand(bad{1}, 'C:\z.zip', true), ...
                     'webupload:badPath');
             end
@@ -75,6 +76,9 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
                 'form-string = "microscope_id=mic_1"'
                 'form-string = "source=acq"'
                 'form = "data=@\"/tmp/z.zip\";type=application/zip;filename=system_data.zip"'
+                'proto = "=https"'
+                'http1.1'
+                'header = "Expect:"'
                 'connect-timeout = 5'
                 'max-time = 20'
                 'output = "/dev/null"'
@@ -93,7 +97,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
 
         function configRejectsControlCharacters(tc)
             tc.verifyError(@() webupload.curlConfigText(tc.makeCfg(), 'mic_1', 'acq', ...
-                sprintf('/tmp/a\nb.zip'), 5, 20, '/dev/null'), 'webupload:badPath');
+                sprintf('/tmp/a\nb.zip'), 5, 20, '/dev/null'), 'webupload:badConfigValue');
         end
 
         % ---- postZip with an injected launcher
@@ -117,6 +121,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function backgroundLaunchesAndReturnsAtOnce(tc)
+            tc.assumeTrue(isunix, 'parses the unix command');
             zipPath = tc.makeZip();
             res = webupload.postZip(zipPath, tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
@@ -130,6 +135,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function tokenNeverOnACommandLine(tc)
+            tc.assumeTrue(isunix, 'parses the unix command');
             webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
             for ii = 1:numel(tc.Commands)
@@ -165,6 +171,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function failedLaunchFailsAndRemovesConfig(tc)
+            tc.assumeTrue(isunix, 'parses the unix command');
             tc.LaunchStatus = 127;
             res = webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
@@ -182,13 +189,33 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function backgroundMustBeLogicalScalar(tc)
-            res = webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', 'Background', 'yes');
+            res = webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
+                'Background', 'yes', 'Launcher', @tc.fakeLauncher);
             tc.verifyFalse(res.ok);
             tc.verifyEmpty(tc.Commands);
         end
 
+        function guardRunsItsTaskUnlessDisarmed(tc)
+            marker = fullfile(tc.Dir, 'ran.txt');
+            task = @() fclose(fopen(marker, 'w'));
+            g = webupload.CleanupGuard(task);
+            clear g
+            tc.verifyTrue(isfile(marker));
+            delete(marker);
+            g = webupload.CleanupGuard(task);
+            g.disarm();
+            clear g
+            tc.verifyFalse(isfile(marker));
+        end
+
+        function guardIgnoresAFailingTask(tc)
+            g = webupload.CleanupGuard(@() error('x:y', 'boom'));
+            tc.verifyWarningFree(@() delete(g));
+        end
+
         % ---- zipAndPost: who owns the zip
         function zipAndPostLeavesZipToTheLaunchedCommand(tc)
+            tc.assumeTrue(isunix, 'parses the unix command');
             folder = tc.makeStageFolder();
             res = webupload.zipAndPost(folder, tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
@@ -200,6 +227,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function zipAndPostDeletesZipWhenLaunchFails(tc)
+            tc.assumeTrue(isunix, 'parses the unix command');
             folder = tc.makeStageFolder();
             tc.LaunchStatus = 1;
             res = webupload.zipAndPost(folder, tc.makeCfg(), 'mic_1', 'acq', ...
@@ -207,6 +235,38 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyFalse(res.ok);
             [~, zipPath] = tc.launchedPaths();
             tc.verifyFalse(isfile(zipPath));
+        end
+
+        function stringZipPathGivesTheSameCommandAsCharPath(tc)
+            tc.assumeTrue(isunix, 'parses the unix command');
+            zipPath = tc.makeZip();
+            webupload.postZip(string(zipPath), tc.makeCfg(), 'mic_1', 'acq', ...
+                'Background', true, 'Launcher', @tc.fakeLauncher);
+            tc.verifyTrue(contains(tc.Commands{end}, ['''' zipPath '''']));
+            tc.verifyTrue(contains(fileread(tc.launchedConfigPath()), zipPath));
+            tc.deleteLaunchedConfig();
+        end
+
+        function backgroundReturnsBeforeASlowServerAnswers(tc)
+            tc.assumeTrue(isunix, 'needs a unix shell');
+            tc.assumeTrue(system('command -v curl >/dev/null 2>&1') == 0, 'curl not installed');
+            tc.assumeTrue(system('command -v python3 >/dev/null 2>&1') == 0, 'python3 not installed');
+            portFile = fullfile(tc.Dir, 'port.txt');
+            prefix = fullfile(tc.Dir, 'req');
+            script = fullfile(fileparts(mfilename('fullpath')), 'background_listener.py');
+            system(sprintf('python3 -I ''%s'' ''%s'' ''%s'' 6 > /dev/null 2>&1 &', script, portFile, prefix));
+            tc.addTeardown(@() system(sprintf('pkill -f ''%s''', script)));
+            tc.verifyTrue(BackgroundUploadTest.waitFor(@() isfile(portFile)), 'listener did not start');
+            cfg = tc.makeCfg('url', ['http://127.0.0.1:' strtrim(fileread(portFile)) '/upload.php']);
+            folder = tc.makeStageFolder();
+            tic
+            res = webupload.zipAndPost(folder, cfg, 'mic_1', 'acq', 'Background', true, ...
+                'Launcher', @tc.realLauncher);
+            elapsed = toc;
+            tc.verifyTrue(res.ok);
+            tc.verifyLessThan(elapsed, 3, 'the server answers only after 6 s');
+            [cfgPath, zipPath] = tc.launchedPaths();
+            tc.verifyTrue(BackgroundUploadTest.waitFor(@() ~isfile(cfgPath) && ~isfile(zipPath)));
         end
 
         % ---- end to end against a local listener
@@ -236,8 +296,11 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyTrue(contains(hdr, 'authorization: Bearer SECRETTOKEN123'));
             tc.verifyFalse(contains(hdr, 'transfer-encoding'), 'must not be chunked');
             len = str2double(regexp(hdr, 'content-length: (\d+)', 'tokens', 'once'));
-            body = fileread([prefix '.body']);
-            tc.verifyEqual(len, numel(body));
+            fid = fopen([prefix '.body'], 'r');
+            bytes = fread(fid, Inf, '*uint8')';
+            fclose(fid);
+            body = char(bytes);
+            tc.verifyEqual(len, numel(bytes));
             for field = {'site_id', 'microscope_id', 'source', 'data'}
                 tc.verifyTrue(contains(body, ['name="' field{1} '"']), field{1});
             end

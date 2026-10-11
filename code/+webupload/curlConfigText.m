@@ -9,13 +9,21 @@ function text = curlConfigText(cfg, micID, source, zipPath, connectTimeout, maxT
     % in-process one: an Authorization: Bearer header (from cfg.authHeader, so the token is
     % not read here), form fields site_id, microscope_id and source, and the zip as 'data'.
     % curl builds the multipart body itself and sends a Content-Length, and does not follow
-    % redirects unless told to, which keeps the token from being sent elsewhere.
+    % redirects unless told to, which keeps the token from being sent elsewhere. 'proto' limits
+    % curl to the scheme of the url (webConfig allows plain http only for localhost). 'http1.1'
+    % and an empty Expect header keep the request to one plain POST, as the in-process one is;
+    % that this gives the same Content-Length behaviour on the production server (FastCGI) has
+    % only been checked against a local listener.
+    %
+    % Timeouts: max-time limits the whole transfer, so it covers the upload of the zip as well
+    % as the reply. There is no equivalent of DataTimeout, so that option is ignored here.
     %
     % The text contains the token, so write it to a file only the user can read, and delete
     % it afterwards. Values are double-quoted with \ and " escaped. The zip path is escaped
     % twice: once for curl's form parser, which treats the quoted file name specially, and
-    % once for the config file. Control characters in any value are refused, because they
-    % would end the config line. The text fields use form-string, so an @ or < in a value is
+    % once for the config file. Control characters in any value are refused
+    % (webupload:badConfigValue, naming the field but not showing it, since it may be the
+    % token), because they would end the config line. The text fields use form-string, so an @ or < in a value is
     % never read as a file reference.
     %
     % Inputs
@@ -35,11 +43,16 @@ function text = curlConfigText(cfg, micID, source, zipPath, connectTimeout, maxT
     authValue = char(cfg.authHeader().Value);
     zipPath = char(zipPath);
     values = {url, authValue, siteID, micID, source, zipPath, nullDevice};
+    names = {'url', 'authorization header', 'site ID', 'microscope ID', 'source', 'zip path', 'null device'};
     for ii = 1:numel(values)
         if any(values{ii} < 32)
-            % The offending value may be the token, so it is not shown
-            error('webupload:badPath', 'Value %d of the curl config contains a control character.', ii);
+            error('webupload:badConfigValue', 'The %s contains a control character.', names{ii});
         end
+    end
+    if startsWith(url, 'https://')
+        proto = '=https';
+    else
+        proto = '=http';
     end
 
     formFile = ['data=@"', backslashEscape(zipPath), '";type=application/zip;filename=system_data.zip'];
@@ -50,6 +63,9 @@ function text = curlConfigText(cfg, micID, source, zipPath, connectTimeout, maxT
         ['form-string = ', configQuote(['microscope_id=', micID])]
         ['form-string = ', configQuote(['source=', source])]
         ['form = ', configQuote(formFile)]
+        ['proto = ', configQuote(proto)]
+        'http1.1'
+        'header = "Expect:"'
         sprintf('connect-timeout = %g', connectTimeout)
         sprintf('max-time = %g', maxTime)
         ['output = ', configQuote(nullDevice)]

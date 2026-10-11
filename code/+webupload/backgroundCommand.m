@@ -10,32 +10,42 @@ function cmd = backgroundCommand(cfgPath, zipPath, isPC)
     % command. The command ends with the deletion of the config and zip, so they are removed
     % whether curl succeeds or fails.
     %
-    % Unix:    (curl -K 'cfg'; rm -f 'cfg' 'zip') > /dev/null 2>&1 &
-    % Windows: start "" /B cmd /c "curl.exe -K "cfg" & del /q "cfg" "zip""
-    % The Windows form needs curl.exe (Windows 10 and later).
+    % Unix:    (curl -q -K 'cfg'; rm -f 'cfg' 'zip') > /dev/null 2>&1 &
+    % Windows: start "" /B cmd /c "curl.exe -q -K "cfg" & del /q "cfg" "zip"" <NUL >NUL 2>&1
+    %
+    % -q must be the first curl option: it stops curl reading ~/.curlrc (or $CURL_HOME),
+    % which could otherwise add a proxy, redirect-following or another header to a request
+    % that carries the token. The Windows form needs curl.exe (Windows 10 and later); the
+    % redirections stop the started process holding MATLAB's stdin and stdout, so system()
+    % does not wait for it. The unix form assumes a POSIX shell, as MATLAB's system() uses.
+    % This is best effort: a zero status from the launcher shows the shell started, not that
+    % curl did.
     %
     % Inputs
-    % cfgPath - path of the curl config file.
-    % zipPath - path of the zip that the config uploads.
+    % cfgPath - path of the curl config file (char or string).
+    % zipPath - path of the zip that the config uploads (char or string).
     % isPC    - true for the Windows form, false for the unix form.
     %
     % Outputs
     % cmd - the command, as a char row vector.
 
+    cfgPath = char(cfgPath);
+    zipPath = char(zipPath);
     if isPC
-        % cmd.exe reads %VAR% even inside double quotes, and a " cannot be a part of a path
+        % Inside double quotes cmd.exe still reads %VAR%, and the other characters below
+        % could end the quoting or start another command; a " cannot be in a path anyway.
         for path = {cfgPath, zipPath}
-            if any(path{1} == '%') || any(path{1} == '"')
+            if any(ismember(path{1}, '%"&|<>^()'))
                 error('webupload:badPath', ...
-                    'A path containing %% or " cannot be passed safely to cmd.exe: %s', path{1});
+                    'A path containing any of %% " & | < > ^ ( ) cannot be passed safely to cmd.exe: %s', ...
+                    path{1});
             end
         end
-        cmd = sprintf('start "" /B cmd /c "curl.exe -K "%s" & del /q "%s" "%s""', ...
+        cmd = sprintf('start "" /B cmd /c "curl.exe -q -K "%s" & del /q "%s" "%s"" <NUL >NUL 2>&1', ...
             cfgPath, cfgPath, zipPath);
     else
         cfgArg = shellQuote(cfgPath);
-        cmd = sprintf('(curl -K %s; rm -f %s %s) > /dev/null 2>&1 &', ...
+        cmd = sprintf('(curl -q -K %s; rm -f %s %s) > /dev/null 2>&1 &', ...
             cfgArg, cfgArg, shellQuote(zipPath));
     end
 end % backgroundCommand
-

@@ -68,7 +68,7 @@ function result = updateSectionImage(img,varargin)
     % 'Background',true returns without waiting for the server. The zip is handed to a detached
     % curl process that sends it and then deletes the zip and its temporary config file (which
     % holds the token, readable only by the user on unix). curl must be installed (on Windows,
-    % curl.exe from Windows 10 on). result.ok then means only that curl was started:
+    % curl.exe from Windows 10 on). result.ok then means only that the launch command succeeded (best effort, not proof that curl ran):
     % result.post.httpStatus is NaN, result.post.background is true, and a failed upload is
     % never seen. A Finished call is not retried after a 429 in this mode, since there is no
     % reply to see. If curl cannot be started the call fails as usual (ok false, with the

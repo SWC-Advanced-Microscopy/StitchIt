@@ -5,7 +5,7 @@ StitchIt (source `analysis`): loads and validates the config file, stages the
 preview files in a clean folder under the names the server keeps, writes
 `status.json`, zips the folder, and uploads the zip to the brainsaw server,
 using only built-in MATLAB (`imwrite`, `zip`, `matlab.net.http`), so it works
-on Windows and Mac with no external tools. It knows nothing about BakingTray or
+on Windows and Mac with no external tools (the optional background upload needs `curl`). It knows nothing about BakingTray or
 StitchIt: each calls `webupload.updateSectionImage` (below). Example call sites
 for BakingTray are in `BakingTray/README.md`.
 
@@ -203,12 +203,21 @@ once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
   `tempdir` holding the url, the `Authorization: Bearer` header, the form fields
   (`site_id`, `microscope_id`, `source`, `data`) and the timeouts (`--connect-timeout`
   from `ConnectTimeout`, `--max-time` from `ResponseTimeout`), and starts curl.
-  The request is the same as the in-process one, with a Content-Length.
+  `--max-time` limits the whole transfer, including sending the zip, and `DataTimeout`
+  is ignored. The request is a plain HTTP/1.1 POST built by curl (`http1.1`, no
+  `Expect` header, `proto` limited to the url's scheme), with a Content-Length: this was
+  checked against a local listener only, not against the production FastCGI server.
+  curl is started with `-q` so a `~/.curlrc` cannot change the request.
 - The token is in the config file, not on the command line, so it does not show in
-  `ps` or Task Manager. On unix the file is `chmod 600`. The launched command
+  `ps` or Task Manager. On unix the file is created under `umask 077`, so it is never
+  readable by others, and it is deleted if the launch fails or is interrupted. The launched command
   (`webupload.backgroundCommand`) deletes the config file and the zip when curl exits,
   whether or not the upload worked. `zipAndPost` therefore does not delete its zip after
   a successful launch (it does if the launch failed).
+- Best effort: success means the launch command returned success, not that curl
+  ran. The unix command assumes a POSIX shell (as MATLAB's `system` uses); the Windows
+  command is a `start /B cmd /c` line with its input and output redirected so MATLAB
+  does not wait for curl, and paths containing any of `% " & | < > ^ ( )` are refused.
 - Result: `ok = true`, `httpStatus = NaN`, `background = true`, message `Upload started
   in background; outcome not checked`. `ok` means only that curl was started; **a
   failed upload is never seen**. `ok = false` (with the reason) if curl is missing, the
@@ -221,7 +230,7 @@ once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
 
 ## Windows notes
 
-Only built-in MATLAB is used. Paths are built with `fullfile`. MATLAB does not
+Only built-in MATLAB is used, except for the optional `'Background'` upload, which needs `curl.exe`. Paths are built with `fullfile`. MATLAB does not
 expand `%VAR%` in paths: use `getenv('USERPROFILE')` when you need the home
 folder. The stage folder is under `tempdir` (normally the user's `Temp`).
 Antivirus or a file held open elsewhere can make a rename fail; that is a
@@ -236,7 +245,7 @@ From the repo root:
 ```
 
 (use your own MATLAB path). The tests add the packages to the path themselves. They
-need no real server (one test posts to a refused `127.0.0.1` port). The end-to-end
+need no real server (some tests post to a refused `127.0.0.1` port). The end-to-end
 background test starts `curl` against a throwaway local listener
 (`tests/background_listener.py`) and is skipped where there is no unix shell, `curl`
 or `python3`. Two tests

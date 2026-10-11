@@ -1,6 +1,6 @@
 """Minimal HTTP listener for BackgroundUploadTest (not part of the product).
 
-usage: python3 background_listener.py PORTFILE OUTPREFIX
+usage: python3 background_listener.py PORTFILE OUTPREFIX [DELAY_SECONDS]
 
 Binds 127.0.0.1 on a free port, writes the port number to PORTFILE, serves one POST,
 writes the raw body to OUTPREFIX.body and then the request headers (one "name: value"
@@ -10,6 +10,7 @@ written last, so its existence means the request has been fully recorded.
 import json
 import os
 import sys
+import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
@@ -26,6 +27,7 @@ class Handler(BaseHTTPRequestHandler):
             for name, value in self.headers.items():
                 fh.write("%s: %s\n" % (name.lower(), value))
         os.rename(tmp, self.server.prefix + ".hdr")
+        time.sleep(self.server.delay)
         reply = json.dumps({"status": "ok"}).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -37,9 +39,10 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
-def main(portfile, prefix):
+def main(portfile, prefix, delay):
     server = HTTPServer(("127.0.0.1", 0), Handler)
     server.prefix = prefix
+    server.delay = delay
     with open(portfile + ".tmp", "w") as fh:
         fh.write(str(server.server_port))
     os.rename(portfile + ".tmp", portfile)
@@ -48,4 +51,4 @@ def main(portfile, prefix):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], float(sys.argv[3]) if len(sys.argv) > 3 else 0.0)
