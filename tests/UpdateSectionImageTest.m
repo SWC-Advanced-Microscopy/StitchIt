@@ -349,6 +349,34 @@ classdef UpdateSectionImageTest < matlab.unittest.TestCase
             tc.verifyGreaterThanOrEqual(waited, webupload.serverLimits().minUploadIntervalSec + 1);
         end
 
+        function backgroundIsPassedToThePosterOnlyWhenTrue(tc)
+            tc.update();
+            tc.verifyEqual(tc.Calls(1).extra, {}, 'default calls pass no Background argument');
+            tc.update('Background', true);
+            tc.verifyEqual(tc.Calls(2).extra, {'Background', true});
+        end
+
+        function backgroundFinishedCallIsNotRetriedAfter429(tc)
+            tc.PosterReply = struct('ok', false, 'httpStatus', 429, 'message', 'rate limited');
+            tc.update('Finished', true, 'Background', true);
+            tc.verifyNumElements(tc.Calls, 1);
+        end
+
+        function backgroundMustBeLogicalScalar(tc)
+            tc.update('Background', 'yes');
+            tc.verifyFalse(tc.Out.ok);
+            tc.verifyEmpty(tc.Calls);
+        end
+
+        function backgroundReplyWithExtraFieldIsAccepted(tc)
+            tc.PosterReply = struct('ok', true, 'httpStatus', NaN, ...
+                'message', 'Upload started in background; outcome not checked', 'background', true);
+            res = tc.update('Background', true);
+            tc.verifyTrue(res.ok);
+            tc.verifyEmpty(tc.WarnId);
+            tc.verifyTrue(res.post.background);
+        end
+
         function rateLimitedFinishedCallIsRetriedNoMoreThanOnce(tc)
             tc.PosterReply = struct('ok', false, 'httpStatus', 429, 'message', 'rate limited');
             res = tc.update('Finished', true);
@@ -435,8 +463,6 @@ classdef UpdateSectionImageTest < matlab.unittest.TestCase
                 'cfg', tc.Cfg, tc.BaseArgs{:}));
             tc.verifyFalse(tc.Out.ok);
             tc.verifyFailedWarning();
-            tc.verifyEmpty(tc.Calls);
-        end
             tc.verifyEmpty(tc.Calls);
         end
 

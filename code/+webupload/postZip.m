@@ -3,7 +3,7 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
     %
     % function result = webupload.postZip(zipPath, cfg, micID, source, ...
     %                                      'ConnectTimeout', 5, 'ResponseTimeout', 10, ...
-    %                                      'DataTimeout', 10)
+    %                                      'DataTimeout', 10, 'Background', false)
     %
     % Purpose
     % Uploads the zip with a bearer token. cfg is a webupload.webConfig object, which has
@@ -28,10 +28,30 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
     % Redirects are never followed: the request carries a bearer token, and a redirect could
     % send it to an http:// or other host. A 3xx answer returns ok = false.
     %
-    % The call is synchronous: it blocks until the server answers or a timeout fires, so a
+    % By default the call is synchronous: it blocks until the server answers or a timeout fires, so a
     % dead or stalled server delays the caller by about the timeouts. Whether ResponseTimeout
     % and DataTimeout cover the transfer of the upload itself is unverified; a warning
     % (webupload:postZip:noTimeout) is issued if this MATLAB release lacks either property.
+    %
+    % With 'Background', true the call does not wait. After the checks above it writes a curl
+    % config file in tempdir (the url, the Authorization header, the form fields and the
+    % timeouts; see webupload.curlConfigText) and starts curl detached, using the shell
+    % command from webupload.backgroundCommand. The token is in that file, never on a command
+    % line, so it does not show in ps or Task Manager; on unix the file is created readable
+    % only by the user. The same command deletes the config file and the zip once curl exits,
+    % whether or not the upload worked, so the caller must not delete the zip when
+    % result.background is true (zipAndPost does this). The outcome of the upload is never
+    % seen: result.ok = true means only that the launch command returned success, which is
+    % best effort: it shows the shell started, not that curl did. Failure to start (curl not
+    % installed, config file not writable, launch command failed) is ok = false, and the config
+    % file is removed, also if the call is interrupted with Ctrl-C before the launch. The
+    % unix commands are run as /bin/sh -c '...', whatever shell MATLAB's system() uses.
+    % curl must be installed (on Windows, curl.exe from Windows 10 on). The Windows launch
+    % (start /B with redirected input and output) is expected to let system() return at
+    % once; that has not been checked on a Windows machine.
+    %
+    % In background mode ResponseTimeout becomes curl's --max-time, a limit on the whole
+    % transfer, including the upload of the zip. DataTimeout is ignored.
     %
     % Deliberate catch-all: this runs inside long-running instrument and analysis code, and a
     % flaky network or bad config must never interrupt it. Every failure is reported as
@@ -50,13 +70,21 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
     % 'ResponseTimeout' - Seconds. Replaces cfg.responseTimeout for this call only.
     % 'DataTimeout'     - Seconds. Replaces cfg.dataTimeout for this call only. Short
     %                     values keep a call from blocking its caller for long when the
-    %                     network is dead.
+    %                     network is dead. Ignored with 'Background', true.
+    % 'Background'      - Logical scalar, default false. True starts a detached curl and
+    %                     returns at once (see above).
+    % 'Launcher'        - Hidden, for tests: function handle [status, out] = launcher(cmd)
+    %                     that runs a shell command. Default @system.
+    % 'IsPC'            - Hidden, for tests: logical, which platform's commands to build.
+    %                     Default ispc.
     %
     % Outputs
-    % result - structure with fields ok, httpStatus and message. httpStatus is NaN if no
-    %          response arrived.
+    % result - structure with fields ok, httpStatus, message and background. httpStatus is NaN
+    %          if no response arrived, and always for a background upload. background is true
+    %          only when a background upload was started, with message 'Upload started in
+    %          background; outcome not checked'.
 
-    result = struct('ok', false, 'httpStatus', NaN, 'message', '');
+    result = struct('ok', false, 'httpStatus', NaN, 'message', '', 'background', false);
     cfgIsValid = isa(cfg, 'webupload.webConfig') && isscalar(cfg) && isvalid(cfg);
 
     try
@@ -69,6 +97,9 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
         end
         if isstring(source) && isscalar(source)
             source = char(source);
+        end
+        if isstring(zipPath) && isscalar(zipPath)
+            zipPath = char(zipPath);
         end
 
         if ~ischar(micID) || ~(isrow(micID) || isempty(micID))
@@ -92,7 +123,12 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
         params.addParameter('ConnectTimeout', cfg.connectTimeout, webupload.webConfig.isSeconds)
         params.addParameter('ResponseTimeout', cfg.responseTimeout, webupload.webConfig.isSeconds)
         params.addParameter('DataTimeout', cfg.dataTimeout, webupload.webConfig.isSeconds)
+        isLogicalScalar = @(x) isscalar(x) && (islogical(x) || (isnumeric(x) && isreal(x) && ~isnan(x)));
+        params.addParameter('Background', false, isLogicalScalar)
+        params.addParameter('IsPC', ispc, @(x) isscalar(x) && islogical(x))
+        params.addParameter('Launcher', @system, @(x) isa(x, 'function_handle') && isscalar(x))
         params.parse(varargin{:});
+        background = logical(params.Results.Background);
         opts = makeOptions(params.Results.ConnectTimeout, params.Results.ResponseTimeout, ...
                            params.Results.DataTimeout);
 
@@ -100,6 +136,11 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
             error('webupload:noZip', 'Zip file not found: %s', zipPath);
         end
 
+        if background
+            result = startBackgroundUpload(cfg, micID, source, zipPath, params.Results);
+            result.message = cfg.scrub(result.message);
+            return
+        end
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         % Build and send the request. The multipart body is built in memory, not streamed
@@ -114,6 +155,7 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
         resp = req.send(cfg.url, opts);
 
         result = webupload.interpretResponse(double(resp.StatusCode), resp.Body.Data);
+        result.background = false;
     catch err
         result.message = err.message;
     end
@@ -122,6 +164,104 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
         result.message = cfg.scrub(result.message);
     end
 end % postZip
+
+
+function result = startBackgroundUpload(cfg, micID, source, zipPath, settings)
+    % Write the curl config and start curl detached; error if that fails
+    %
+    % function result = webupload.postZip>startBackgroundUpload(cfg, micID, source, zipPath, settings)
+    %
+    % Purpose
+    % The 'Background' branch of postZip, run after the arguments have been checked. Checks
+    % that curl can be found, writes the config file, and runs the command from
+    % webupload.backgroundCommand. The config file holds the token, so a guard deletes it
+    % if anything fails or the call is interrupted; the guard is disarmed as soon as the
+    % launch has succeeded, when the launched command becomes responsible for it. Errors
+    % propagate to postZip, which reports them. The zip is never deleted here: on success
+    % the launched command deletes it, on failure the caller does.
+    %
+    % Inputs
+    % cfg, micID, source, zipPath - as for postZip, already validated.
+    % settings - postZip's parsed parameters: ConnectTimeout, ResponseTimeout and Launcher.
+    %
+    % Outputs
+    % result - structure as returned by postZip, with ok and background true.
+
+    isPC = settings.IsPC;
+    if isPC
+        checkCurl = 'where curl.exe >NUL 2>&1';
+        nullDevice = 'NUL';
+    else
+        checkCurl = inBinSh('command -v curl >/dev/null 2>&1');
+        nullDevice = '/dev/null';
+    end
+    launcher = settings.Launcher;
+
+    if launcher(checkCurl) ~= 0
+        error('webupload:noCurl', ...
+            'curl was not found, so the upload cannot be run in the background.');
+    end
+
+    text = webupload.curlConfigText(cfg, micID, source, zipPath, ...
+        settings.ConnectTimeout, settings.ResponseTimeout, nullDevice);
+    cfgPath = [tempname, '.curlcfg'];
+    guard = webupload.CleanupGuard(@() deleteIfFile(cfgPath));
+    writePrivateFile(cfgPath, text);
+
+    cmd = webupload.backgroundCommand(cfgPath, zipPath, isPC);
+    if ~isPC
+        cmd = inBinSh(cmd);
+    end
+    status = launcher(cmd);
+    if status ~= 0
+        error('webupload:launchFailed', 'Starting curl failed (status %d).', status);
+    end
+    guard.disarm();
+
+    result = struct('ok', true, 'httpStatus', NaN, ...
+        'message', 'Upload started in background; outcome not checked', 'background', true);
+end % startBackgroundUpload
+
+
+function writePrivateFile(path, text)
+    % Write text to a new file that only the current user can read (on unix)
+    %
+    % function webupload.postZip>writePrivateFile(path, text)
+    %
+    % Purpose
+    % On unix the file is created by the shell under umask 077, so it never exists with wider
+    % permissions than 600, and the result is checked. On Windows tempdir is already per user.
+    % Errors if the file cannot be created, restricted or written; the caller deletes it.
+    %
+    % Inputs
+    % path - where to write the file. Must not exist.
+    % text - contents.
+
+    if isunix
+        [status, msg] = system(['umask 077; : > ', shellQuote(path)]);
+        if status ~= 0
+            error('webupload:configNotWritten', ...
+                'Could not create the curl config file in %s: %s', tempdir, msg);
+        end
+        [~, attr] = fileattrib(path);
+        if any([attr.GroupRead attr.GroupWrite attr.OtherRead attr.OtherWrite])
+            error('webupload:configNotWritten', ...
+                'The curl config file is not private; not using it.');
+        end
+    end
+    fid = fopen(path, 'w', 'n', 'UTF-8'); % an existing file keeps its permissions
+    if fid < 0
+        error('webupload:configNotWritten', ...
+            'Could not write the curl config file in %s.', tempdir);
+    end
+    % A truncated config could lose max-time, so a short write or failed close is an error
+    nWritten = fprintf(fid, '%s', text);
+    closeStatus = fclose(fid);
+    if nWritten ~= numel(unicode2native(text, 'UTF-8')) || closeStatus ~= 0
+        error('webupload:configNotWritten', ...
+            'The curl config file was not written completely.');
+    end
+end % writePrivateFile
 
 
 function opts = makeOptions(connectTimeout, responseTimeout, dataTimeout)

@@ -3,15 +3,22 @@ function result = zipAndPost(folder, cfg, micID, source, varargin)
     %
     % function result = webupload.zipAndPost(folder, cfg, micID, source, ...
     %                                          'ConnectTimeout', 5, 'ResponseTimeout', 10, ...
-    %                                          'DataTimeout', 10)
+    %                                          'DataTimeout', 10, 'Background', false)
     %
     % Purpose
     % The entry point for instrument and analysis code. Any failure (missing folder, no files, too large,
     % network, bad cfg) is returned as result.ok = false with a message, with the token
-    % scrubbed by postZip, so the caller is never interrupted. The temp zip is always deleted.
-    % Blocks for up to the postZip timeouts. The folder must hold recipe.yml and status.json
+    % scrubbed by postZip, so the caller is never interrupted. The temp zip is deleted, except
+    % after a successful 'Background' launch (below). Blocks for up to the postZip timeouts,
+    % unless 'Background' is true. The folder must hold recipe.yml and status.json
     % or the server refuses the upload. micID, source and the optional timeouts are passed
     % to postZip, which documents them and validates them.
+    %
+    % With 'Background', true postZip starts a detached curl and returns at once. That curl is
+    % still reading the zip after this function returns, so the zip is not deleted here: the
+    % launched command deletes it (and the curl config) when curl exits. If the launch fails the
+    % zip is deleted here as usual. The launch is best effort: success means the launch command
+    % returned success, not that curl ran (see postZip).
     %
     % Inputs
     % folder - path to the folder holding the preview files.
@@ -23,33 +30,25 @@ function result = zipAndPost(folder, cfg, micID, source, varargin)
     % Inputs (optional param/val pairs)
     % 'ConnectTimeout', 'ResponseTimeout', 'DataTimeout' - per-call timeouts in seconds, see
     %                     postZip.
+    % 'Background' - Logical scalar, default false. See above and postZip.
     %
     % Outputs
-    % result - structure with fields ok, httpStatus and message.
+    % result - structure with fields ok, httpStatus, message and background (true only after a
+    %          successful background launch).
 
-    result = struct('ok', false, 'httpStatus', NaN, 'message', '');
+    result = struct('ok', false, 'httpStatus', NaN, 'message', '', 'background', false);
     try
         zipPath = webupload.zipFolder(folder);
-        cleaner = onCleanup(@() deleteQuietly(zipPath)); %#ok<NASGU> runs on scope exit
+        % Deleted on scope exit, also on Ctrl-C, unless a launched background command has
+        % taken over the zip. The disarm follows postZip's return at once; an interrupt in
+        % that instant could still delete a zip curl is about to read, which only loses that upload.
+        guard = webupload.CleanupGuard(@() deleteIfFile(zipPath));
         result = webupload.postZip(zipPath, cfg, micID, source, varargin{:});
+        if isfield(result, 'background') && isequal(result.background, true)
+            guard.disarm();
+        end
     catch err
         result.message = err.message;
     end
 end % zipAndPost
 
-
-function deleteQuietly(path)
-    % Delete a file if it exists
-    %
-    % function webupload.zipAndPost>deleteQuietly(path)
-    %
-    % Purpose
-    % Used to remove the temporary zip. Does nothing if the file is already gone.
-    %
-    % Inputs
-    % path - Path to the file to delete.
-
-    if isfile(path)
-        delete(path);
-    end
-end % deleteQuietly

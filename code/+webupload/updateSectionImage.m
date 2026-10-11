@@ -65,6 +65,16 @@ function result = updateSectionImage(img,varargin)
     % (ok is false, with the usual warning).
     %
     %
+    % 'Background',true returns without waiting for the server. The zip is handed to a detached
+    % curl process that sends it and then deletes the zip and its temporary config file (which
+    % holds the token, readable only by the user on unix). curl must be installed (on Windows,
+    % curl.exe from Windows 10 on). result.ok then means only that the launch command succeeded (best effort, not proof that curl ran):
+    % result.post.httpStatus is NaN, result.post.background is true, and a failed upload is
+    % never seen. A Finished call is not retried after a 429 in this mode, since there is no
+    % reply to see. If curl cannot be started the call fails as usual (ok false, with the
+    % warning). Default false. See webupload.postZip.
+    %
+    %
     % SUMMARY OF OPTIONAL ARGS
     % Inputs (optional param/val pairs)
     % 'recipePath' -  Path to recipe file
@@ -83,12 +93,15 @@ function result = updateSectionImage(img,varargin)
     %                @webupload.zipAndPost; tests inject a fake.
     % 'ClearStage' - Logical scalar. If true, empty the stage folder first. Default is
     %                false.
+    % 'Background' - Logical scalar. If true, start the upload in a detached curl and return
+    %                at once. Default is false.
     %
     % Outputs
     % result - Structure with fields:
     %   ok          - true if the upload succeeded.
     %   stage       - stageFiles result; [] if not reached.
-    %   post        - struct with ok, httpStatus and message.
+    %   post        - struct with ok, httpStatus and message (and background, if the poster
+    %                 returns it: true after a started background upload).
     %   stageDir    - '' if not reached; a char path built from StageRoot.
     %   recipeFresh - this call staged a new recipe. If not, nothing is uploaded.
     %   logFresh    - this call staged a new log.
@@ -155,6 +168,7 @@ function result = updateSectionImage(img,varargin)
                         @(x) isa(x,'function_handle') && isscalar(x))
     params.addParameter('StageRoot', tempdir, isNonEmptyText)
     params.addParameter('ClearStage', false, isLogicalScalar)
+    params.addParameter('Background', false, isLogicalScalar)
 
 
     try
@@ -205,12 +219,18 @@ function result = updateSectionImage(img,varargin)
         opts.Source = char(opts.Source);
         opts.Finished = logical(opts.Finished);
         opts.ClearStage = logical(opts.ClearStage);
+        opts.Background = logical(opts.Background);
 
         opts.PosterArgs = {};
         for name = {'ConnectTimeout','ResponseTimeout','DataTimeout'}
             if ~isempty(opts.(name{1}))
                 opts.PosterArgs = [opts.PosterArgs, name, {opts.(name{1})}];
             end
+        end
+
+        % Only passed when true, so a custom Poster written before this option still works
+        if opts.Background
+            opts.PosterArgs = [opts.PosterArgs, {'Background', true}];
         end
 
         result = runPipeline(result,img,recipePath,logPath,cfg,opts);
@@ -236,7 +256,8 @@ function result = runPipeline(result,img,recipePath,logPath,cfg,opts)
     % checks the IDs, so they are safe as folder names), stages the files with
     % webupload.stageFiles (which empties the folder first if opts.ClearStage is true, but
     % only after checking the images), writes status.json and uploads the folder with
-    % opts.Poster, once more after a 429 if opts.Finished.
+    % opts.Poster, once more after a 429 if opts.Finished (not in background mode, where
+    % there is no reply to see).
     %
     % Anything that goes wrong before staging has finished is thrown and caught by
     % updateSectionImage. After that, failures are written to result.error instead, so the
@@ -297,7 +318,7 @@ function result = runPipeline(result,img,recipePath,logPath,cfg,opts)
     try
         webupload.writeStatus(stageDir,opts.Finished);
         result.post = callPoster(opts,stageDir,cfg,micID);
-        if opts.Finished && isequal(result.post.httpStatus,429)
+        if opts.Finished && ~opts.Background && isequal(result.post.httpStatus,429)
             pause(webupload.serverLimits().minUploadIntervalSec + 1)
             result.post = callPoster(opts,stageDir,cfg,micID);
         end

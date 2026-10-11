@@ -5,8 +5,8 @@ StitchIt (source `analysis`): loads and validates the config file, stages the
 preview files in a clean folder under the names the server keeps, writes
 `status.json`, zips the folder, and uploads the zip to the brainsaw server,
 using only built-in MATLAB (`imwrite`, `zip`, `matlab.net.http`), so it works
-on Windows and Mac with no external tools. It knows nothing about BakingTray or
-StitchIt: each calls `webupload.updateSectionImage` (below). Example call sites
+on Windows and Mac with no external tools (the optional background upload needs
+`curl`). It knows nothing about BakingTray or StitchIt: each calls `webupload.updateSectionImage` (below). Example call sites
 for BakingTray are in `BakingTray/README.md`.
 
 Requires MATLAB R2019b or later (the oldest release BakingTray supports):
@@ -112,6 +112,7 @@ Anything else makes the call fail. The microscope ID is `SYSTEM.ID` of the recip
 | `Montage` | image to send as `montage.jpg`, as for `img` (array or jpg path). Only with `Source` `'analysis'`: with `'acq'` the call fails and sends nothing |
 | `Finished` | `true` writes `{"finished": true}` into `status.json` (default `false`). Only a Finished call is retried, once, after a 429, waiting this client's copy of the server's minimum upload interval (`serverLimits().minUploadIntervalSec`, 5 s) plus 1 s, with the same timeouts. A site that raises the interval on the server will answer the retry with another 429, and the Finished flag is lost (`ok` false, with the usual warning) |
 | `ConnectTimeout`, `ResponseTimeout`, `DataTimeout` | seconds, for this call only (see `postZip`; whether `ResponseTimeout` and `DataTimeout` cover the upload transfer itself is unverified) |
+| `Background` | `true` starts the upload in a detached `curl` process and returns at once (see "Background uploads" below); default `false` |
 | `ClearStage` | `true` empties the stage folder first; default `false` |
 | `StageRoot` | parent of the stage folder; default `tempdir`; text options may be strings, paths are returned as char |
 | `Poster` | function handle `poster(folder, cfg, micID, source, ...)` returning `struct(ok, httpStatus, message)`; default `@webupload.zipAndPost`; for tests |
@@ -191,9 +192,57 @@ the server defaults): at most 500 files and a 200 MB zip. If the server's PHP
 rather than 413. `interpretResponse` turns the HTTP status and body into the
 result structure.
 
+## Background uploads
+
+By default an upload blocks until the server answers, which on an acquisition PC adds
+up over hundreds of sections. `'Background', true` (accepted by `updateSectionImage`,
+`zipAndPost` and `postZip`) hands the upload to a detached `curl` and returns at
+once. Requires `curl` on the path (`curl.exe`, included from Windows 10).
+
+- `postZip` checks the arguments as usual, writes a curl config file (`-K`) in
+  `tempdir` holding the url, the `Authorization: Bearer` header, the form fields
+  (`site_id`, `microscope_id`, `source`, `data`) and the timeouts (`--connect-timeout`
+  from `ConnectTimeout`, `--max-time` from `ResponseTimeout`), and starts curl.
+  `--max-time` limits the whole transfer, including sending the zip, and `DataTimeout`
+  is ignored. The request is a plain HTTP/1.1 POST built by curl (`http1.1`, no
+  `Expect` header, `proto` limited to the url's scheme), with a Content-Length: this was
+  checked against a local listener only, not against the production FastCGI server.
+  curl is started with `-q` so a `~/.curlrc` cannot change the request.
+- The token is in the config file, not on the command line, so it does not show in
+  `ps` or Task Manager. On unix the file is created under `umask 077`, so it is never
+  readable by others, and it is deleted if the launch fails or is interrupted. The
+  launched command (`webupload.backgroundCommand`) deletes the config file and the zip when curl exits,
+  whether or not the upload worked. `zipAndPost` therefore does not delete its zip after
+  a successful launch (it does if the launch failed).
+- Best effort: success means the launch command returned success, not that curl
+  ran. On unix both the curl check and the launch run as `/bin/sh -c '...'`, because
+  MATLAB's `system` uses `$MATLAB_SHELL` or `$SHELL`, which may be csh or tcsh. The
+  Windows command is a `start /B cmd /c` line with its input and output redirected,
+  which is expected to let `system` return at once but has not been checked on Windows.
+  Paths containing any of `% " & | < > ^ ( ) !` are refused.
+- Result: `ok = true`, `httpStatus = NaN`, `background = true`, message `Upload started
+  in background; outcome not checked`. `ok` means only that curl was started; **a
+  failed upload is never seen**. `ok = false` (with the reason) if curl is missing, the
+  config file cannot be written or the launch command fails. Without `'Background'`,
+  results have `background = false`.
+- A `Finished` call is not retried after a 429 in this mode, since there is no reply.
+- Redirects are not followed (curl's default), as for the in-process upload.
+- The in-process path is unchanged. The Windows command has been tested only as a
+  string; it needs a live check on a Windows rig. Check that the call does not wait:
+
+  ```matlab
+  tic; webupload.zipAndPost(folder, cfg, micID, 'acq', 'Background', true); toc
+  ```
+
+  should take well under a second, even with a `url` that does not answer. If it
+  waits for curl, start curl from MATLAB instead of `system`, for example with
+  `java.lang.ProcessBuilder` (`start()` returns without waiting), using the same
+  `curl.exe -q -K <config>` arguments and the same deletion of the files afterwards.
+
 ## Windows notes
 
-Only built-in MATLAB is used. Paths are built with `fullfile`. MATLAB does not
+The in-process upload uses only built-in MATLAB; the optional `'Background'` upload
+also needs `curl.exe`. Paths are built with `fullfile`. MATLAB does not
 expand `%VAR%` in paths: use `getenv('USERPROFILE')` when you need the home
 folder. The stage folder is under `tempdir` (normally the user's `Temp`).
 Antivirus or a file held open elsewhere can make a rename fail; that is a
@@ -208,7 +257,10 @@ From the repo root:
 ```
 
 (use your own MATLAB path). The tests add the packages to the path themselves. They
-need no real server (one test posts to a refused `127.0.0.1` port). Two tests
+need no real server (some tests post to a refused `127.0.0.1` port). The end-to-end
+background test starts `curl` against a throwaway local listener
+(`tests/background_listener.py`) and is skipped where there is no unix shell, `curl`
+or `python3`. Two tests
 wait about 6 s each: the two 429 retry tests of a Finished call.
 
 Nothing in this module has been run against a live brainsaw server. Treat the
