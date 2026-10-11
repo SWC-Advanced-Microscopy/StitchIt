@@ -121,7 +121,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function backgroundLaunchesAndReturnsAtOnce(tc)
-            tc.assumeTrue(isunix, 'parses the unix command');
             zipPath = tc.makeZip();
             res = webupload.postZip(zipPath, tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
@@ -135,7 +134,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function tokenNeverOnACommandLine(tc)
-            tc.assumeTrue(isunix, 'parses the unix command');
             webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
             for ii = 1:numel(tc.Commands)
@@ -171,7 +169,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function failedLaunchFailsAndRemovesConfig(tc)
-            tc.assumeTrue(isunix, 'parses the unix command');
             tc.LaunchStatus = 127;
             res = webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
@@ -215,7 +212,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
 
         % ---- zipAndPost: who owns the zip
         function zipAndPostLeavesZipToTheLaunchedCommand(tc)
-            tc.assumeTrue(isunix, 'parses the unix command');
             folder = tc.makeStageFolder();
             res = webupload.zipAndPost(folder, tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
@@ -227,7 +223,6 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         end
 
         function zipAndPostDeletesZipWhenLaunchFails(tc)
-            tc.assumeTrue(isunix, 'parses the unix command');
             folder = tc.makeStageFolder();
             tc.LaunchStatus = 1;
             res = webupload.zipAndPost(folder, tc.makeCfg(), 'mic_1', 'acq', ...
@@ -237,12 +232,60 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyFalse(isfile(zipPath));
         end
 
+        function unixCommandsRunInBinShAndWindowsOnesDoNot(tc)
+            tc.assumeTrue(isunix, 'the sh form is only used on unix');
+            webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
+                'Background', true, 'Launcher', @tc.fakeLauncher, 'IsPC', false);
+            tc.verifyTrue(all(startsWith(tc.Commands, '/bin/sh -c ''')));
+            tc.verifyTrue(contains(tc.Commands{1}, 'command -v curl'));
+            tc.verifyTrue(startsWith(BackgroundUploadTest.unwrapSh(tc.Commands{2}), '(curl -q -K '));
+            tc.deleteLaunchedConfig();
+        end
+
+        function windowsBranchChecksForCurlExeAndStartsDetached(tc)
+            webupload.postZip(tc.makeZip(), tc.makeCfg(), 'mic_1', 'acq', ...
+                'Background', true, 'Launcher', @tc.fakeLauncher, 'IsPC', true);
+            tc.verifyTrue(startsWith(tc.Commands{1}, 'where curl.exe'));
+            tc.verifyTrue(startsWith(tc.Commands{2}, 'start "" /B cmd /c "curl.exe -q -K '));
+            tc.verifyFalse(contains(tc.Commands{2}, BackgroundUploadTest.Token));
+            tc.deleteLaunchedConfig();
+        end
+
+        function launchWorksWhenMatlabShellIsTcsh(tc)
+            % MATLAB reads MATLAB_SHELL once per session, so a child MATLAB is started with it set
+            tc.assumeTrue(isunix, 'needs a unix shell');
+            tc.assumeTrue(isfile('/bin/tcsh'), 'tcsh not installed');
+            tc.assumeTrue(system('command -v curl >/dev/null 2>&1') == 0, 'curl not installed');
+            tc.assumeTrue(isfile(fullfile(matlabroot, 'bin', 'matlab')), 'matlab binary not found');
+            [port, prefix] = tc.startListener(0);
+            tc.makeCfg('url', ['http://127.0.0.1:' port '/upload.php']);
+            cfgFile = fullfile(tc.CfgDir, 'cfg.json');
+            folder = tc.makeStageFolder();
+            outFile = fullfile(tc.Dir, 'child_out.txt');
+            childScript = fullfile(tc.Dir, 'child_run.m');
+            fid = fopen(childScript, 'w');
+            fprintf(fid, ['addpath(''%s'');\n', ...
+                'plain = system(''command -v curl >/dev/null 2>&1'');\n', ...
+                'cfg = webupload.webConfig(''%s'');\n', ...
+                'res = webupload.zipAndPost(''%s'', cfg, ''mic_1'', ''acq'', ''Background'', true);\n', ...
+                'fid = fopen(''%s'', ''w''); fprintf(fid, ''%%d %%d'', plain, res.ok); fclose(fid);\n'], ...
+                fullfile(fileparts(mfilename('fullpath')), '..', 'code'), cfgFile, folder, outFile);
+            fclose(fid);
+            system(sprintf('env MATLAB_SHELL=/bin/tcsh ''%s'' -batch "run(''%s'')" > /dev/null 2>&1', ...
+                fullfile(matlabroot, 'bin', 'matlab'), childScript));
+            tc.assertTrue(isfile(outFile), 'child MATLAB did not finish');
+            childResult = sscanf(fileread(outFile), '%d %d');
+            tc.assumeTrue(childResult(1) ~= 0, 'MATLAB_SHELL not used by the child, so this shows nothing');
+            tc.verifyEqual(childResult(2), 1, 'the launch must work although tcsh runs system()');
+            tc.verifyTrue(BackgroundUploadTest.waitFor(@() isfile([prefix '.hdr'])), 'the upload never arrived');
+        end
+
         function stringZipPathGivesTheSameCommandAsCharPath(tc)
             tc.assumeTrue(isunix, 'parses the unix command');
             zipPath = tc.makeZip();
             webupload.postZip(string(zipPath), tc.makeCfg(), 'mic_1', 'acq', ...
                 'Background', true, 'Launcher', @tc.fakeLauncher);
-            tc.verifyTrue(contains(tc.Commands{end}, ['''' zipPath '''']));
+            tc.verifyTrue(contains(BackgroundUploadTest.unwrapSh(tc.Commands{end}), ['''' zipPath '''']));
             tc.verifyTrue(contains(fileread(tc.launchedConfigPath()), zipPath));
             tc.deleteLaunchedConfig();
         end
@@ -250,14 +293,8 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         function backgroundReturnsBeforeASlowServerAnswers(tc)
             tc.assumeTrue(isunix, 'needs a unix shell');
             tc.assumeTrue(system('command -v curl >/dev/null 2>&1') == 0, 'curl not installed');
-            tc.assumeTrue(system('command -v python3 >/dev/null 2>&1') == 0, 'python3 not installed');
-            portFile = fullfile(tc.Dir, 'port.txt');
-            prefix = fullfile(tc.Dir, 'req');
-            script = fullfile(fileparts(mfilename('fullpath')), 'background_listener.py');
-            system(sprintf('python3 -I ''%s'' ''%s'' ''%s'' 6 > /dev/null 2>&1 &', script, portFile, prefix));
-            tc.addTeardown(@() system(sprintf('pkill -f ''%s''', script)));
-            tc.verifyTrue(BackgroundUploadTest.waitFor(@() isfile(portFile)), 'listener did not start');
-            cfg = tc.makeCfg('url', ['http://127.0.0.1:' strtrim(fileread(portFile)) '/upload.php']);
+            [port, ~] = tc.startListener(6);
+            cfg = tc.makeCfg('url', ['http://127.0.0.1:' port '/upload.php']);
             folder = tc.makeStageFolder();
             tic
             res = webupload.zipAndPost(folder, cfg, 'mic_1', 'acq', 'Background', true, ...
@@ -273,19 +310,16 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
         function realCurlUploadArrivesWithContentLengthAndTidiesUp(tc)
             tc.assumeTrue(isunix, 'needs a unix shell');
             tc.assumeTrue(system('command -v curl >/dev/null 2>&1') == 0, 'curl not installed');
-            tc.assumeTrue(system('command -v python3 >/dev/null 2>&1') == 0, 'python3 not installed');
+            [port, prefix] = tc.startListener(0);
 
-            portFile = fullfile(tc.Dir, 'port.txt');
-            prefix = fullfile(tc.Dir, 'req');
-            script = fullfile(fileparts(mfilename('fullpath')), 'background_listener.py');
-            system(sprintf('python3 -I ''%s'' ''%s'' ''%s'' > /dev/null 2>&1 &', script, portFile, prefix));
-            tc.addTeardown(@() system(sprintf('pkill -f ''%s''', script)));
-            tc.verifyTrue(BackgroundUploadTest.waitFor(@() isfile(portFile)), 'listener did not start');
-            port = strtrim(fileread(portFile));
-
-            folder = tc.makeStageFolder();
+            % Over 1 MB, where curl would add 'Expect: 100-continue' unless told not to
+            folder = tc.makeStageFolder(1.5e6);
+            zipPath = webupload.zipFolder(folder);
+            reference = [zipPath '.reference'];
+            copyfile(zipPath, reference);
+            tc.addTeardown(@() delete(reference));
             cfg = tc.makeCfg('url', ['http://127.0.0.1:' port '/upload.php']);
-            res = webupload.zipAndPost(folder, cfg, 'mic_1', 'acq', 'Background', true, ...
+            res = webupload.postZip(zipPath, cfg, 'mic_1', 'acq', 'Background', true, ...
                 'Launcher', @tc.realLauncher);
             tc.verifyTrue(res.ok);
             tc.verifyTrue(res.background);
@@ -295,6 +329,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             hdr = fileread([prefix '.hdr']);
             tc.verifyTrue(contains(hdr, 'authorization: Bearer SECRETTOKEN123'));
             tc.verifyFalse(contains(hdr, 'transfer-encoding'), 'must not be chunked');
+            tc.verifyFalse(contains(hdr, 'expect:'), 'no 100-continue handshake');
             len = str2double(regexp(hdr, 'content-length: (\d+)', 'tokens', 'once'));
             fid = fopen([prefix '.body'], 'r');
             bytes = fread(fid, Inf, '*uint8')';
@@ -309,6 +344,11 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyTrue(contains(body, sprintf('name="source"\r\n\r\nacq')));
             tc.verifyTrue(contains(body, 'filename="system_data.zip"'));
             tc.verifyTrue(contains(body, 'application/zip'));
+            fid = fopen(reference, 'r');
+            sent = fread(fid, Inf, '*uint8')';
+            fclose(fid);
+            tc.verifyGreaterThan(numel(sent), 1e6);
+            tc.verifyTrue(contains(body, char(sent)), 'the zip arrives byte for byte');
 
             [cfgPath, zipPath] = tc.launchedPaths();
             gone = BackgroundUploadTest.waitFor(@() ~isfile(cfgPath) && ~isfile(zipPath));
@@ -331,6 +371,13 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
     end
 
     methods (Static, Access = private)
+        function cmd = unwrapSh(cmd)
+            % The sh command inside a /bin/sh -c '...' line
+            if startsWith(cmd, '/bin/sh -c ''')
+                cmd = strrep(cmd(13:end-1), '''\''''', '''');
+            end
+        end
+
         function ok = waitFor(cond)
             % Poll cond for up to 15 s
             ok = false;
@@ -345,6 +392,21 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
     end
 
     methods (Access = private)
+        function [port, prefix] = startListener(tc, delay)
+            % Start tests/background_listener.py on a free local port; killed by PID afterwards
+            tc.assumeTrue(system('command -v python3 >/dev/null 2>&1') == 0, 'python3 not installed');
+            portFile = fullfile(tc.Dir, 'port.txt');
+            prefix = fullfile(tc.Dir, 'req');
+            script = fullfile(fileparts(mfilename('fullpath')), 'background_listener.py');
+            cmd = sprintf('python3 -I ''%s'' ''%s'' ''%s'' %g > /dev/null 2>&1 & echo $!', ...
+                script, portFile, prefix, delay);
+            [~, pid] = system(['/bin/sh -c ''' strrep(cmd, '''', '''\''''') '''']);
+            pid = strtrim(pid);
+            tc.addTeardown(@() system(['kill ' pid ' > /dev/null 2>&1']));
+            tc.verifyTrue(BackgroundUploadTest.waitFor(@() isfile(portFile)), 'listener did not start');
+            port = strtrim(fileread(portFile));
+        end
+
         function [status, out] = fakeLauncher(tc, cmd)
             tc.Commands{end+1} = cmd;
             out = '';
@@ -362,7 +424,11 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
 
         function [cfgPath, zipPath] = launchedPaths(tc)
             % The two paths in the last recorded unix launch command
-            tok = regexp(tc.Commands{end}, 'rm -f ''([^'']*)'' ''([^'']*)''', 'tokens', 'once');
+            cmd = BackgroundUploadTest.unwrapSh(tc.Commands{end});
+            tok = regexp(cmd, 'rm -f ''([^'']*)'' ''([^'']*)''', 'tokens', 'once');
+            if isempty(tok)
+                tok = regexp(cmd, 'del /q "([^"]*)" "([^"]*)"', 'tokens', 'once');
+            end
             cfgPath = tok{1};
             zipPath = tok{2};
         end
@@ -395,10 +461,19 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             fid = fopen(path, 'w'); fwrite(fid, 'x'); fclose(fid);
         end
 
-        function folder = makeStageFolder(tc)
-            % A folder holding the two files the server requires
+        function folder = makeStageFolder(tc, imageBytes)
+            % A folder holding the two files the server requires, plus an image of random
+            % (so incompressible) bytes if imageBytes is given
             folder = fullfile(tc.Dir, 'stage');
             mkdir(folder);
+            if nargin > 1
+                saved = rng(1);
+                data = randi(255, 1, imageBytes, 'uint8');
+                rng(saved);
+                fid = fopen(fullfile(folder, 'LastCompleteSection.jpg'), 'w');
+                fwrite(fid, data);
+                fclose(fid);
+            end
             tc.writeFile(fullfile(folder, 'status.json'));
             tc.writeFile(fullfile(folder, 'recipe.yml'));
         end

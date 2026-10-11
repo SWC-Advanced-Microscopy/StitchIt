@@ -42,7 +42,7 @@ function result = zipAndPost(folder, cfg, micID, source, varargin)
         % Deleted on scope exit, also on Ctrl-C, unless a launched background command has
         % taken over the zip. The disarm follows postZip's return at once; an interrupt in
         % that instant could still delete a zip curl is about to read, which only loses that upload.
-        guard = webupload.CleanupGuard(@() deleteQuietly(zipPath));
+        guard = webupload.CleanupGuard(@() deleteIfFile(zipPath));
         result = webupload.postZip(zipPath, cfg, micID, source, varargin{:});
         if isfield(result, 'background') && isequal(result.background, true)
             guard.disarm();
@@ -52,19 +52,3 @@ function result = zipAndPost(folder, cfg, micID, source, varargin)
     end
 end % zipAndPost
 
-
-function deleteQuietly(path)
-    % Delete a file if it exists
-    %
-    % function webupload.zipAndPost>deleteQuietly(path)
-    %
-    % Purpose
-    % Used to remove the temporary zip. Does nothing if the file is already gone.
-    %
-    % Inputs
-    % path - Path to the file to delete.
-
-    if isfile(path)
-        delete(path);
-    end
-end % deleteQuietly

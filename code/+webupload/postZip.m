@@ -73,6 +73,8 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
     %                     returns at once (see above).
     % 'Launcher'        - Hidden, for tests: function handle [status, out] = launcher(cmd)
     %                     that runs a shell command. Default @system.
+    % 'IsPC'            - Hidden, for tests: logical, which platform's commands to build.
+    %                     Default ispc.
     %
     % Outputs
     % result - structure with fields ok, httpStatus, message and background. httpStatus is NaN
@@ -120,6 +122,7 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
         params.addParameter('ResponseTimeout', cfg.responseTimeout, webupload.webConfig.isSeconds)
         params.addParameter('DataTimeout', cfg.dataTimeout, webupload.webConfig.isSeconds)
         params.addParameter('Background', false, @(x) isscalar(x) && (islogical(x) || (isnumeric(x) && isreal(x) && ~isnan(x))))
+        params.addParameter('IsPC', ispc, @(x) isscalar(x) && islogical(x))
         params.addParameter('Launcher', @system, @(x) isa(x, 'function_handle') && isscalar(x))
         params.parse(varargin{:});
         background = logical(params.Results.Background);
@@ -181,11 +184,12 @@ function result = startBackgroundUpload(cfg, micID, source, zipPath, settings)
     % Outputs
     % result - structure as returned by postZip, with ok and background true.
 
-    if ispc
+    isPC = settings.IsPC;
+    if isPC
         checkCurl = 'where curl.exe >NUL 2>&1';
         nullDevice = 'NUL';
     else
-        checkCurl = 'command -v curl >/dev/null 2>&1';
+        checkCurl = inBinSh('command -v curl >/dev/null 2>&1');
         nullDevice = '/dev/null';
     end
     launcher = settings.Launcher;
@@ -200,7 +204,11 @@ function result = startBackgroundUpload(cfg, micID, source, zipPath, settings)
     guard = webupload.CleanupGuard(@() deleteIfFile(cfgPath));
     writePrivateFile(cfgPath, text);
 
-    status = launcher(webupload.backgroundCommand(cfgPath, zipPath, ispc));
+    cmd = webupload.backgroundCommand(cfgPath, zipPath, isPC);
+    if ~isPC
+        cmd = inBinSh(cmd);
+    end
+    status = launcher(cmd);
     if status ~= 0
         error('webupload:launchFailed', 'Starting curl failed (status %d).', status);
     end
@@ -243,17 +251,6 @@ function writePrivateFile(path, text)
     closer = onCleanup(@() fclose(fid));
     fprintf(fid, '%s', text);
 end % writePrivateFile
-
-
-function deleteIfFile(path)
-    % Delete a file if it exists
-    %
-    % function webupload.postZip>deleteIfFile(path)
-
-    if isfile(path)
-        delete(path);
-    end
-end % deleteIfFile
 
 
 function opts = makeOptions(connectTimeout, responseTimeout, dataTimeout)
