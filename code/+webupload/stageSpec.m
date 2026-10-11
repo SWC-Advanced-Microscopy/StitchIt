@@ -20,7 +20,7 @@ function s = stageSpec
     s.Names.MontageThumbnail = 'montage_thumbnail.jpg';
     s.Names.Recipe = 'recipe.yml';
     s.Names.Log = 'acqLog.txt';
-    s.JpegQuality = 85;
+    s.JpegQuality = 75;
     s.ThumbnailWidth = 500;
     s.PartSuffix = '.part';
 end % stageSpec

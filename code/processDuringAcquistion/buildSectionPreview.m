@@ -1,11 +1,11 @@
 function varargout=buildSectionPreview(sectionToPlot,channel)
-% Builds a preview image of the last completed section and send to WWW
+% Builds a preview image of the last completed section and sends to WWW
 %
-% function lastDir=buildSectionPreview(sectionToPlot,channel)
+% function buildSectionPreview(sectionToPlot,channel)
 %
 % Purpose
 % This function builds a low-res preview image of the first depth, a montage
-% of all depths, and a historgram (currently not used) of the first depth.
+% of all depths, and a histogram (currently not used) of the first depth.
 % This is optionally sent to a webserver. If there is more than one channel,
 % the main preview image is RGB. The montage image is one channel only: the
 % channel selected by the user as the second input argument. If missing, the
@@ -19,7 +19,7 @@ function varargout=buildSectionPreview(sectionToPlot,channel)
 %
 %
 % NOTES
-% Builds last completed directory as judged by the last trigger file
+% Uses the last completed directory as judged by the last trigger file
 % the clipping level is set via the INI file.
 %
 % Also see:
@@ -49,7 +49,7 @@ end
 verbose=1; %Used to diagnose a MATLAB segfault that occurs at some point during image production
 
 
-% Don't proceed if there a a lock file in the web-subirectory
+% Don't proceed if there is a lock file in the web-subdirectory
 if ~exist(userConfig.subdir.WEBdir,'dir')
     mkdir(userConfig.subdir.WEBdir)
 end
@@ -120,7 +120,7 @@ if verbose
     fprintf('Creating main image\n')
 end
 
-[im,threshLevel]=rescaleImage(im,rescaleThresh,pixSize);
+im=rescaleImage(im,rescaleThresh,pixSize);
 
 lastSection='LastCompleteSection.jpg';
 imwrite(im,[userConfig.subdir.WEBdir,filesep,lastSection],'bitdepth',8)
@@ -236,21 +236,33 @@ if ~userConfig.syncAndCrunch.sendToWeb
     return
 end
 
-%and a smaller version for mobile
 sendTo=userConfig.syncAndCrunch.server;
 
-lastSection_small='LastCompleteSection_small.jpg';
-imwrite(imresize(im,0.33),[userConfig.subdir.WEBdir,filesep,lastSection_small],'bitdepth',8)
 
-%Send all to then web
-returnVal=system(sprintf('LD_LIBRARY_PATH= scp -r -q %s%s* %s', userConfig.subdir.WEBdir, filesep, sendTo));
+%Send all to the web, along with a smaller version for mobile
+if ~isempty(sendTo)
+    lastSection_small='LastCompleteSection_small.jpg';
+    imwrite(imresize(im,0.33),[userConfig.subdir.WEBdir,filesep,lastSection_small],'bitdepth',8)
+    returnVal=system(sprintf('LD_LIBRARY_PATH= scp -r -q %s%s* %s', userConfig.subdir.WEBdir, filesep, sendTo));
 
-if returnVal==1
-    fprintf('WARNING: image failed to send to %s. Do you have access rights to that server?\n', sendTo);
+    if returnVal==1
+        fprintf('WARNING: image failed to send to %s. Do you have access rights to that server?\n', sendTo);
+    end
+end
+
+
+%% Send via PHP to brainsaw.org if a token file exists
+tokenCfgPath = webupload.getConfigFilePath;
+if ~isempty(tokenCfgPath)
+    if size(im,2) > 3000
+        im = imresize(im, [NaN 3500]);
+    end
+    webupload.updateSectionImage(im);
 end
 
 
 
+%% INTERNAL FUNCTIONS FOLLOW
 function [im,outThresh]=rescaleImage(im,thresh,pixSize)
     % Re-scale the stitched image look up table so it is visible on screen and saves nicely
     if nargin<2
