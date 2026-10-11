@@ -247,6 +247,7 @@ function result = runPipeline(result,img,recipePath,logPath,cfg,opts)
     % result     - Result structure of updateSectionImage as it stands before anything
     %              has been done, to be filled in.
     % img        - [], a numeric image or the path of a jpg.
+    %              If img is the string 'test' a test image is sent.
     % recipePath - Path to the recipe file.
     % logPath    - Path to the acquisition log file.
     % cfg        - webupload.webConfig object.
@@ -256,7 +257,18 @@ function result = runPipeline(result,img,recipePath,logPath,cfg,opts)
     % result - The input structure with stage, stageDir, recipeFresh, logFresh and stale
     %          filled in. post and ok are set once the poster has returned. error is set if
     %          staging was incomplete or the poster threw.
+    %
+    % EXAMPLE
+    % To test the process, set up the token file as instructed by the web admin. Then:
+    % 1. cd to a sample directory
+    % 2. Run: webupload.updateSectionImage('test')
+    % 3. Navigate to the URL your web admin provided. You should see a test image with a
+    %    recent upload time. Repeating the test will update the upload time.
 
+
+    if ischar(img) && strcmp(img,'test')
+        img = uint8( (abs(peaks(1000)))*20 );
+    end
     noMontage = isa(opts.Montage,'double') && isequal(size(opts.Montage),[0 0]);
     if ~noMontage && ~strcmp(opts.Source,'analysis')
         error('webupload:updateSectionImage:montageNotAllowed', ...
