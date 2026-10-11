@@ -51,8 +51,10 @@ function text = curlConfigText(cfg, micID, source, zipPath, connectTimeout, maxT
     end
     if startsWith(url, 'https://')
         proto = '=https';
+    elseif ~isempty(regexp(url, '^http://(localhost|127\.0\.0\.1)(:\d+)?(/|$)', 'once'))
+        proto = '=http'; % the same exception as webConfig: plain http only for local testing
     else
-        proto = '=http';
+        error('webupload:badConfigValue', 'The url must be https (http only for localhost).');
     end
 
     formFile = ['data=@"', backslashEscape(zipPath), '";type=application/zip;filename=system_data.zip'];

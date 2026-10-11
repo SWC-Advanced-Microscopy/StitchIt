@@ -59,7 +59,7 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
 
         function pcCommandRejectsCharactersCmdWouldReinterpret(tc)
             for bad = {'C:\50%\c.curl', 'C:\a"b\c.curl', 'C:\a&b\c.curl', 'C:\a|b\c.curl', ...
-                       'C:\a<b\c.curl', 'C:\a>b\c.curl', 'C:\a^b\c.curl', 'C:\a(b)\c.curl'}
+                       'C:\a<b\c.curl', 'C:\a>b\c.curl', 'C:\a^b\c.curl', 'C:\a(b)\c.curl', 'C:\a!b\c.curl'}
                 tc.verifyError(@() webupload.backgroundCommand(bad{1}, 'C:\z.zip', true), ...
                     'webupload:badPath');
             end
@@ -205,9 +205,16 @@ classdef BackgroundUploadTest < matlab.unittest.TestCase
             tc.verifyFalse(isfile(marker));
         end
 
-        function guardIgnoresAFailingTask(tc)
+        function guardWarnsAboutAFailingTaskInsteadOfThrowing(tc)
             g = webupload.CleanupGuard(@() error('x:y', 'boom'));
-            tc.verifyWarningFree(@() delete(g));
+            tc.verifyWarning(@() delete(g), 'webupload:cleanupFailed');
+        end
+
+        function configLimitsProtoToTheUrlScheme(tc)
+            f = @(url) webupload.curlConfigText(tc.makeCfg('url', url), 'mic_1', 'acq', '/tmp/z.zip', ...
+                5, 20, '/dev/null');
+            tc.verifyTrue(contains(f('http://127.0.0.1:8080/up.php'), 'proto = "=http"'));
+            tc.verifyTrue(contains(f('https://x.example/up.php'), 'proto = "=https"'));
         end
 
         % ---- zipAndPost: who owns the zip

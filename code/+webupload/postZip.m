@@ -45,8 +45,10 @@ function result = postZip(zipPath, cfg, micID, source, varargin)
     % best effort: it shows the shell started, not that curl did. Failure to start (curl not
     % installed, config file not writable, launch command failed) is ok = false, and the config
     % file is removed, also if the call is interrupted with Ctrl-C before the launch. The
-    % unix command assumes a POSIX shell. curl must be installed (on Windows, curl.exe from
-    % Windows 10 on).
+    % unix commands are run as /bin/sh -c '...', whatever shell MATLAB's system() uses.
+    % curl must be installed (on Windows, curl.exe from Windows 10 on). The Windows launch
+    % (start /B with redirected input and output) is expected to let system() return at
+    % once; that has not been checked on a Windows machine.
     %
     % In background mode ResponseTimeout becomes curl's --max-time, a limit on the whole
     % transfer, including the upload of the zip. DataTimeout is ignored.
@@ -248,8 +250,12 @@ function writePrivateFile(path, text)
     if fid < 0
         error('webupload:configNotWritten', 'Could not write the curl config file in %s.', tempdir);
     end
-    closer = onCleanup(@() fclose(fid));
-    fprintf(fid, '%s', text);
+    % A truncated config could lose max-time, so a short write or failed close is an error
+    nWritten = fprintf(fid, '%s', text);
+    closeStatus = fclose(fid);
+    if nWritten ~= numel(unicode2native(text, 'UTF-8')) || closeStatus ~= 0
+        error('webupload:configNotWritten', 'The curl config file was not written completely.');
+    end
 end % writePrivateFile
 
 

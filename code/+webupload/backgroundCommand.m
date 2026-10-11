@@ -17,7 +17,9 @@ function cmd = backgroundCommand(cfgPath, zipPath, isPC)
     % which could otherwise add a proxy, redirect-following or another header to a request
     % that carries the token. The Windows form needs curl.exe (Windows 10 and later); the
     % redirections stop the started process holding MATLAB's stdin and stdout, so system()
-    % does not wait for it. The unix form assumes a POSIX shell, as MATLAB's system() uses.
+    % is expected to stop system() waiting for it (not yet checked on a Windows machine).
+    % The unix string is written in sh syntax: webupload.postZip runs it as /bin/sh -c '...',
+    % because MATLAB's system() uses $MATLAB_SHELL or $SHELL, which may be csh or tcsh.
     % This is best effort: a zero status from the launcher shows the shell started, not that
     % curl did.
     %
@@ -32,12 +34,13 @@ function cmd = backgroundCommand(cfgPath, zipPath, isPC)
     cfgPath = char(cfgPath);
     zipPath = char(zipPath);
     if isPC
-        % Inside double quotes cmd.exe still reads %VAR%, and the other characters below
-        % could end the quoting or start another command; a " cannot be in a path anyway.
+        % Inside double quotes cmd.exe still reads %VAR% (and !VAR! if delayed expansion is
+        % on); the other characters below could end the quoting or start another command.
+        % A " cannot be in a Windows path anyway.
         for path = {cfgPath, zipPath}
-            if any(ismember(path{1}, '%"&|<>^()'))
+            if any(ismember(path{1}, '%"&|<>^()!'))
                 error('webupload:badPath', ...
-                    'A path containing any of %% " & | < > ^ ( ) cannot be passed safely to cmd.exe: %s', ...
+                    'A path containing any of %% " & | < > ^ ( ) ! cannot be passed safely to cmd.exe: %s', ...
                     path{1});
             end
         end

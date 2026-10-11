@@ -10,7 +10,8 @@ classdef CleanupGuard < handle
     % file must be deleted if anything goes wrong before the launched command takes
     % ownership of it, and must be left alone afterwards. MATLAB destroys the object when
     % the variable holding it goes out of scope, which also happens on Ctrl-C. Errors in
-    % the task are ignored, because they must not mask the error that caused the cleanup.
+    % the task are reported as a warning (webupload:cleanupFailed), not thrown, because they
+    % must not mask the error that caused the cleanup.
 
     properties (Access = private)
         Task
@@ -31,8 +32,8 @@ classdef CleanupGuard < handle
             if ~isempty(obj.Task)
                 try
                     obj.Task();
-                catch
-                    % Deliberately ignored, see above
+                catch err
+                    warning('webupload:cleanupFailed', 'Cleanup failed: %s', err.message);
                 end
             end
         end
