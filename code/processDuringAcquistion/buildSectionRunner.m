@@ -4,14 +4,14 @@ function buildSectionRunner(chan,runInPath)
     % function buildSectionRunner(chan, runInPath)
     %
     % Purpose
-    % Sends new data to the web when completed directories are found. 
+    % Sends new data to the web when completed directories are found.
     % Aborts when the FINISHED file appears. The channel to plot can be modified
     % once the function starts by editing the file at /tmp/buildSectionRunnerTargetChannel
     %
     % Inputs
     % chan - scalar defining which channel to plot to web
     % runInPath - used by syncAndCrunch to start this function in a background MATLAB
-    %             process. In general use, this argument isn't needed. 
+    %             process. In general use, this argument isn't needed.
     %
     % Rob Campbell - SWC 2018 & 2019
 
@@ -19,9 +19,9 @@ function buildSectionRunner(chan,runInPath)
       runInPath=pwd;
     end
 
-    % This funtion may have been called from the system command line to run in the background from
+    % This function may have been called from the system command line to run in the background from
     % syncAndCrunch using something like: via /usr/bin/MATLABR2017b/bin/matlab -nosplash -nodesktop -r 'run("buildSectionRunner(2)")'
-    % In this case we must ensure that StitchIt is in the path. So we will test this first, and add it if needed, before carrying on. 
+    % In this case we must ensure that StitchIt is in the path. So we will test this first, and add it if needed, before carrying on.
     thisMfile = which(mfilename);
     thisPath = fileparts(thisMfile);
     MATLABpath = path;
@@ -68,8 +68,8 @@ function buildSectionRunner(chan,runInPath)
 
     % This variable contains the channel we will attempt to plot on the
     % next pass through the main while loop (below). It can be modified
-    % by editing the above text file as this file is read before each 
-    % plotting attempt. The file is automatically fixed if does not 
+    % by editing the above text file as this file is read before each
+    % plotting attempt. The file is automatically fixed if does not
     % contain a valid channel.
     chanToPlotNext = [];
 
@@ -82,16 +82,23 @@ function buildSectionRunner(chan,runInPath)
              'FINISHED file appears\n'], mfilename)
 
 
+    % If there is a valid token file, clear the stage folder and wipe the acquisition on
+    % the server
+    tokenCfgPath = webupload.getConfigFilePath;
+    if ~isempty(tokenCfgPath)
+        webupload.updateSectionImage([],'clearstage',true)
+    end
+
     % Delete a lock file if it exists
     userConfig = readStitchItINI;
-    lockfile=fullfile(userConfig.subdir.WEBdir,'LOCK');    
+    lockfile=fullfile(userConfig.subdir.WEBdir,'LOCK');
     if exist(userConfig.subdir.WEBdir,'dir') && exist(lockfile,'file')
       fprintf('%s deleting orphan lock file.\n', mfilename)
       delete(lockfile)
     end
 
 
-    % If more than one section is complete, let's just run a web preview right away anyway. 
+    % If more than one section is complete, let's just run a web preview right away anyway.
     if curN > 1
         fprintf(' - buildSectionRunner finds there are already sections present and makes a first preview image.\n')
         buildSectionPreview([],chanToPlotNext)
@@ -118,14 +125,19 @@ function buildSectionRunner(chan,runInPath)
     fprintf('Acquisition is FINISHED. %s is quitting\n', mfilename)
     delete(chanFname)
 
+    % If there is a valid token file, send the finished signal to the server
+    if ~isempty(tokenCfgPath)
+        webupload.updateSectionImage([],'finished',true)
+    end
+
     function createTmpChanFile
         % Create a file that will contain the channel plot as originally defined
-        % by the user at the command line. 
+        % by the user at the command line.
 
         fprintf('Writing channel to plot to file at %s\n', chanFname)
         try
-            fid=fopen(chanFname,'w'); 
-            fprintf(fid,'%d',chan); 
+            fid=fopen(chanFname,'w');
+            fprintf(fid,'%d',chan);
             fclose(fid);
         catch ME
           fprintf('Failed to create channel temp file with error:\n')
@@ -133,21 +145,21 @@ function buildSectionRunner(chan,runInPath)
           return
         end
         fprintf('Finished writing channel to plot file\n')
-        
-          
+
+
     end %function createTmpChanFile
 
     function readChan
-        % Read the channel to plot from the text file. If it's valid 
-        % then assign it to a variable so it will be used on the next 
+        % Read the channel to plot from the text file. If it's valid
+        % then assign it to a variable so it will be used on the next
         % section. If it's not valid, replace it with the originally
-        % chosen channel. 
+        % chosen channel.
 
         if ~exist(chanFname,'file')
            createTmpChanFile
         end
 
-        try 
+        try
           fid=fopen(chanFname,'r');
           data=fscanf(fid,'%d');
 
@@ -168,7 +180,7 @@ function buildSectionRunner(chan,runInPath)
           chanToPlotNext = chan; %Use the default
           return
         end
-        
+
 
         if isempty(find(availableChannels==data))
             fprintf('Reverting to channel %d\n', chan)
