@@ -257,7 +257,7 @@ if ~isempty(tokenCfgPath)
     if size(im,2) > 3000
         im = imresize(im, [NaN 3500]);
     end
-    webupload.updateSectionImage(im);
+    webupload.updateSectionImage(im,'Montage',mos);
 end
 
 
