@@ -13,7 +13,7 @@ function startBackgroundWebPreview(chanToPlot,config)
     micName = strrep(params.System.ID,' ','_');
     pathToBSfile = fullfile(tempdir,['webPreviewBootstrap_',micName,'.m']);
     logFilePath = fullfile(tempdir,['webPreviewLogFile_',micName]);
-    
+
     % Before proceeding, let's kill any currently running background web previews
     PIDs=stitchit.tools.findProcesses(pathToBSfile);
     stitchit.tools.killPIDs(PIDs)
@@ -24,11 +24,12 @@ function startBackgroundWebPreview(chanToPlot,config)
     if fid<0
        fprintf('%s FAILED TO OPEN FILE at %s for writing\n', mfilename, pathToBSfile)
     else
+        fprintf(fid,'path(''%s'');\n', strrep(path,'''','''''')); %child inherits our path (e.g. to find the web preview JSON)
         fprintf(fid,'cd(''%s'');\n', fileparts(nSecRun)); %cd to the function directory
         fprintf(fid,'buildSectionRunner(%d,''%s'');\n', chanToPlot, pwd);
         fclose(fid);
     end
- 
+
 
     % Make empty log file
     fid = fopen(logFilePath,'w');
