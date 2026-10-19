@@ -1,6 +1,12 @@
 StitchIt Change-Log
 
 
+19/10/2026
+New web preview system that no longer depends on SSH and shared keys. Users supply SWC with
+their microscope name (as it appears in the recipe file) and SWC sets up an account to which
+they can push data and supplies a secure key for the transfer.
+
+
 28/09/2026
 - Cached offset files are now always deleted before final stitching by stitchAllChannels,
 so section-specific offsets are built from all sections on disk.
