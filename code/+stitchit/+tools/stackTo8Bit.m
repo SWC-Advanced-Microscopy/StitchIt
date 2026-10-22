@@ -25,7 +25,7 @@ function imStack8Bit = stackTo8Bit(imStack)
         tSlice = single(imStack(:,:,ii));
         tSlice = (tSlice./maxPixelValue) * 255;
 
-        imStack8Bit(:,:,ii) = uint8(tSlice);
+        imStack8Bit(:,:,ii) = uint8(floor(tSlice));
 
 
     end
